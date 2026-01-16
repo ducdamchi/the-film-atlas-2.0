@@ -1,50 +1,70 @@
-# IF RUNNING INTO MEMORY PROBLEMS IN VM:
+#DEPLOYMENT CYCLE:
 
-# Set higher memory limit
+# STEP 1: SSH into EC2 instance (from local directory terminal)
+ssh -i ~/.ssh/philadelphia-duc-mbp.pem ubuntu@ec2-18-220-89-123.us-east-2.compute.amazonaws.com
+# (from VM)
+sudo apt update
+sudo apt upgrade
 
-export NODE_OPTIONS="--max-old-space-size=2048"
-
-# Clean cache and build
-
-rm -rf node_modules/.vite dist
-npm run build
-
-# CHANGING SWAP SPACE
-
-# Turn off current swap
-
-sudo swapoff /swapfile
-
-# Remove the old swap file
-
-sudo rm /swapfile
-
-# Create 4GB swap file
-
-sudo fallocate -l 4G /swapfile
-
-# Set correct permissions
-
-sudo chmod 600 /swapfile
-
-# Set up as swap space
-
-sudo mkswap /swapfile
-
-# Enable the new swap file
-
-sudo swapon /swapfile
-
-# Update fstab to use the new swap file
-
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-
-# Check new swap space
-
-free -h
-sudo swapon --show
-
-
+# STEP 2: Sync files (from local directory terminal)
 rsync -avz --exclude 'client/node_modules' --exclude 'server/node_modules' --exclude '.git' \
 -e "ssh -i ~/.ssh/philadelphia-duc-mbp.pem" \
 . ubuntu@ec2-18-220-89-123.us-east-2.compute.amazonaws.com:~/app
+
+#STEP 3: CLIENT 
+# Run clean up script to remove old dependencies and free up space
+cd client
+chmod +x ./cleanup.sh 
+./cleanup.sh
+
+# install dependencies and build for production
+npm install
+npm run build:production
+
+#STEP 4: SERVER 
+cd server
+npm install
+npm start
+
+#STEP 5: Make sure process alwayss runs in background
+# reload systemd and start service 
+sudo systemctl daemon-reload
+sudo systemctl enable myapp.service
+sudo systemctl start myapp.service
+# restart reverse proxy
+sudo systemctl restart caddy
+
+
+
+
+# IF RUNNING INTO MEMORY PROBLEMS IN VM:
+# Set higher memory limit
+export NODE_OPTIONS="--max-old-space-size=2048"
+
+
+# CHANGING SWAP SPACE
+# Turn off current swap
+sudo swapoff /swapfile
+
+# Remove the old swap file
+sudo rm /swapfile
+
+# Create 4GB swap file
+sudo fallocate -l 4G /swapfile
+
+# Set correct permissions
+sudo chmod 600 /swapfile
+
+# Set up as swap space
+sudo mkswap /swapfile
+
+# Enable the new swap file
+sudo swapon /swapfile
+
+# Update fstab to use the new swap file
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+# Check new swap space
+free -h
+sudo swapon --show
+

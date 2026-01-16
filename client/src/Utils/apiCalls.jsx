@@ -325,12 +325,11 @@ export function checkDirectorStatus(tmdbId) {
 
 export function fetchFilmFromYTS(imdb_id) {
   const ytsUrl = "https://yts.lt/api/v2/movie_details.json"
+  const corsProxy = "https://corsproxy.io/?"
 
   return axios
-    .get(`${ytsUrl}?imdb_id=${imdb_id}`)
-    .then((response) => {
-      return response.data
-    })
+    .get(`${corsProxy}${encodeURIComponent(`${ytsUrl}?imdb_id=${imdb_id}`)}`)
+    .then((response) => response.data)
     .catch((err) => {
       console.log("Client: Error fetching film from YTS", err)
       throw err

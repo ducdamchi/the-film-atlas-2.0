@@ -83,14 +83,14 @@ export default function FooterWithSocialLinks() {
             <a href="https://material-tailwind.com/">The Film Atlas</a>
           </div>
           <div className="flex gap-4 text-blue-gray-900 sm:justify-center">
-            <div
+            <a
               as="a"
               href="https://github.com/ducdamchi/the-film-atlas"
               target="_blank"
               rel="noopener noreferrer"
               className="opacity-80 transition-opacity hover:opacity-100">
               <FaGithub className="text-2xl" />
-            </div>
+            </a>
           </div>
         </div>
       </div>
