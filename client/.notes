@@ -16,7 +16,6 @@ rsync -avz --exclude 'client/node_modules' --exclude 'server/node_modules' --exc
 cd client
 chmod +x ./cleanup.sh 
 ./cleanup.sh
-
 # install dependencies and build for production
 npm install
 npm run build:production

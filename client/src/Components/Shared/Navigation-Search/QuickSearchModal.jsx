@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
 import { getReleaseYear } from "../../../Utils/helperFunctions"
-import { queryFilmFromTMDB } from "../../../Utils/apiCalls"
+import {
+  queryFilmFromTMDB,
+  queryDirectorFromTMDB,
+} from "../../../Utils/apiCalls"
 import useClickOutside from "../../../Hooks/useClickOutside"
 
 import {
@@ -17,7 +20,8 @@ export default function QuickSearchModal({
 }) {
   const imgBaseUrl = "https://image.tmdb.org/t/p/original"
   const [searchInput, setSearchInput] = useState("")
-  const [searchResult, setSearchResult] = useState([]) // all search results
+  const [searchResult_Film, setSearchResult_Film] = useState([])
+  const [searchResult_Director, setSearchResult_Director] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(-1) // -1 = focused on search bar
   const [displayedResults, setDisplayedResults] = useState([]) //displayed search results (max 7)
@@ -79,7 +83,7 @@ export default function QuickSearchModal({
     if (resultsRef.current) {
       setDisplayedResults(resultsRef.current.querySelectorAll(".search-result"))
     }
-  }, [searchResult])
+  }, [searchResult_Film])
 
   /* Hook to automatically focus on Search Modal as it appears */
   useEffect(() => {
@@ -91,7 +95,7 @@ export default function QuickSearchModal({
   /* Hook to detect if Quick Search Bar is being used, and handle page logic according */
   useEffect(() => {
     // console.log("Search Input: ", searchInput)
-    const queryFilm = async () => {
+    const queryQuickSearch = async () => {
       if (
         /* If search modal is open and is non-empty, user is searching */
         searchModalOpen &&
@@ -99,8 +103,10 @@ export default function QuickSearchModal({
       ) {
         try {
           setIsSearching(true)
-          const result = await queryFilmFromTMDB(searchInput)
-          setSearchResult(result)
+          const result_film = await queryFilmFromTMDB(searchInput)
+          const result_dir = await queryDirectorFromTMDB(searchInput)
+          setSearchResult_Film(result_film)
+          setSearchResult_Director(result_dir)
         } catch (err) {
           console.log("Error Querying Film with Quick Search Modal: ", err)
         }
@@ -108,8 +114,12 @@ export default function QuickSearchModal({
         setIsSearching(false)
       }
     }
-    queryFilm()
+    queryQuickSearch()
   }, [searchModalOpen, searchInput])
+
+  useEffect(() => {
+    console.log(searchResult_Director)
+  }, [searchResult_Director])
 
   return (
     <div className="font-primary fixed top-[20%] left-0 border-green-700 w-screen h-auto z-500 flex justify-center">
@@ -126,7 +136,7 @@ export default function QuickSearchModal({
               type="text"
               name="search-bar"
               autoComplete="off"
-              placeholder="Quick search by title..."
+              placeholder="Quick search for films or directors..."
               value={searchInput}
               onChange={(event) => {
                 setSearchInput(event.target.value)
@@ -150,62 +160,131 @@ export default function QuickSearchModal({
         {/* Results */}
         {isSearching && (
           <div className="w-full text-white p-2" ref={resultsRef}>
-            {searchResult.length === 0 && (
-              <div className="m-2 ml-4">No results found.</div>
-            )}
-            {searchResult.length > 0 && (
-              <div className="flex flex-col justify-center gap-0">
-                {searchResult.slice(0, 7).map((filmObject, key) => (
-                  /* Each film item */
-                  <Link
-                    key={key}
-                    id={`result-${key}`}
-                    className="search-result film-item w-full h-[4rem] md:h-[5rem] flex justify-start items-center md:gap-1 gap-0 md:p-2 p-1 focus:bg-blue-600/80 hover:bg-stone-200/20 focus:outline-0 rounded-md"
-                    to={`/films/${filmObject.id}`}
-                    // state={{ currentViewMode: queryString }}
-                  >
-                    {/* Backdrop */}
-                    <div className="group/thumbnail relative max-h-[5rem] max-w-[8rem] aspect-16/10 h-full">
-                      <img
-                        className="h-full w-auto object-cover transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03]"
-                        src={
-                          filmObject.backdrop_path !== null
-                            ? `${imgBaseUrl}${filmObject.backdrop_path}`
-                            : `backdropnotfound.jpg`
-                        }
-                        alt=""
-                      />
-                    </div>
+            <div>
+              <div className="p-2 pb-1">Films</div>
+              {searchResult_Film.length === 0 && (
+                <div className="m-2 ml-4">No results found.</div>
+              )}
+              {searchResult_Film.length > 0 && (
+                <div className="flex flex-col justify-center gap-0">
+                  {searchResult_Film.slice(0, 5).map((filmObject, key) => (
+                    /* Each film item */
+                    <Link
+                      key={key}
+                      id={`result-${key}`}
+                      className="search-result film-item w-full h-[4rem] md:h-[5rem] flex justify-start items-center md:gap-1 gap-0 md:p-2 p-1 focus:bg-blue-600/80 hover:bg-stone-200/20 focus:outline-0 rounded-md"
+                      to={`/films/${filmObject.id}`}
+                      // state={{ currentViewMode: queryString }}
+                    >
+                      {/* Backdrop */}
+                      <div className="group/thumbnail relative max-h-[5rem] max-w-[8rem] aspect-16/10 h-full">
+                        <img
+                          className="h-full w-auto object-cover transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03]"
+                          src={
+                            filmObject.backdrop_path !== null
+                              ? `${imgBaseUrl}${filmObject.backdrop_path}`
+                              : `backdropnotfound.jpg`
+                          }
+                          alt=""
+                        />
+                      </div>
 
-                    {/* Text next to backdrop */}
-                    <div className="text-sm lg:text-base w-full p-3">
-                      <span className="font-bold uppercase transition-all duration-200 ease-out peer-hover:text-blue-800">
-                        {}
-                        {`${filmObject.title.slice(0, 20)}`}
-                      </span>
-                      {filmObject.title.length >= 20 && (
-                        <span className="font-bold uppercase transition-all duration-200 ease-out hover:text-blue-800 text-lg">
-                          ...
+                      {/* Text next to backdrop */}
+                      <div className="text-sm lg:text-base w-full p-3">
+                        <span className="font-bold uppercase transition-all duration-200 ease-out peer-hover:text-blue-800">
+                          {}
+                          {`${filmObject.title.slice(0, 20)}`}
                         </span>
-                      )}
-                      <br />
-                      {filmObject.release_date && (
-                        <span className="">
-                          {`${getReleaseYear(filmObject.release_date)}`}
-                        </span>
-                      )}
-                    </div>
+                        {filmObject.title.length >= 20 && (
+                          <span className="font-bold uppercase transition-all duration-200 ease-out hover:text-blue-800 text-lg">
+                            ...
+                          </span>
+                        )}
+                        <br />
+                        {filmObject.release_date && (
+                          <span className="">
+                            {`${getReleaseYear(filmObject.release_date)}`}
+                          </span>
+                        )}
+                      </div>
 
-                    <div className=" flex w-[3rem] md:w-[12rem] items-center justify-center gap-1">
-                      <span className="hidden md:block text-base">
-                        Go to Film
-                      </span>
-                      <BiSolidRightArrowSquare className="text-xl" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
+                      <div className=" flex w-[3rem] md:w-[12rem] items-center justify-center gap-1">
+                        <span className="hidden md:block text-base">
+                          Go to Film
+                        </span>
+                        <BiSolidRightArrowSquare className="text-xl" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="mt-2">
+              <div className="p-2 pb-1">Directors</div>
+
+              {searchResult_Director?.length === 0 && (
+                <div className="m-2 ml-4">No results found.</div>
+              )}
+              {searchResult_Director?.length > 0 && (
+                <div className="flex flex-col justify-center gap-0">
+                  {searchResult_Director
+                    ?.filter(
+                      (filmObject) =>
+                        filmObject.known_for_department === "Directing",
+                    )
+                    .slice(0, 3)
+                    .map((filmObject, key) => (
+                      /* Each film item */
+                      <Link
+                        key={key}
+                        id={`result-${key}`}
+                        className="search-result film-item w-full h-[4rem] md:h-[5rem] flex justify-start items-center md:gap-1 gap-0 md:p-2 p-1 focus:bg-blue-600/80 hover:bg-stone-200/20 focus:outline-0 rounded-md"
+                        to={`/person/director/${filmObject.id}`}
+                        // state={{ currentViewMode: queryString }}
+                      >
+                        {/* Backdrop */}
+                        <div className="group/thumbnail relative max-h-[5rem] max-w-[8rem] aspect-16/10 h-full">
+                          <img
+                            className="h-full w-auto object-cover transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03]"
+                            src={
+                              filmObject?.profile_path !== null
+                                ? `${imgBaseUrl}${filmObject.profile_path}`
+                                : `profilepicnotfound.jpg`
+                            }
+                            alt=""
+                          />
+                        </div>
+
+                        {/* Text next to backdrop */}
+                        <div className="text-sm lg:text-base w-full p-3">
+                          <span className="font-bold uppercase transition-all duration-200 ease-out peer-hover:text-blue-800">
+                            {}
+                            {`${filmObject?.name?.slice(0, 20)}`}
+                          </span>
+                          {filmObject?.name?.length >= 20 && (
+                            <span className="font-bold uppercase transition-all duration-200 ease-out hover:text-blue-800 text-lg">
+                              ...
+                            </span>
+                          )}
+                          {/* <br />
+                          {filmObject?.release_date && (
+                            <span className="">
+                              {`${getReleaseYear(filmObject?.release_date)}`}
+                            </span>
+                          )} */}
+                        </div>
+
+                        <div className=" flex w-[3rem] md:w-[12rem] items-center justify-center gap-1">
+                          <span className="hidden md:block text-base">
+                            Go to Director
+                          </span>
+                          <BiSolidRightArrowSquare className="text-xl" />
+                        </div>
+                      </Link>
+                    ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

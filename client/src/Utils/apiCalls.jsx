@@ -36,7 +36,7 @@ export function fetchFilmFromTMDB(tmdbId) {
 
   return axios
     .get(
-      `${movieDetailsUrl}${tmdbId}?append_to_response=credits,videos,images&api_key=${apiKey}`
+      `${movieDetailsUrl}${tmdbId}?append_to_response=credits,videos,images&api_key=${apiKey}`,
     )
     .then((response) => {
       return response.data
@@ -74,7 +74,7 @@ export function fetchPersonFromTMDB(tmdbId) {
 
   return axios
     .get(
-      `${personDetailsUrl}${tmdbId}?append_to_response=movie_credits&api_key=${apiKey}`
+      `${personDetailsUrl}${tmdbId}?append_to_response=movie_credits&api_key=${apiKey}`,
     )
     .then((response) => {
       return response.data
@@ -319,6 +319,23 @@ export function checkDirectorStatus(tmdbId) {
     })
     .catch((err) => {
       console.error("Client: Error checking director status", err)
+      throw err
+    })
+}
+
+export function fetchFilmRatingsFromOMDB(imdbId) {
+  const omdbUrl = "https://www.omdbapi.com/"
+
+  return axios
+    .get(omdbUrl, {
+      params: {
+        apikey: import.meta.env.VITE_OMDB_API_KEY,
+        i: imdbId,
+      },
+    })
+    .then((response) => response.data)
+    .catch((err) => {
+      console.log("Client: Error fetching ratings from OMDB", err)
       throw err
     })
 }

@@ -10,7 +10,11 @@ import {
   getContrastRatio,
   ensureContrast,
 } from "../Utils/helperFunctions"
-import { fetchFilmFromTMDB, fetchFilmFromYTS } from "../Utils/apiCalls"
+import {
+  fetchFilmFromTMDB,
+  fetchFilmFromYTS,
+  fetchFilmRatingsFromOMDB,
+} from "../Utils/apiCalls"
 import useCommandKey from "../Hooks/useCommandKey"
 import { AuthContext } from "../Utils/authContext"
 
@@ -43,6 +47,7 @@ export default function FilmLanding() {
   const [openTrailer, setOpenTrailer] = useState(false)
   const [torrentVisible, setTorrentVisible] = useState(false)
   const [ytsTorrents, setYtsTorrents] = useState([])
+  const [filmRatings, setFilmRatings] = useState(null)
 
   const { authState, searchModalOpen, setSearchModalOpen } =
     useContext(AuthContext)
@@ -95,14 +100,14 @@ export default function FilmLanding() {
 
     if (movieDetails.credits) {
       const directorsList = movieDetails.credits.crew.filter(
-        (crewMember) => crewMember.job === "Director"
+        (crewMember) => crewMember.job === "Director",
       )
 
       const crew = movieDetails.credits.crew
       const listOfUniqueCrewMembers = []
       crew.forEach((person) => {
         const crewMember = listOfUniqueCrewMembers.find(
-          (member) => member.id === person.id
+          (member) => member.id === person.id,
         )
         if (crewMember !== undefined) {
           crewMember.jobs.push(person.job)
@@ -133,11 +138,11 @@ export default function FilmLanding() {
 
       // Filter out cast who does not have profile pic, then pic top 15
       const castListFiltered = movieDetails.credits.cast.filter(
-        (cast) => cast.profile_path !== null
+        (cast) => cast.profile_path !== null,
       )
       const mainCastList = castListFiltered.slice(
         0,
-        Math.min(15, castListFiltered.length)
+        Math.min(15, castListFiltered.length),
       )
       // Filter for YouTube trailers only
       const trailerLinks = movieDetails.videos.results.filter((video) => {
@@ -200,6 +205,23 @@ export default function FilmLanding() {
     } catch (err) {
       console.log(err)
     }
+  }, [movieDetails])
+
+  useEffect(() => {
+    const fetchRatings = async () => {
+      if (movieDetails.imdb_id) {
+        try {
+          const result = await fetchFilmRatingsFromOMDB(movieDetails.imdb_id)
+          console.log("OMDB result: ", result)
+          if (result.Response === "True") {
+            setFilmRatings(result)
+          }
+        } catch (err) {
+          console.error("Error loading ratings: ", err)
+        }
+      }
+    }
+    fetchRatings()
   }, [movieDetails])
 
   useEffect(() => {
@@ -512,6 +534,91 @@ export default function FilmLanding() {
                   </div>
                 )}
               </div>
+
+              {/* Ratings section */}
+              {filmRatings && (
+                <div className="p-4 pt-2">
+                  <div className="landing-sectionTitle mb-2">ratings</div>
+                  <div className="flex flex-wrap gap-4">
+                    {filmRatings.imdbRating &&
+                      filmRatings.imdbRating !== "N/A" && (
+                        <div className="flex flex-col items-start gap-0.5">
+                          <span className="text-base lg:text-lg uppercase text-black font-black">
+                            IMDb
+                          </span>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-yellow-500 text-sm lg:text-base">
+                              ★
+                            </span>
+                            <span className="text-black font-semibold text-base lg:text-lg leading-none">
+                              {filmRatings.imdbRating}
+                            </span>
+                            <span className="text-black text-xs lg:text-sm font-thin">
+                              /10
+                            </span>
+                          </div>
+                          {filmRatings.imdbVotes &&
+                            filmRatings.imdbVotes !== "N/A" && (
+                              <span className="text-black text-xs lg:text-sm font-thin">
+                                {filmRatings.imdbVotes} votes
+                              </span>
+                            )}
+                        </div>
+                      )}
+                    {filmRatings.Ratings?.find(
+                      (r) => r.Source === "Rotten Tomatoes",
+                    ) && (
+                      <div className="flex flex-col items-start gap-0.5">
+                        <span className="text-base lg:text-lg uppercase text-black font-black">
+                          Rotten Tomatoes
+                        </span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-sm lg:text-base">🍅</span>
+                          <span className="text-black font-semibold text-base lg:text-lg  leading-none">
+                            {
+                              filmRatings.Ratings.find(
+                                (r) => r.Source === "Rotten Tomatoes",
+                              ).Value
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {filmRatings.Ratings?.find(
+                      (r) => r.Source === "Metacritic",
+                    ) &&
+                      (() => {
+                        const score = parseInt(
+                          filmRatings.Ratings.find(
+                            (r) => r.Source === "Metacritic",
+                          ).Value,
+                        )
+                        const color =
+                          score >= 75
+                            ? "bg-green-600"
+                            : score >= 50
+                              ? "bg-yellow-500"
+                              : "bg-red-600"
+                        return (
+                          <div className="flex flex-col items-start gap-0.5">
+                            <span className="text-base lg:text-lg uppercase text-black font-black">
+                              Metacritic
+                            </span>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span
+                                className={`${color} text-white font-bold text-sm lg:text-base px-2 py-0.5 rounded`}>
+                                {score}
+                              </span>
+                              <span className="text-black text-xs lg:text-sm font-thin">
+                                /100
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      })()}
+                  </div>
+                </div>
+              )}
 
               {/* Cast and crew section */}
               <div className="flex flex-col items-start justify-start gap-2">

@@ -6,6 +6,7 @@ import { MdClose, MdMenu, MdOutlineSettings, MdSearch } from "react-icons/md"
 import { TbArrowBigRightLinesFilled } from "react-icons/tb"
 
 import { usePersistedState } from "../../../Hooks/usePersistedState"
+import { Button } from "../../ui/button"
 
 export default function NavBar() {
   const { authState, setAuthState, searchModalOpen, setSearchModalOpen } =
@@ -21,7 +22,7 @@ export default function NavBar() {
     {
       isOpened: false,
       isNeutral: true, //set to true when menu is closed passively (when browsing, etc.), set to false when user actively clicked close. Initial value should be set to false for user first click.
-    }
+    },
   )
   const menuRef = useRef(null)
   const menuBorderBottom = useRef(null)
@@ -41,7 +42,13 @@ export default function NavBar() {
   const navbarBorderWidth = 0
   const borderWidth = 0.3
 
-  function CustomLink({ to, children, exact = true, ...props }) {
+  function CustomLink({
+    to,
+    children,
+    underline = true,
+    exact = true,
+    ...props
+  }) {
     // to: URL path (e.g., "/about", "/contact")
     // children: Content inside the link (text, icons, etc.)
     // ...props: Any other props passed to the component (className, onClick, etc.)
@@ -50,7 +57,7 @@ export default function NavBar() {
     return (
       <div
         className={
-          isActive
+          isActive && underline
             ? "underline decoration-solid decoration-2 underline-offset-4"
             : ""
         }>
@@ -68,7 +75,7 @@ export default function NavBar() {
     borderBottomRef,
     borderSideRef,
     translateXValue,
-    translateYValue
+    translateYValue,
   ) {
     if (menuRef.current && borderBottomRef.current && borderSideRef.current) {
       // console.log("all refs current")
@@ -155,7 +162,7 @@ export default function NavBar() {
       menuBorderBottom,
       menuBorderRight,
       -500,
-      -400
+      -400,
     )
   }, [menuOpened])
 
@@ -167,7 +174,7 @@ export default function NavBar() {
       settingsBorderBottom,
       settingsBorderRight,
       500,
-      -200
+      -200,
     )
   }, [settingsOpened])
 
@@ -480,25 +487,36 @@ export default function NavBar() {
 
       {/* LAPTOP - USER INFO / AUTH */}
       {authState.status ? (
-        <div className="hidden lg:flex items-center justify-end gap-2 text-sm lg:text-base font-extralight">
+        <div className="hidden lg:flex items-center justify-end gap-4 text-sm lg:text-base font-extralight">
           <div className="h-full flex items-center justify-center">
             <span>welcome,&nbsp;</span>
             <span className="font-bold">{`${authState.username}!`}</span>
           </div>
-          <div className="font-thin text-base ">|</div>
-          <button className="" onClick={logOut}>
-            log out
-          </button>
+          {/* <div className="font-thin text-base ">|</div> */}
+          <Button
+            variant="outline"
+            className="hover:bg-zinc-100 hover:text-black transition-all ease-out duration-200"
+            onClick={logOut}>
+            Log Out
+          </Button>
         </div>
       ) : (
         <div className="hidden lg:flex flex items-center justify-end gap-2 text-base font-extralight">
-          <CustomLink className="" to="/login">
-            log in
-          </CustomLink>
-          <div className="">|</div>
-          <CustomLink className="" to="/register">
-            register
-          </CustomLink>
+          <Button
+            variant="outline"
+            className="hover:bg-zinc-200 text-white border-1 bg-black border-white hover:text-blue-800 transition-all ease-out duration-200">
+            <CustomLink className="" to="/login" underline={false}>
+              Log In
+            </CustomLink>
+          </Button>
+          {/* <div className="">|</div> */}
+          <Button
+            variant="outline"
+            className="hover:bg-zinc-200 text-white border-1 bg-black border-white hover:text-blue-800 transition-all ease-out duration-200">
+            <CustomLink className="" to="/register" underline={false}>
+              Register
+            </CustomLink>
+          </Button>
         </div>
       )}
     </div>
