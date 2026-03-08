@@ -24,7 +24,7 @@ export default function PersonLanding() {
   const { job, tmdbId } = useParams()
   const [scrollPosition, setScrollPosition] = usePersistedState(
     `${job}Landing-scrollPosition`,
-    0
+    0,
   )
   const [numWatched, setNumWatched] = useState(0)
   const [numStarred, setNumStarred] = useState(0)
@@ -52,7 +52,7 @@ export default function PersonLanding() {
 
       if (job === "director") {
         filmography = result.movie_credits.crew.filter(
-          (film) => film.job === "Director"
+          (film) => film.job === "Director",
         )
       }
 
@@ -62,7 +62,7 @@ export default function PersonLanding() {
 
       // Filter out films without backdrop or poster path
       let filteredFilmography = filmography.filter(
-        (film) => !(film.backdrop_path === null || film.poster_path === null)
+        (film) => !(film.backdrop_path === null || film.poster_path === null),
       )
 
       // If director is deceased, filter out films released after their deathdate
@@ -204,7 +204,11 @@ export default function PersonLanding() {
           />
         </div>
 
-        <div className="landing-transparent-layer"></div>
+        <div
+          className="landing-transparent-layer"
+          style={{
+            background: `linear-gradient(to bottom, rgb(0, 0,0), transparent)`,
+          }}></div>
         <div className="">
           <div className="landing-img-text-container">
             {/* Title */}
@@ -265,7 +269,11 @@ export default function PersonLanding() {
             ))} */}
           </div>
         </div>
-        <div className="landing-transparent-layer-bottom"></div>
+        <div
+          className="landing-transparent-layer-bottom"
+          style={{
+            background: `linear-gradient(to top, rgb(0, 0,0), transparent)`,
+          }}></div>
         {job === "director" && (
           <div className="absolute bottom-0 w-full flex items-center justify-center gap-2 text-stone-200 text-[12px] mb-4 xl:text-[16px] xl:mb-6">
             <div className="border-1 p-2 rounded-full">{`Watched: ${numWatched}`}</div>

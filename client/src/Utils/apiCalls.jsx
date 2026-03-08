@@ -323,6 +323,63 @@ export function checkDirectorStatus(tmdbId) {
     })
 }
 
+export function fetchFilmAwardsFromWikidata(imdbId) {
+  const query = `
+    SELECT DISTINCT ?awardLabel ?awardTime ?nominated WHERE {
+      ?film wdt:P345 "${imdbId}" .
+      {
+        ?film p:P166 ?stmt .
+        ?stmt ps:P166 ?award .
+        OPTIONAL { ?stmt pq:P585 ?awardTime . }
+        BIND(false AS ?nominated)
+      } UNION {
+        ?film p:P1411 ?stmt .
+        ?stmt ps:P1411 ?award .
+        OPTIONAL { ?stmt pq:P585 ?awardTime . }
+        BIND(true AS ?nominated)
+      }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+    }
+    ORDER BY ?nominated ?awardLabel
+  `
+
+  return axios
+    .post(
+      "https://query.wikidata.org/sparql",
+      `query=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/sparql-results+json",
+        },
+      },
+    )
+    .then((response) => {
+      const bindings = response.data.results.bindings
+      const seen = new Set()
+      const awards = bindings
+        .map((b) => ({
+          award: b.awardLabel.value,
+          year: b.awardTime ? new Date(b.awardTime.value).getFullYear() : null,
+          isNomination: b.nominated.value === "true",
+        }))
+        .filter(({ award, isNomination }) => {
+          const key = `${award}-${isNomination}`
+          if (seen.has(key)) return false
+          seen.add(key)
+          return true
+        })
+      return {
+        wins: awards.filter((a) => !a.isNomination),
+        nominations: awards.filter((a) => a.isNomination),
+      }
+    })
+    .catch((err) => {
+      console.log("Client: Error fetching awards from Wikidata", err)
+      throw err
+    })
+}
+
 export function fetchFilmRatingsFromOMDB(imdbId) {
   const omdbUrl = "https://www.omdbapi.com/"
 

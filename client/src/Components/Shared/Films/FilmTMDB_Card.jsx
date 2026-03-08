@@ -25,7 +25,7 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
           setIsLoading(true)
           const result = await fetchFilmFromTMDB(hoverId)
           const directorsList = result.credits.crew.filter(
-            (crewMember) => crewMember.job === "Director"
+            (crewMember) => crewMember.job === "Director",
           )
           setMovieDetails(result)
           setDirectors(directorsList)
@@ -46,7 +46,7 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
         setIsLoading(true)
         const result = await fetchFilmFromTMDB(filmObject.id)
         const directorsList = result.credits.crew.filter(
-          (crewMember) => crewMember.job === "Director"
+          (crewMember) => crewMember.job === "Director",
         )
         setMovieDetails(result)
         setDirectors(directorsList)
@@ -109,16 +109,33 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
         <div className="border-amber-400 flex flex-row items-center justify-center gap-0 ml-1">
           {/* Film Title, Year, Rating, Vote Count*/}
           <div className="flex items-center justify-start">
+            {/* < lg: show 17 chars */}
             <span
               onClick={() => {
                 navigate(`/films/${filmObject.id}`)
                 setPage((prevPage) => ({ ...prevPage, loadMore: false }))
               }}
-              className="font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 ">
-              {`${filmObject.title.slice(0, 17)}`}
+              className="lg:hidden font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
+              title={filmObject.title}>
+              {filmObject.title.slice(0, 17)}
             </span>
-            {filmObject.title.length >= 17 && (
-              <span className="font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 ">
+            {filmObject.title.length > 17 && (
+              <span className="lg:hidden font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400">
+                ...
+              </span>
+            )}
+            {/* >= lg: show 20 chars */}
+            <span
+              onClick={() => {
+                navigate(`/films/${filmObject.id}`)
+                setPage((prevPage) => ({ ...prevPage, loadMore: false }))
+              }}
+              className="hidden lg:inline font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
+              title={filmObject.title}>
+              {filmObject.title.slice(0, 20)}
+            </span>
+            {filmObject.title.length > 20 && (
+              <span className="hidden lg:inline font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400">
                 ...
               </span>
             )}

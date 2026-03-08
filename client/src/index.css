@@ -157,10 +157,10 @@ Red Rose, Cal Sans, Paytone One, Bungee Shade, Russo One, Black Ops One */
   }
 
   .landing-transparent-layer {
-    @apply border-0 border-red-500 absolute top-0 left-0 h-[20rem] w-full bg-linear-to-b from-black to-transparent;
+    @apply border-0 border-red-500 absolute top-0 left-0 h-[5rem] sm:h-[10rem] lg:h-[15rem] w-full;
   }
   .landing-transparent-layer-bottom {
-    @apply border-0 border-red-500 absolute bottom-0 left-0 h-[7rem] w-full bg-gradient-to-t from-black/100 to-transparent;
+    @apply border-0 border-red-500 absolute bottom-0 left-0 h-[2rem] sm:h-[3rem] lg:h-[7rem] w-full;
   }
 
   .landing-page-title {

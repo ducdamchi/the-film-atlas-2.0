@@ -6,14 +6,13 @@ import { useParams, useNavigate } from "react-router-dom"
 import {
   getCountryName,
   getReleaseYear,
-  getLuminance,
-  getContrastRatio,
-  ensureContrast,
+  darkenColorToOklch,
 } from "../Utils/helperFunctions"
 import {
   fetchFilmFromTMDB,
   fetchFilmFromYTS,
   fetchFilmRatingsFromOMDB,
+  fetchFilmAwardsFromWikidata,
 } from "../Utils/apiCalls"
 import useCommandKey from "../Hooks/useCommandKey"
 import { AuthContext } from "../Utils/authContext"
@@ -35,27 +34,20 @@ export default function FilmLanding() {
   const [isLoading, setIsLoading] = useState(false)
   const [movieDetails, setMovieDetails] = useState({})
   const [directors, setDirectors] = useState([]) //director
-  const [dops, setDops] = useState([]) //director of photography
   const [crew, setCrew] = useState([]) //director of photography
   const [mainCast, setMainCast] = useState([]) //top 5 cast
-  const [backdropList, setBackdropList] = useState([])
-  const [posterList, setPosterList] = useState([])
   const [trailerLink, setTrailerLink] = useState(null)
-  const [overlayColor, setOverlayColor] = useState([0, 0, 0])
-  const [overlayTextColor, setOverlayTextColor] = useState([255, 255, 255])
   const [backdropColor, setBackdropColor] = useState([0, 0, 0])
   const [openTrailer, setOpenTrailer] = useState(false)
   const [torrentVisible, setTorrentVisible] = useState(false)
   const [ytsTorrents, setYtsTorrents] = useState([])
   const [filmRatings, setFilmRatings] = useState(null)
+  const [filmAwards, setFilmAwards] = useState(null)
 
   const { authState, searchModalOpen, setSearchModalOpen } =
     useContext(AuthContext)
   const { tmdbId } = useParams()
   const navigate = useNavigate()
-  // const overviewRef = useRef(null)
-  const posterRef = useRef(null)
-  // const castRef = useRef(null)
 
   function toggleSearchModal() {
     setSearchModalOpen((status) => !status)
@@ -96,8 +88,6 @@ export default function FilmLanding() {
   }, [tmdbId])
 
   useEffect(() => {
-    // console.log("movieDetails: ", movieDetails)
-
     if (movieDetails.credits) {
       const directorsList = movieDetails.credits.crew.filter(
         (crewMember) => crewMember.job === "Director",
@@ -122,19 +112,6 @@ export default function FilmLanding() {
           }
         }
       })
-      // console.log(listOfUniqueCrewMembers)
-
-      // const dopsList = movieDetails.credits.crew.filter(
-      //   (crewMember) => crewMember.job === "Director of Photography"
-      // )
-      // const backdropList = movieDetails.images.backdrops.slice(
-      //   0,
-      //   Math.min(movieDetails.images.backdrops.length, 5)
-      // )
-      // const posterList = movieDetails.images.posters.slice(
-      //   0,
-      //   Math.min(movieDetails.images.posters.length, 5)
-      // )
 
       // Filter out cast who does not have profile pic, then pic top 15
       const castListFiltered = movieDetails.credits.cast.filter(
@@ -158,9 +135,6 @@ export default function FilmLanding() {
         return dateB - dateA
       })
 
-      // setDops(dopsList)
-      // setBackdropList(backdropList)
-      // setPosterList(posterList)
       setDirectors(directorsList)
       setCrew(listOfUniqueCrewMembers)
       setMainCast(mainCastList)
@@ -174,33 +148,14 @@ export default function FilmLanding() {
     /* Once movie detail loads, set the overlay color based on poster dominant color */
     try {
       const backdrop = new Image()
-      const poster = new Image()
       backdrop.crossOrigin = "anonymous"
-      poster.crossOrigin = "anonymous"
       const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://image.tmdb.org/t/p/w500${movieDetails.backdrop_path}`)}`
-      const proxyUrl2 = `https://corsproxy.io/?${encodeURIComponent(`https://image.tmdb.org/t/p/w500${movieDetails.poster_path}`)}`
       backdrop.src = proxyUrl
-      poster.src = proxyUrl2
 
       backdrop.onload = () => {
         const colorThief = new ColorThief()
-        let domColor = colorThief.getColor(backdrop)
-        setBackdropColor(domColor)
-      }
-
-      poster.onload = () => {
-        const colorThief2 = new ColorThief()
-        let domColor2 = colorThief2.getColor(poster)
-        const bgColor = domColor2
-        let textColor = [
-          255 - domColor2[0],
-          255 - domColor2[1],
-          255 - domColor2[2],
-        ]
-        textColor = ensureContrast(bgColor, textColor)
-
-        setOverlayTextColor(textColor)
-        setOverlayColor(bgColor)
+        const domColor = colorThief.getColor(backdrop)
+        setBackdropColor(darkenColorToOklch(domColor, 0.3))
       }
     } catch (err) {
       console.log(err)
@@ -212,7 +167,6 @@ export default function FilmLanding() {
       if (movieDetails.imdb_id) {
         try {
           const result = await fetchFilmRatingsFromOMDB(movieDetails.imdb_id)
-          console.log("OMDB result: ", result)
           if (result.Response === "True") {
             setFilmRatings(result)
           }
@@ -221,7 +175,20 @@ export default function FilmLanding() {
         }
       }
     }
+    const fetchAwards = async () => {
+      if (movieDetails.imdb_id) {
+        try {
+          const result = await fetchFilmAwardsFromWikidata(movieDetails.imdb_id)
+          if (result.wins.length > 0 || result.nominations.length > 0) {
+            setFilmAwards(result)
+          }
+        } catch (err) {
+          console.error("Error loading awards: ", err)
+        }
+      }
+    }
     fetchRatings()
+    fetchAwards()
   }, [movieDetails])
 
   useEffect(() => {
@@ -282,7 +249,11 @@ export default function FilmLanding() {
             />
 
             {/* Transparent layer top */}
-            <div className="landing-transparent-layer"></div>
+            <div
+              className="landing-transparent-layer"
+              style={{
+                background: `linear-gradient(to bottom, rgb(${backdropColor[0]}, ${backdropColor[1]}, ${backdropColor[2]}), transparent)`,
+              }}></div>
 
             {/* All the text displayed over main backdrop */}
             <div className="">
@@ -379,7 +350,11 @@ export default function FilmLanding() {
             </div>
 
             {/* Transparent layer bottom */}
-            <div className="landing-transparent-layer-bottom"></div>
+            <div
+              className="landing-transparent-layer-bottom"
+              style={{
+                background: `linear-gradient(to top, rgb(${backdropColor[0]}, ${backdropColor[1]}, ${backdropColor[2]}), transparent)`,
+              }}></div>
 
             {/* Interaction console */}
             <div className="xl:hidden absolute bottom-0 w-full flex items-center justify-center mb-4">
@@ -535,46 +510,51 @@ export default function FilmLanding() {
                 )}
               </div>
 
-              {/* Ratings section */}
+              {/* Ratings & Awards section */}
               {filmRatings && (
                 <div className="p-4 pt-2">
-                  <div className="landing-sectionTitle mb-2">ratings</div>
-                  <div className="flex flex-wrap gap-4">
+                  <div className="landing-sectionTitle mb-2">
+                    ratings & awards
+                  </div>
+                  {/* Ratings section */}
+                  <div className="flex flex-wrap gap-2">
                     {filmRatings.imdbRating &&
                       filmRatings.imdbRating !== "N/A" && (
-                        <div className="flex flex-col items-start gap-0.5">
-                          <span className="text-base lg:text-lg uppercase text-black font-black">
-                            IMDb
+                        <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
+                          <span className="flex justify-start items-center gap-2">
+                            <span className="text-base lg:text-lg uppercase text-stone-900 font-bold">
+                              IMDb
+                            </span>
+                            {filmRatings.imdbVotes &&
+                              filmRatings.imdbVotes !== "N/A" && (
+                                <span className="text-stone-900 text-xs lg:text-sm font-thin">
+                                  {filmRatings.imdbVotes} votes
+                                </span>
+                              )}
                           </span>
                           <div className="flex items-baseline gap-1">
                             <span className="text-yellow-500 text-sm lg:text-base">
                               ★
                             </span>
-                            <span className="text-black font-semibold text-base lg:text-lg leading-none">
+                            <span className="text-stone-900 font-semibold text-base lg:text-lg leading-none">
                               {filmRatings.imdbRating}
                             </span>
-                            <span className="text-black text-xs lg:text-sm font-thin">
+                            <span className="text-stone-900 text-xs lg:text-sm font-thin">
                               /10
                             </span>
                           </div>
-                          {filmRatings.imdbVotes &&
-                            filmRatings.imdbVotes !== "N/A" && (
-                              <span className="text-black text-xs lg:text-sm font-thin">
-                                {filmRatings.imdbVotes} votes
-                              </span>
-                            )}
                         </div>
                       )}
                     {filmRatings.Ratings?.find(
                       (r) => r.Source === "Rotten Tomatoes",
                     ) && (
-                      <div className="flex flex-col items-start gap-0.5">
-                        <span className="text-base lg:text-lg uppercase text-black font-black">
+                      <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
+                        <span className="text-base lg:text-lg uppercase text-stone-900 font-bold">
                           Rotten Tomatoes
                         </span>
                         <div className="flex items-baseline gap-1">
                           <span className="text-sm lg:text-base">🍅</span>
-                          <span className="text-black font-semibold text-base lg:text-lg  leading-none">
+                          <span className="text-stone-900 font-semibold text-base lg:text-lg  leading-none">
                             {
                               filmRatings.Ratings.find(
                                 (r) => r.Source === "Rotten Tomatoes",
@@ -600,8 +580,8 @@ export default function FilmLanding() {
                               ? "bg-yellow-500"
                               : "bg-red-600"
                         return (
-                          <div className="flex flex-col items-start gap-0.5">
-                            <span className="text-base lg:text-lg uppercase text-black font-black">
+                          <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
+                            <span className="text-base lg:text-lg uppercase text-stone-900 font-bold">
                               Metacritic
                             </span>
                             <div className="flex items-center gap-2 mt-1">
@@ -609,7 +589,7 @@ export default function FilmLanding() {
                                 className={`${color} text-white font-bold text-sm lg:text-base px-2 py-0.5 rounded`}>
                                 {score}
                               </span>
-                              <span className="text-black text-xs lg:text-sm font-thin">
+                              <span className="text-stone-900 text-xs lg:text-sm font-thin">
                                 /100
                               </span>
                             </div>
@@ -617,6 +597,60 @@ export default function FilmLanding() {
                         )
                       })()}
                   </div>
+                  {/* Awards section */}
+                  {filmAwards && (
+                    <div className="mt-4 text-stone-900 border-1 p-5 py-4 rounded-sm w-fit">
+                      {/* <div className="landing-sectionTitle mb-2">awards</div> */}
+                      {filmAwards.wins.length > 0 && (
+                        <div className="mb-3">
+                          <div className="text-base lg:text-lg  uppercase font-bold mb-1">
+                            Won
+                          </div>
+                          <ul className="flex flex-col gap-1">
+                            {filmAwards.wins.map((w, i) => (
+                              <li key={i} className="flex items-baseline gap-1">
+                                {/* <span className="text-yellow-500 text-xs">
+                                  ★
+                                </span> */}
+                                <span className="text-stone-900 text-sm lg:text-base">
+                                  {w.award}
+                                </span>
+                                {w.year && (
+                                  <span className="text-stone-900 text-xs lg:text-sm font-thin">
+                                    {w.year}
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {filmAwards.nominations.length > 0 && (
+                        <div>
+                          <div className="text-base lg:text-lg  uppercase font-bold mb-1">
+                            Nominated
+                          </div>
+                          <ul className="flex flex-col gap-1">
+                            {filmAwards.nominations.map((n, i) => (
+                              <li key={i} className="flex items-baseline gap-1">
+                                {/* <span className="text-stone-900 text-xs">
+                                  ○
+                                </span> */}
+                                <span className="text-stone-900 text-sm lg:text-base">
+                                  {n.award}
+                                </span>
+                                {n.year && (
+                                  <span className="text-stone-900 text-xs lg:text-sm font-thin">
+                                    {n.year}
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
