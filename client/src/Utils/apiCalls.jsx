@@ -47,7 +47,26 @@ export function fetchFilmFromTMDB(tmdbId) {
     })
 }
 
-export function queryDirectorFromTMDB(searchInput) {
+export function queryMultiFromTMDB(searchInput) {
+  const searchUrl = "https://api.themoviedb.org/3/search/multi"
+  const apiKey = "14b22a55c02218f84058041c5f553d3d"
+
+  return axios
+    .get(searchUrl, {
+      params: {
+        query: searchInput,
+        api_key: apiKey,
+        include_adult: false,
+      },
+    })
+    .then((response) => response.data.results)
+    .catch((err) => {
+      console.log("Client: Error querying multi from TMDB", err)
+      throw err
+    })
+}
+
+export function queryPersonFromTMDB(searchInput) {
   const searchPersonUrl = "https://api.themoviedb.org/3/search/person"
   const apiKey = "14b22a55c02218f84058041c5f553d3d"
 

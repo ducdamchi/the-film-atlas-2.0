@@ -94,7 +94,7 @@ export default function DirectorUser_Gallery({
           groups[targetKey].groupName = groupName
           return groups
         },
-        {}
+        {},
       )
       // console.log("before sorting: ", directorGroups)
 
@@ -150,7 +150,7 @@ export default function DirectorUser_Gallery({
               return (
                 <div key={key} className="flex justify-center">
                   <div
-                    className="flex flex-col gap-0 items-center justify-center  w-[5rem] h-[9rem] sm:w-[7rem] sm:h-[12.6rem] 2xl:w-[8rem] 2xl:h-[14.4rem] group/thumbnail overflow-hidden mb-1"
+                    className="flex flex-col gap-0 items-center justify-start  w-[5rem] h-[9rem] sm:w-[7rem] sm:h-[12.6rem] 2xl:w-[8rem] 2xl:h-[14.4rem] group/thumbnail overflow-hidden mb-1"
                     onClick={() => {
                       navigate(`/person/director/${groupObject.id}`)
                     }}>
@@ -184,24 +184,8 @@ export default function DirectorUser_Gallery({
                         </div>
                       )}
                     </div>
-                    <div className="text-[12px] sm:text-sm italic text-center whitespace-normal wrap-break-word break-all h-[2.5rem] w-[5rem] pt-1 sm:h-[3rem]">
-                      {groupObject.name.split(" ").map((word, key) => {
-                        if (key <= 1) {
-                          return (
-                            <span key={key} className="w-full">
-                              {word.slice(0, 12)}
-                              {key === 0 && <br />}
-                            </span>
-                          )
-                        }
-                        if (
-                          (key === 2 &&
-                            groupObject.name.split("").length > 2) ||
-                          word.length >= 13
-                        ) {
-                          return <span key={key}>...</span>
-                        }
-                      })}
+                    <div className="text-[12px] sm:text-sm italic text-center w-[5rem] pt-1 overflow-hidden line-clamp-2 break-words h-[2.5rem] sm:h-[3rem]">
+                      {groupObject.name}
                     </div>
                   </div>
                 </div>

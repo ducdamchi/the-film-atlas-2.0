@@ -276,10 +276,10 @@ export default function PersonLanding() {
           }}></div>
         {job === "director" && (
           <div className="absolute bottom-0 w-full flex items-center justify-center gap-2 text-stone-200 text-[12px] mb-4 xl:text-[16px] xl:mb-6">
-            <div className="border-1 p-2 rounded-full">{`Watched: ${numWatched}`}</div>
-            <div className="border-1 p-2 rounded-full">{`Starred: ${numStarred}`}</div>
-            <div className="border-1 p-2 rounded-full">{`Avg. Stars: ${avgRating}`}</div>
-            <div className="border-1 p-2 rounded-full">{`Score: ${score}`}</div>
+            <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Watched: ${numWatched}`}</div>
+            <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Starred: ${numStarred}`}</div>
+            <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Avg. Stars: ${avgRating}`}</div>
+            <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Score: ${score}`}</div>
           </div>
         )}
       </div>

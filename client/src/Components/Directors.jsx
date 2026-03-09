@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom"
 /* Custom functions */
 import { AuthContext } from "../Utils/authContext"
 import {
-  queryDirectorFromTMDB,
+  queryPersonFromTMDB,
   fetchDirectorListByParams,
 } from "../Utils/apiCalls"
 import useCommandKey from "../Hooks/useCommandKey"
@@ -110,13 +110,13 @@ export default function Directors() {
 
   /* Query director from TMDB with Search Bar */
   useEffect(() => {
-    const queryDirector = async () => {
+    const timer = setTimeout(async () => {
       try {
         if (searchInput.trim().length === 0 || searchInput === null) {
           setIsSearching(false)
         } else {
           setIsSearching(true)
-          const result = await queryDirectorFromTMDB(searchInput)
+          const result = await queryPersonFromTMDB(searchInput)
           const filtered_result = result.filter(
             (person) => person.known_for_department === "Directing"
           )
@@ -125,8 +125,8 @@ export default function Directors() {
       } catch (err) {
         console.log("Error Querying Film: ", err)
       }
-    }
-    queryDirector()
+    }, 500)
+    return () => clearTimeout(timer)
   }, [searchInput])
 
   /* Fetch User's Directors list (liked, watchlisted or starred) from App's DB */
