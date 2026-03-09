@@ -149,6 +149,9 @@ export default function FilmLanding() {
     try {
       const backdrop = new Image()
       backdrop.crossOrigin = "anonymous"
+
+      if (!movieDetails.backdrop_path) return
+
       const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://image.tmdb.org/t/p/w500${movieDetails.backdrop_path}`)}`
       backdrop.src = proxyUrl
 
@@ -416,11 +419,6 @@ export default function FilmLanding() {
           {/* Section below main backdrop */}
           <div className="flex flex-col items-start text-stone-900 gap-2 relative bg-stone-100 landing-belowBackdropPadding pb-30">
             <div className="flex flex-col">
-              {/* Torrents will show here */}
-              {torrentVisible && ytsTorrents && (
-                <Torrents ytsTorrents={ytsTorrents} />
-              )}
-
               {/* Basic info -- sm breakpoint */}
               <div className="flex sm:hidden">
                 <div className="p-4 pt-2">
@@ -510,6 +508,11 @@ export default function FilmLanding() {
                 )}
               </div>
 
+              {/* Torrents will show here */}
+              {torrentVisible && ytsTorrents && (
+                <Torrents ytsTorrents={ytsTorrents} />
+              )}
+
               {/* Ratings & Awards section */}
               {(filmRatings || filmAwards) && (
                 <div className="p-4 pt-2">
@@ -523,7 +526,7 @@ export default function FilmLanding() {
                       <div className="flex flex-wrap gap-2">
                         {filmRatings.imdbRating &&
                           filmRatings.imdbRating !== "N/A" && (
-                            <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
+                            <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm bg-[#f5c518]/85 border-[#f5c518]">
                               <span className="flex justify-start items-center gap-2">
                                 <span className="landing-ratingsTitle">
                                   IMDb
@@ -536,9 +539,7 @@ export default function FilmLanding() {
                                   )}
                               </span>
                               <div className="flex items-baseline gap-1">
-                                <span className="text-yellow-500 text-sm lg:text-base">
-                                  ★
-                                </span>
+                                <span className="text-sm lg:text-base">★</span>
                                 <span className="text-stone-900 font-semibold text-base lg:text-lg leading-none">
                                   {filmRatings.imdbRating}
                                 </span>
@@ -551,7 +552,7 @@ export default function FilmLanding() {
                         {filmRatings.Ratings?.find(
                           (r) => r.Source === "Rotten Tomatoes",
                         ) && (
-                          <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
+                          <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm bg-[#fa320a]/85 border-[#fa320a]">
                             <span className="landing-ratingsTitle">
                               Rotten Tomatoes
                             </span>
@@ -583,7 +584,7 @@ export default function FilmLanding() {
                                   ? "bg-yellow-500"
                                   : "bg-red-600"
                             return (
-                              <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
+                              <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm bg-[#1a4575]/85 border-[#1a4575]">
                                 <span className="landing-ratingsTitle">
                                   Metacritic
                                 </span>
@@ -604,7 +605,7 @@ export default function FilmLanding() {
 
                     {/* Awards section */}
                     {filmAwards && (
-                      <div className="text-stone-900 border-1 p-5 py-4 rounded-sm w-fit">
+                      <div className="text-stone-900 border-1 p-5 py-4 rounded-sm w-fit bg-lime-300 border-lime-300">
                         {/* <div className="landing-sectionTitle mb-2">awards</div> */}
                         {filmAwards.wins.length > 0 && (
                           <div className="mb-3">

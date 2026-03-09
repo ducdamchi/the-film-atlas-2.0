@@ -1,10 +1,11 @@
-import { useContext, useState, useRef, useEffect } from "react"
+import { useContext, useState, useRef, useEffect, useCallback } from "react"
 import { Link, useMatch, useResolvedPath, useNavigate } from "react-router-dom"
 import { AuthContext } from "../../../Utils/authContext"
 import { BiSearchAlt2, BiMenu, BiSolidMessageRoundedDots } from "react-icons/bi"
 import { MdClose, MdMenu, MdOutlineSettings, MdSearch } from "react-icons/md"
 import { TbArrowBigRightLinesFilled } from "react-icons/tb"
 
+import { ChevronDown } from "lucide-react"
 import { usePersistedState } from "../../../Hooks/usePersistedState"
 import { Button } from "../../ui/button"
 
@@ -33,6 +34,8 @@ export default function NavBar() {
   const navigate = useNavigate()
   const [screenWidth, setScreenWidth] = useState(null)
   const [mobileMenu, setMobileMenu] = useState(null)
+  const [infoDropdownOpen, setInfoDropdownOpen] = useState(false)
+  const infoDropdownRef = useRef(null)
 
   //unit: rem
   const navbarHeight = 4.5
@@ -177,6 +180,19 @@ export default function NavBar() {
       -200,
     )
   }, [settingsOpened])
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        infoDropdownRef.current &&
+        !infoDropdownRef.current.contains(e.target)
+      ) {
+        setInfoDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   /* Dynamically obtain screen width of window */
   useEffect(() => {
@@ -366,15 +382,39 @@ export default function NavBar() {
             <CustomLink to="/directors" exact={false}>
               DIRECTORS
             </CustomLink>
-            <CustomLink to="/about" exact={false}>
-              ABOUT
-            </CustomLink>
-            <CustomLink to="/contact" exact={false}>
-              CONTACT
-            </CustomLink>
-            <CustomLink to="/docs" exact={false}>
-              DOCS
-            </CustomLink>
+            <div className="relative" ref={infoDropdownRef}>
+              <button
+                className="flex items-center gap-1 uppercase hover:underline decoration-solid decoration-2 underline-offset-4"
+                onClick={() => setInfoDropdownOpen((prev) => !prev)}>
+                INFO
+                <ChevronDown className="w-3 h-3" />
+              </button>
+              {infoDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 bg-black border border-stone-600 rounded-none flex flex-col min-w-[8rem] z-500 p-3 gap-2">
+                  <CustomLink
+                    to="/about"
+                    exact={false}
+                    className=""
+                    onClick={() => setInfoDropdownOpen(false)}>
+                    ABOUT
+                  </CustomLink>
+                  <CustomLink
+                    to="/contact"
+                    exact={false}
+                    className=""
+                    onClick={() => setInfoDropdownOpen(false)}>
+                    CONTACT
+                  </CustomLink>
+                  <CustomLink
+                    to="/docs"
+                    exact={false}
+                    className=""
+                    onClick={() => setInfoDropdownOpen(false)}>
+                    DOCS
+                  </CustomLink>
+                </div>
+              )}
+            </div>
           </ul>
           <button
             className="flex items-center justify-center gap-1 border-0 p-1 pl-2 pr-2 rounded-full bg-stone-200 text-gray-600 cursor-pointer"
@@ -495,7 +535,7 @@ export default function NavBar() {
           {/* <div className="font-thin text-base ">|</div> */}
           <Button
             variant="outline"
-            className="hover:bg-zinc-100 hover:text-black transition-all ease-out duration-200"
+            className="hover:bg-zinc-200 text-white border-1 bg-black border-white hover:text-blue-800 transition-all ease-out duration-200"
             onClick={logOut}>
             Log Out
           </Button>

@@ -13,7 +13,7 @@ export default function Torrents({ ytsTorrents }) {
             {ytsTorrents.map((torrent, key) => {
               return (
                 <a key={key} href={torrent.url}>
-                  <div className="border-2 flex flex-col items-center justify-center gap-1 p-2 pr-2 pl-2 rounded-none hover:border-blue-800 hover:text-blue-800 transition-all ease-out duration-200 w-auto">
+                  <div className="border-1 flex flex-col items-center justify-center gap-1 p-2 pr-2 pl-2 rounded-sm hover:bg-slate-200 transition-all ease-out duration-200 w-auto bg-teal-300 text-stone-900 border-teal-300">
                     <div className="flex items-center justify-center gap-1 border-b-1 pb-1 uppercase">
                       <span className="">{torrent?.type}</span>
                       <span className="">{torrent?.quality}</span>

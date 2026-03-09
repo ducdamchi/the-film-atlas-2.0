@@ -21,11 +21,13 @@ const authRouter = require("./routes/Auth.js")
 const watchedRouter = require("./routes/Watched.js")
 const watchlistedRouter = require("./routes/Watchlisted.js")
 const directorsRouter = require("./routes/Directors.js")
+const proxyRouter = require("./routes/Proxy.js")
 
 app.use("/auth", authRouter)
 app.use("/profile/me/watched", watchedRouter)
 app.use("/profile/me/watchlisted", watchlistedRouter)
 app.use("/profile/me/directors", directorsRouter)
+app.use("/proxy", proxyRouter)
 
 // Catch-all handler: send back React's index.html for SPA
 app.get("/*splat", (req, res) => {

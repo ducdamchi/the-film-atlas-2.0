@@ -417,11 +417,8 @@ export function fetchFilmRatingsFromOMDB(imdbId) {
 }
 
 export function fetchFilmFromYTS(imdb_id) {
-  const ytsUrl = "https://yts.lt/api/v2/movie_details.json"
-  const corsProxy = "https://corsproxy.io/?"
-
   return axios
-    .get(`${corsProxy}${encodeURIComponent(`${ytsUrl}?imdb_id=${imdb_id}`)}`)
+    .get(`${import.meta.env.VITE_API_URL}/proxy/yts/${imdb_id}`)
     .then((response) => response.data)
     .catch((err) => {
       console.log("Client: Error fetching film from YTS", err)

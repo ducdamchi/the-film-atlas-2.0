@@ -105,6 +105,8 @@ export default function FilmUser_Card({ filmObject, queryString }) {
     const img = new Image()
     img.crossOrigin = "anonymous"
 
+    if (!filmObject.backdrop_path) return
+
     const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://image.tmdb.org/t/p/w500${filmObject.backdrop_path}`)}`
     img.src = proxyUrl
 
