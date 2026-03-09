@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import {
@@ -18,7 +18,66 @@ export default function FilmUser_Card({ filmObject, queryString }) {
   const [isLoading, setIsLoading] = useState(false)
   const [movieDetails, setMovieDetails] = useState({})
   const [directors, setDirectors] = useState([])
-  const [overlayColor, setOverlayColor] = useState(`rgba(0,0,0)`)
+  const titleSpanRef = useRef(null)
+  const titleMarqueeRef = useRef(null)
+  const countrySpanRef = useRef(null)
+  const marqueeAnimationRef = useRef(null)
+
+  useEffect(() => {
+    const el = titleSpanRef.current
+    if (!el) return
+
+    const overflow = el.scrollWidth - el.parentElement.clientWidth
+
+    if (overflow > 0) {
+      const PAUSE_MS = 2500
+      const movementMs = (overflow / 40) * 1000
+      const totalMs = PAUSE_MS + movementMs + PAUSE_MS
+      const pauseRatio = PAUSE_MS / totalMs
+
+      titleMarqueeRef.current = el.animate(
+        [
+          { transform: "translateX(0)",              offset: 0              },
+          { transform: "translateX(0)",              offset: pauseRatio     },
+          { transform: `translateX(-${overflow}px)`, offset: 1 - pauseRatio },
+          { transform: `translateX(-${overflow}px)`, offset: 1              },
+        ],
+        { duration: totalMs, delay: 1000, easing: "linear", direction: "alternate", iterations: Infinity },
+      )
+    } else {
+      titleMarqueeRef.current?.cancel()
+    }
+
+    return () => titleMarqueeRef.current?.cancel()
+  }, [filmObject.title])
+
+  useEffect(() => {
+    const el = countrySpanRef.current
+    if (!el) return
+
+    const overflow = el.scrollWidth - el.parentElement.clientWidth
+
+    if (overflow > 0) {
+      const PAUSE_MS = 2500
+      const movementMs = (overflow / 40) * 1000
+      const totalMs = PAUSE_MS + movementMs + PAUSE_MS
+      const pauseRatio = PAUSE_MS / totalMs
+
+      marqueeAnimationRef.current = el.animate(
+        [
+          { transform: "translateX(0)",              offset: 0              },
+          { transform: "translateX(0)",              offset: pauseRatio     },
+          { transform: `translateX(-${overflow}px)`, offset: 1 - pauseRatio },
+          { transform: `translateX(-${overflow}px)`, offset: 1              },
+        ],
+        { duration: totalMs, delay: 1000, easing: "linear", direction: "alternate", iterations: Infinity },
+      )
+    } else {
+      marqueeAnimationRef.current?.cancel()
+    }
+
+    return () => marqueeAnimationRef.current?.cancel()
+  }, [filmObject.origin_country])
 
   useEffect(() => {
     const fetchPageData = async () => {
@@ -27,7 +86,7 @@ export default function FilmUser_Card({ filmObject, queryString }) {
           setIsLoading(true)
           const result = await fetchFilmFromTMDB(hoverId)
           const directorsList = result.credits.crew.filter(
-            (crewMember) => crewMember.job === "Director"
+            (crewMember) => crewMember.job === "Director",
           )
           setMovieDetails(result)
           setDirectors(directorsList)
@@ -43,7 +102,6 @@ export default function FilmUser_Card({ filmObject, queryString }) {
 
   useEffect(() => {
     const filmCard = document.getElementById(`film-card-${filmObject.id}`)
-    const console = document.getElementById(`console-${filmObject.id}`)
     const img = new Image()
     img.crossOrigin = "anonymous"
 
@@ -56,38 +114,22 @@ export default function FilmUser_Card({ filmObject, queryString }) {
       let brightness
       try {
         domColor = colorThief.getColor(img)
-        /* Check brightness of dominant color to ensure readability 
+        /* Check brightness of dominant color to ensure readability
         Formula: https://www.nbdtech.com/Blog/archive/2008/04/27/Calculating-the-Perceived-Brightness-of-a-Color.aspx */
         brightness = Math.round(
           Math.sqrt(
             domColor[0] * domColor[0] * 0.241 +
               domColor[1] * domColor[1] * 0.691 +
-              domColor[2] * domColor[2] * 0.068
-          )
+              domColor[2] * domColor[2] * 0.068,
+          ),
         )
 
-        // console.style.backgroundColor = `rgba(${domColor[0]}, ${domColor[1]}, ${domColor[2]}, 0.6)`
-        /* If bg dark enough, font can be white */
         if (brightness > 194) {
           filmCard.style.backgroundColor = `rgba(${domColor[0]}, ${domColor[1]}, ${domColor[2]}, 0.4)`
-          // setOverlayColor(
-          //   `rgba(${domColor[0]}, ${domColor[1]}, ${domColor[2]}, 0.4)`
-          // )
-          // console.style.backgroundColor = `rgba(${domColor[0]}, ${domColor[1]}, ${domColor[2]}, 0.3)`
-          /* If bg a little light, reduce each rgb value by 33% */
         } else if (130 < brightness <= 194) {
           filmCard.style.backgroundColor = `rgba(${domColor[0] * 1.2}, ${domColor[1] * 1.2}, ${domColor[2] * 1.2}, 0.4)`
-          // setOverlayColor(
-          //   `rgba(${domColor[0] * 1.2}, ${domColor[1] * 1.2}, ${domColor[2] * 1.2}, 0.4)`
-          // )
-          // console.style.backgroundColor = `rgba(${domColor[0] * 1.2}, ${domColor[1] * 1.2}, ${domColor[2] * 1.2}, 0.3)`
-          /* If bg too light, reduce each rgb value by 66% */
         } else {
           filmCard.style.backgroundColor = `rgba(${domColor[0] * 1.8}, ${domColor[1] * 1.8}, ${domColor[2] * 1.8}, 0.4)`
-          // setOverlayColor(
-          //   `rgba(${domColor[0] * 1.8}, ${domColor[1] * 1.8}, ${domColor[2] * 1.8}, 0.4)`
-          // )
-          // console.style.backgroundColor = `rgba(${domColor[0] * 1.8}, ${domColor[1] * 1.8}, ${domColor[2] * 1.8}, 0.3)`
         }
       } catch (err) {
         console.log(err)
@@ -98,16 +140,11 @@ export default function FilmUser_Card({ filmObject, queryString }) {
   return (
     <div
       id={`film-card-${filmObject.id}`}
-      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center gap-0 bg-gray-200 text-black rounded-none pt-0 relative">
+      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center gap-0 bg-gray-200 text-black rounded-none pt-0 relative"
+      onMouseEnter={() => setHoverId(filmObject.id)}
+      onMouseLeave={() => setHoverId(null)}>
       {/* Poster */}
-      <div
-        className="group/thumbnail overflow-hidden relative"
-        onMouseEnter={() => {
-          setHoverId(filmObject.id)
-        }}
-        onMouseLeave={() => {
-          setHoverId(null)
-        }}>
+      <div className="group/thumbnail overflow-hidden relative">
         <img
           id={`thumbnail-${filmObject.id}`}
           className="filmCard-width aspect-16/10 object-cover transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03]"
@@ -121,82 +158,53 @@ export default function FilmUser_Card({ filmObject, queryString }) {
             navigate(`/films/${filmObject.id}`)
           }}
         />
-
-        <div className="">
-          <LaptopInteractionConsole
-            hoverId={hoverId}
-            filmObject={filmObject}
-            directors={directors}
-            movieDetails={movieDetails}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-            hasOverview={false}
-          />
-        </div>
       </div>
 
+      <LaptopInteractionConsole
+        hoverId={hoverId}
+        filmObject={filmObject}
+        directors={directors}
+        movieDetails={movieDetails}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+        hasOverview={true}
+      />
+
       {/* Text below poster */}
-      <div className="md:absolute md:bottom-0 md:left-0 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-stone-100 w-full pt-1 pb-1 flex justify-between p-2">
+      <div
+        className={`md:absolute md:bottom-0 md:left-0 md:z-0 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-stone-100 w-full pt-1 pb-1 flex justify-between gap-2 p-2 md:transition-opacity md:duration-200 ${hoverId ? "md:opacity-0 md:pointer-events-none" : ""}`}>
         {/* Left side - Title, year, directors name*/}
-        <div className="border-amber-400 flex flex-col items-start justify-center gap-0 ml-2">
+        <div className="flex flex-col items-start justify-center gap-0 ml-2 min-w-0 overflow-hidden">
           {/* Film Title */}
-          <div className="max-w-[18rem] text-wrap text-base">
+          <div className="overflow-hidden w-full text-base">
             <span
-              onClick={() => {
-                navigate(`/films/${filmObject.id}`)
-              }}
-              className=" font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400">
-              {`${filmObject.title.slice(0, 25)}`}
+              ref={titleSpanRef}
+              onClick={() => navigate(`/films/${filmObject.id}`)}
+              className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
+              title={filmObject.title}
+              style={{ paddingRight: "1rem" }}>
+              {filmObject.title}
             </span>
-            {filmObject.title.length >= 25 && (
-              <span className="font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400">
-                ...
-              </span>
-            )}
           </div>
           {/* Release year & origin countries */}
-          <div className="flex items-center uppercase text-[12px] font-light gap-1">
+          <div className="flex items-center uppercase text-[12px] font-light gap-1 w-full">
             {filmObject.release_date && (
-              <span className="">
-                {`${getReleaseYear(filmObject.release_date)}`}
+              <span className="shrink-0">
+                {getReleaseYear(filmObject.release_date)}
+                {queryString && filmObject.origin_country && " |"}
               </span>
             )}
             {queryString && filmObject.origin_country && (
-              <span className="">
-                <span className="flex gap-1">
-                  <span>|</span>
-                  {/* {filmObject.origin_country[0].length >= 20 && (
-                    <span>{`${filmObject.origin_country[0]}...`}</span>
-                  )} */}
-                  {filmObject.origin_country.map((country, key) => {
-                    if (key < 2) {
-                      return (
-                        <span key={key}>
-                          {filmObject.origin_country.length === 1 && (
-                            <span>{`${getCountryName(country)}`}</span>
-                          )}
-                          {filmObject.origin_country.length > 1 && (
-                            <span>
-                              <span>{`${getCountryName(country).slice(0, 10)}`}</span>
-                              {getCountryName(country).length >= 11 && (
-                                <span>...</span>
-                              )}
-                            </span>
-                          )}
-
-                          {/* Add a comma if it's not the last country on the list */}
-                          {key < 1 && filmObject.origin_country.length > 1 && (
-                            <span>,</span>
-                          )}
-                          {key === 1 && <span> ...</span>}
-                        </span>
-                      )
-                    } else {
-                      return <span key={key} className="hidden"></span>
-                    }
-                  })}
+              <div className="overflow-hidden min-w-0 flex-1">
+                <span
+                  ref={countrySpanRef}
+                  className="whitespace-nowrap inline-block"
+                  style={{ paddingRight: "1rem" }}>
+                  {filmObject.origin_country
+                    .map((c) => getCountryName(c))
+                    .join(", ")}
                 </span>
-              </span>
+              </div>
             )}
           </div>
         </div>
@@ -220,7 +228,7 @@ export default function FilmUser_Card({ filmObject, queryString }) {
                         }
                       />
                     </div>
-                    <div className="text-center cursor-pointer">
+                    <div className="text-center cursor-pointer truncate max-w-[6rem]">
                       {`${getNameParts(dir.name)?.firstNameInitial}. ${getNameParts(dir.name)?.lastName}`}
                     </div>
                   </div>

@@ -1,4 +1,3 @@
-import React from "react"
 import { useNavigate } from "react-router-dom"
 import InteractionConsole from "./InteractionConsole"
 
@@ -13,23 +12,22 @@ export default function LaptopInteractionConsole({
   setPage,
 }) {
   const navigate = useNavigate()
-  if (hoverId === filmObject.id) {
-    return (
-      <div className="hidden md:flex border-0 border-red-500 absolute bottom-0 left-0 filmCard-width aspect-16/10 object-cover bg-black/70 items-start justify-center">
+  const isHovered = hoverId === filmObject.id
+  return (
+      <div className={`hidden md:flex absolute inset-0 bg-black/70 items-center justify-center z-10 transition-opacity duration-200 ${isHovered ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
         {hasOverview && (
-          <div className="flex flex-col justify-end items-center h-[11rem] lg:h-[13rem] border-0 border-blue-500 pb-4 lg:pb-6">
+          <div className="flex flex-col justify-end items-center pb-4 lg:pb-6">
             <div
-              className="w-full text-white pr-7 pl-7 pb-5 lg:pb-6"
+              className="w-full text-white px-7 pb-5 lg:pb-6"
               onClick={() => {
                 navigate(`/films/${filmObject.id}`)
                 if (setPage) {
                   setPage((prevPage) => ({ ...prevPage, loadMore: false }))
                 }
               }}>
-              <span className="text-sm lg:text-base italic font-light">
-                {filmObject.overview?.slice(0, 160)}
+              <span className="text-sm lg:text-base italic font-light line-clamp-4">
+                {movieDetails?.overview || filmObject.overview}
               </span>
-              {filmObject.overview?.length >= 161 && <span>{`...`}</span>}
             </div>
             {/* console for <lg (1024px) breakpoint */}
             <div className="lg:hidden">
@@ -95,7 +93,7 @@ export default function LaptopInteractionConsole({
         )}
 
         {!hasOverview && (
-          <div className="flex flex-col justify-center items-center h-full border-0 border-blue-500 pb-4 lg:pb-6">
+          <div className="flex flex-col justify-center items-center h-full pb-4 lg:pb-6">
             {/* console for <lg (1024px) breakpoint */}
             <div className="lg:hidden z-20">
               <InteractionConsole
@@ -168,7 +166,4 @@ export default function LaptopInteractionConsole({
         )}
       </div>
     )
-  } else {
-    return null
-  }
 }

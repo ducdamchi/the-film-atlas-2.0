@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import { getReleaseYear } from "../../../Utils/helperFunctions"
@@ -15,29 +15,37 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
   const [hoverId, setHoverId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [movieDetails, setMovieDetails] = useState({})
-  const [directors, setDirectors] = useState([]) //director
+  const [directors, setDirectors] = useState([])
+  const titleSpanRef = useRef(null)
+  const titleMarqueeRef = useRef(null)
 
-  /* Fetch TMDB details for a film when it's hovered on --- this is an exact duplicate of the hook below, but to handle laptop mode when user hovers over a film. might need better solution in future to avoid redundancy */
   useEffect(() => {
-    const fetchPageData = async () => {
-      if (hoverId) {
-        try {
-          setIsLoading(true)
-          const result = await fetchFilmFromTMDB(hoverId)
-          const directorsList = result.credits.crew.filter(
-            (crewMember) => crewMember.job === "Director",
-          )
-          setMovieDetails(result)
-          setDirectors(directorsList)
-        } catch (err) {
-          console.error("Error loading film data: ", err)
-        } finally {
-          setIsLoading(false)
-        }
-      }
+    const el = titleSpanRef.current
+    if (!el) return
+
+    const overflow = el.scrollWidth - el.parentElement.clientWidth
+
+    if (overflow > 0) {
+      const PAUSE_MS = 2500
+      const movementMs = (overflow / 40) * 1000
+      const totalMs = PAUSE_MS + movementMs + PAUSE_MS
+      const pauseRatio = PAUSE_MS / totalMs
+
+      titleMarqueeRef.current = el.animate(
+        [
+          { transform: "translateX(0)",              offset: 0              },
+          { transform: "translateX(0)",              offset: pauseRatio     },
+          { transform: `translateX(-${overflow}px)`, offset: 1 - pauseRatio },
+          { transform: `translateX(-${overflow}px)`, offset: 1              },
+        ],
+        { duration: totalMs, delay: 1000, easing: "linear", direction: "alternate", iterations: Infinity },
+      )
+    } else {
+      titleMarqueeRef.current?.cancel()
     }
-    fetchPageData()
-  }, [hoverId])
+
+    return () => titleMarqueeRef.current?.cancel()
+  }, [filmObject.title])
 
   /* Fetch TMDB details for each film card that shows up on screen */
   useEffect(() => {
@@ -63,16 +71,11 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
   return (
     <div
       id={`film-card-${filmObject.id}`}
-      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center md:items-start gap-0 bg-gray-200 text-black relative">
+      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center md:items-start gap-0 bg-gray-200 text-black relative"
+      onMouseEnter={() => setHoverId(filmObject.id)}
+      onMouseLeave={() => setHoverId(null)}>
       {/* Poster */}
-      <div
-        className="group/thumbnail overflow-hidden relative"
-        onMouseEnter={() => {
-          setHoverId(filmObject.id)
-        }}
-        onMouseLeave={() => {
-          setHoverId(null)
-        }}>
+      <div className="group/thumbnail overflow-hidden relative">
         <img
           id={`thumbnail-${filmObject.id}`}
           className="filmCard-width aspect-16/10 object-cover transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03]"
@@ -87,68 +90,46 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
             setPage((prevPage) => ({ ...prevPage, loadMore: false }))
           }}
         />
-
-        {/* Laptop Interaction Console */}
-        <LaptopInteractionConsole
-          hoverId={hoverId}
-          filmObject={filmObject}
-          directors={directors}
-          movieDetails={movieDetails}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-          hasOverview={true}
-          setPage={setPage}
-        />
       </div>
+
+      {/* Laptop Interaction Console - covers full card on hover */}
+      <LaptopInteractionConsole
+        hoverId={hoverId}
+        filmObject={filmObject}
+        directors={directors}
+        movieDetails={movieDetails}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+        hasOverview={true}
+        setPage={setPage}
+      />
 
       {/* Text below poster */}
 
       {/* FIRST LINE: TITLE, YEAR, RATING, VOTE COUNT */}
-      <div className="md:absolute md:bottom-0 md:left-0 w-full p-2 pb-0 flex justify-between md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-stone-100 text-base lg:pb-4 lg:text-lg 2xl:text-xl 2xl:pb-5">
-        {/* Left side - Title, year*/}
-        <div className="border-amber-400 flex flex-row items-center justify-center gap-0 ml-1">
-          {/* Film Title, Year, Rating, Vote Count*/}
-          <div className="flex items-center justify-start">
-            {/* < lg: show 17 chars */}
+      <div className={`md:absolute md:bottom-0 md:left-0 md:z-0 w-full p-2 pb-0 flex justify-between gap-2 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-stone-100 text-base lg:pb-4 lg:text-lg 2xl:text-xl 2xl:pb-5 md:transition-opacity md:duration-200 ${hoverId ? "md:opacity-0 md:pointer-events-none" : ""}`}>
+        {/* Left side - Title, year */}
+        <div className="flex flex-row items-center gap-1 ml-1 min-w-0">
+          <div className="overflow-hidden min-w-0 flex-1">
             <span
+              ref={titleSpanRef}
               onClick={() => {
                 navigate(`/films/${filmObject.id}`)
                 setPage((prevPage) => ({ ...prevPage, loadMore: false }))
               }}
-              className="lg:hidden font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
-              title={filmObject.title}>
-              {filmObject.title.slice(0, 17)}
+              className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
+              title={filmObject.title}
+              style={{ paddingRight: "1rem" }}>
+              {filmObject.title}
             </span>
-            {filmObject.title.length > 17 && (
-              <span className="lg:hidden font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400">
-                ...
-              </span>
-            )}
-            {/* >= lg: show 20 chars */}
-            <span
-              onClick={() => {
-                navigate(`/films/${filmObject.id}`)
-                setPage((prevPage) => ({ ...prevPage, loadMore: false }))
-              }}
-              className="hidden lg:inline font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
-              title={filmObject.title}>
-              {filmObject.title.slice(0, 20)}
-            </span>
-            {filmObject.title.length > 20 && (
-              <span className="hidden lg:inline font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400">
-                ...
-              </span>
-            )}
-            {filmObject.release_date && (
-              <span className="ml-1 font-thin">
-                {`${getReleaseYear(filmObject.release_date)}`}
-              </span>
-            )}
           </div>
+          {filmObject.release_date && (
+            <span className="shrink-0 font-thin">{getReleaseYear(filmObject.release_date)}</span>
+          )}
         </div>
 
         {/* Right side - TMDB rating and vote count */}
-        <div className="flex items-center gap-2 md:gap-3 justify-center mr-1">
+        <div className="flex items-center gap-2 md:gap-3 justify-center mr-1 shrink-0">
           <div className="flex items-center justify-center gap-1">
             <MdStars className="text-sm lg:text-xl 2xl:text-2xl" />
             <div className="">{Number(filmObject.vote_average).toFixed(1)}</div>
@@ -163,9 +144,8 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
       {/* SECOND LINE: OVERVIEW, CONSOLE */}
       <div className="md:hidden mt-1 pb-4 w-full">
         {/* OVERVIEW */}
-        <div className="p-0 pr-3 pl-3 mb-4 w-full text-[13px]">
-          <span className="italic">{filmObject.overview?.slice(0, 52)}</span>
-          {filmObject.overview?.length >= 53 && <span>{`...`}</span>}
+        <div className="p-0 pr-3 pl-3 mb-4 w-full text-[13px] italic truncate">
+          {filmObject.overview}
         </div>
 
         {/* CONSOLE */}
@@ -201,23 +181,3 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
   )
 }
 
-// {
-//   queryString && filmObject.directors && (
-//     <span className="">
-//       <span className="flex gap-1 uppercase text-xs italic font-semibold">
-//         {/* <span>|</span> */}
-//         {filmObject.directors.map((dir, key) => {
-//           return (
-//             <span key={key}>
-//               <span>{`${dir.name}`}</span>
-//               {/* Add a comma if it's not the last country on the list */}
-//               {key !== filmObject.directors.length - 1 && (
-//                 <span>,</span>
-//               )}
-//             </span>
-//           )
-//         })}
-//       </span>
-//     </span>
-//   )
-// }

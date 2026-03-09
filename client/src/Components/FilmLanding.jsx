@@ -511,146 +511,156 @@ export default function FilmLanding() {
               </div>
 
               {/* Ratings & Awards section */}
-              {filmRatings && (
+              {(filmRatings || filmAwards) && (
                 <div className="p-4 pt-2">
                   <div className="landing-sectionTitle mb-2">
                     ratings & awards
                   </div>
-                  {/* Ratings section */}
-                  <div className="flex flex-wrap gap-2">
-                    {filmRatings.imdbRating &&
-                      filmRatings.imdbRating !== "N/A" && (
-                        <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
-                          <span className="flex justify-start items-center gap-2">
-                            <span className="text-base lg:text-lg uppercase text-stone-900 font-bold">
-                              IMDb
-                            </span>
-                            {filmRatings.imdbVotes &&
-                              filmRatings.imdbVotes !== "N/A" && (
-                                <span className="text-stone-900 text-xs lg:text-sm font-thin">
-                                  {filmRatings.imdbVotes} votes
+
+                  <div className="flex flex-col justify-center items-start gap-2">
+                    {/* Ratings section */}
+                    {filmRatings && (
+                      <div className="flex flex-wrap gap-2">
+                        {filmRatings.imdbRating &&
+                          filmRatings.imdbRating !== "N/A" && (
+                            <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
+                              <span className="flex justify-start items-center gap-2">
+                                <span className="landing-ratingsTitle">
+                                  IMDb
                                 </span>
-                              )}
-                          </span>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-yellow-500 text-sm lg:text-base">
-                              ★
-                            </span>
-                            <span className="text-stone-900 font-semibold text-base lg:text-lg leading-none">
-                              {filmRatings.imdbRating}
-                            </span>
-                            <span className="text-stone-900 text-xs lg:text-sm font-thin">
-                              /10
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    {filmRatings.Ratings?.find(
-                      (r) => r.Source === "Rotten Tomatoes",
-                    ) && (
-                      <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
-                        <span className="text-base lg:text-lg uppercase text-stone-900 font-bold">
-                          Rotten Tomatoes
-                        </span>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-sm lg:text-base">🍅</span>
-                          <span className="text-stone-900 font-semibold text-base lg:text-lg  leading-none">
-                            {
-                              filmRatings.Ratings.find(
-                                (r) => r.Source === "Rotten Tomatoes",
-                              ).Value
-                            }
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    {filmRatings.Ratings?.find(
-                      (r) => r.Source === "Metacritic",
-                    ) &&
-                      (() => {
-                        const score = parseInt(
-                          filmRatings.Ratings.find(
-                            (r) => r.Source === "Metacritic",
-                          ).Value,
-                        )
-                        const color =
-                          score >= 75
-                            ? "bg-green-600"
-                            : score >= 50
-                              ? "bg-yellow-500"
-                              : "bg-red-600"
-                        return (
-                          <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
-                            <span className="text-base lg:text-lg uppercase text-stone-900 font-bold">
-                              Metacritic
-                            </span>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span
-                                className={`${color} text-white font-bold text-sm lg:text-base px-2 py-0.5 rounded`}>
-                                {score}
+                                {filmRatings.imdbVotes &&
+                                  filmRatings.imdbVotes !== "N/A" && (
+                                    <span className="text-stone-900 text-xs lg:text-sm font-thin">
+                                      {filmRatings.imdbVotes} votes
+                                    </span>
+                                  )}
                               </span>
-                              <span className="text-stone-900 text-xs lg:text-sm font-thin">
-                                /100
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-yellow-500 text-sm lg:text-base">
+                                  ★
+                                </span>
+                                <span className="text-stone-900 font-semibold text-base lg:text-lg leading-none">
+                                  {filmRatings.imdbRating}
+                                </span>
+                                <span className="text-stone-900 text-xs lg:text-sm font-thin">
+                                  /10
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        {filmRatings.Ratings?.find(
+                          (r) => r.Source === "Rotten Tomatoes",
+                        ) && (
+                          <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
+                            <span className="landing-ratingsTitle">
+                              Rotten Tomatoes
+                            </span>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-sm lg:text-base">🍅</span>
+                              <span className="text-stone-900 font-semibold text-base lg:text-lg  leading-none">
+                                {
+                                  filmRatings.Ratings.find(
+                                    (r) => r.Source === "Rotten Tomatoes",
+                                  ).Value
+                                }
                               </span>
                             </div>
                           </div>
-                        )
-                      })()}
-                  </div>
-                  {/* Awards section */}
-                  {filmAwards && (
-                    <div className="mt-4 text-stone-900 border-1 p-5 py-4 rounded-sm w-fit">
-                      {/* <div className="landing-sectionTitle mb-2">awards</div> */}
-                      {filmAwards.wins.length > 0 && (
-                        <div className="mb-3">
-                          <div className="text-base lg:text-lg  uppercase font-bold mb-1">
-                            Won
-                          </div>
-                          <ul className="flex flex-col gap-1">
-                            {filmAwards.wins.map((w, i) => (
-                              <li key={i} className="flex items-baseline gap-1">
-                                {/* <span className="text-yellow-500 text-xs">
+                        )}
+                        {filmRatings.Ratings?.find(
+                          (r) => r.Source === "Metacritic",
+                        ) &&
+                          (() => {
+                            const score = parseInt(
+                              filmRatings.Ratings.find(
+                                (r) => r.Source === "Metacritic",
+                              ).Value,
+                            )
+                            const color =
+                              score >= 75
+                                ? "bg-green-600"
+                                : score >= 50
+                                  ? "bg-yellow-500"
+                                  : "bg-red-600"
+                            return (
+                              <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm">
+                                <span className="landing-ratingsTitle">
+                                  Metacritic
+                                </span>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span
+                                    className={`${color} text-white font-bold text-sm lg:text-base px-2 py-0.5 rounded`}>
+                                    {score}
+                                  </span>
+                                  <span className="text-stone-900 text-xs lg:text-sm font-thin">
+                                    /100
+                                  </span>
+                                </div>
+                              </div>
+                            )
+                          })()}
+                      </div>
+                    )}
+
+                    {/* Awards section */}
+                    {filmAwards && (
+                      <div className="text-stone-900 border-1 p-5 py-4 rounded-sm w-fit">
+                        {/* <div className="landing-sectionTitle mb-2">awards</div> */}
+                        {filmAwards.wins.length > 0 && (
+                          <div className="mb-3">
+                            <div className="text-base lg:text-lg  uppercase font-bold mb-1">
+                              Won
+                            </div>
+                            <ul className="flex flex-col gap-1">
+                              {filmAwards.wins.map((w, i) => (
+                                <li
+                                  key={i}
+                                  className="flex items-baseline gap-1">
+                                  {/* <span className="text-yellow-500 text-xs">
                                   ★
                                 </span> */}
-                                <span className="text-stone-900 text-sm lg:text-base">
-                                  {w.award}
-                                </span>
-                                {w.year && (
-                                  <span className="text-stone-900 text-xs lg:text-sm font-thin">
-                                    {w.year}
+                                  <span className="text-stone-900 text-sm lg:text-base">
+                                    {w.award}
                                   </span>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {filmAwards.nominations.length > 0 && (
-                        <div>
-                          <div className="text-base lg:text-lg  uppercase font-bold mb-1">
-                            Nominated
+                                  {w.year && (
+                                    <span className="text-stone-900 text-xs lg:text-sm font-thin">
+                                      {w.year}
+                                    </span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
-                          <ul className="flex flex-col gap-1">
-                            {filmAwards.nominations.map((n, i) => (
-                              <li key={i} className="flex items-baseline gap-1">
-                                {/* <span className="text-stone-900 text-xs">
+                        )}
+                        {filmAwards.nominations.length > 0 && (
+                          <div>
+                            <div className="text-base lg:text-lg  uppercase font-bold mb-1">
+                              Nominated
+                            </div>
+                            <ul className="flex flex-col gap-1">
+                              {filmAwards.nominations.map((n, i) => (
+                                <li
+                                  key={i}
+                                  className="flex items-baseline gap-1">
+                                  {/* <span className="text-stone-900 text-xs">
                                   ○
                                 </span> */}
-                                <span className="text-stone-900 text-sm lg:text-base">
-                                  {n.award}
-                                </span>
-                                {n.year && (
-                                  <span className="text-stone-900 text-xs lg:text-sm font-thin">
-                                    {n.year}
+                                  <span className="text-stone-900 text-sm lg:text-base">
+                                    {n.award}
                                   </span>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                                  {n.year && (
+                                    <span className="text-stone-900 text-xs lg:text-sm font-thin">
+                                      {n.year}
+                                    </span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

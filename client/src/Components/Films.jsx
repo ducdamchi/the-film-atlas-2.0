@@ -107,33 +107,31 @@ export default function Films() {
     }
   }, [location.state])
 
-  /* Query films from TMDB with Search Bar */
+  /* Query films from TMDB with Search Bar — debounced 500ms */
   useEffect(() => {
-    const queryFilm = async () => {
+    if (searchInput.trim().length === 0 || searchInput === null) {
+      setIsSearching(false)
+      return
+    }
+
+    setIsSearching(true)
+
+    const timer = setTimeout(async () => {
       try {
-        // Do not start API query if searchInput is empty
-        if (searchInput.trim().length === 0 || searchInput === null) {
-          setIsSearching(false)
-        } else {
-          setIsSearching(true)
-          // setIsLoading(true)
-          const original_results = await queryFilmFromTMDB(searchInput)
-          const filtered_results = original_results.filter(
-            (movie) =>
-              !(movie.backdrop_path === null || movie.poster_path === null)
-          )
-          const sorted_filtered_results = filtered_results.sort(
-            (a, b) => b.popularity - a.popularity
-          )
-          setSearchResult(sorted_filtered_results)
-        }
+        const original_results = await queryFilmFromTMDB(searchInput)
+        const filtered_results = original_results.filter(
+          (movie) => !(movie.backdrop_path === null || movie.poster_path === null)
+        )
+        const sorted_filtered_results = filtered_results.sort(
+          (a, b) => b.popularity - a.popularity
+        )
+        setSearchResult(sorted_filtered_results)
       } catch (err) {
         console.log("Error Querying Film: ", err)
-      } finally {
-        // setIsLoading(false)
       }
-    }
-    queryFilm()
+    }, 500)
+
+    return () => clearTimeout(timer)
   }, [searchInput])
 
   /* Fetch User's film list (liked, watchlisted or starred) from App's DB */

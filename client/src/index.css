@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
 @custom-variant dark (&:is(.dark *));
 
 /* Customize the popup close button */
@@ -196,7 +197,11 @@ Red Rose, Cal Sans, Paytone One, Bungee Shade, Russo One, Black Ops One */
   }
 
   .landing-sectionContent {
-    @apply text-xl/6 lg:text-2xl/9 font-bold text-balance max-w-[60rem];
+    @apply text-xl/6 lg:text-2xl/9 font-semibold text-balance max-w-[60rem];
+  }
+
+  .landing-ratingsTitle {
+    @apply text-base lg:text-lg uppercase text-stone-900 font-semibold;
   }
 
   .filmGallery-grid {
