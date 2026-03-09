@@ -5,6 +5,7 @@ import { getReleaseYear } from "../../../Utils/helperFunctions"
 import {
   queryFilmFromTMDB,
   queryPersonFromTMDB,
+  queryMultiFromTMDB,
 } from "../../../Utils/apiCalls"
 import useClickOutside from "../../../Hooks/useClickOutside"
 
@@ -14,6 +15,23 @@ import {
 } from "react-icons/bi"
 
 const imgBaseUrl = "https://image.tmdb.org/t/p/original"
+
+const SECTION_NAMES = ["Films", "Directors", "Actors"]
+
+function rankSections(multiResults) {
+  const scores = { Films: 0, Directors: 0, Actors: 0 }
+  // Weight top results more heavily: 1st = 5pts, 2nd = 4pts, ... 5th+ = 1pt
+  multiResults.slice(0, 5).forEach((item, i) => {
+    const weight = Math.max(5 - i, 1)
+    if (item.media_type === "movie") {
+      scores.Films += weight
+    } else if (item.media_type === "person") {
+      if (item.known_for_department === "Directing") scores.Directors += weight
+      else if (item.known_for_department === "Acting") scores.Actors += weight
+    }
+  })
+  return [...SECTION_NAMES].sort((a, b) => scores[b] - scores[a])
+}
 
 function SearchResultItem({ to, imageSrc, label, sublabel, linkText }) {
   return (
@@ -71,6 +89,7 @@ export default function QuickSearchModal({
   const [searchResult_Director, setSearchResult_Director] = useState([])
   const [searchResult_Actor, setSearchResult_Actor] = useState([])
   const [isSearching, setIsSearching] = useState(false)
+  const [sectionOrder, setSectionOrder] = useState(["Films", "Directors", "Actors"])
   const [focusedIndex, setFocusedIndex] = useState(-1)
   const [displayedResults, setDisplayedResults] = useState([])
 
@@ -135,8 +154,11 @@ export default function QuickSearchModal({
     setIsSearching(true)
     const timer = setTimeout(async () => {
       try {
-        const result_film = await queryFilmFromTMDB(searchInput)
-        const result_persons = await queryPersonFromTMDB(searchInput)
+        const [result_film, result_persons, result_multi] = await Promise.all([
+          queryFilmFromTMDB(searchInput),
+          queryPersonFromTMDB(searchInput),
+          queryMultiFromTMDB(searchInput),
+        ])
         setSearchResult_Film(result_film)
         setSearchResult_Director(
           result_persons.filter((p) => p.known_for_department === "Directing"),
@@ -144,6 +166,7 @@ export default function QuickSearchModal({
         setSearchResult_Actor(
           result_persons.filter((p) => p.known_for_department === "Acting"),
         )
+        setSectionOrder(rankSections(result_multi))
       } catch (err) {
         console.log("Error Querying Film with Quick Search Modal: ", err)
       }
@@ -188,51 +211,63 @@ export default function QuickSearchModal({
         {/* Results */}
         {isSearching && (
           <div className="w-full text-white p-2 max-h-[60vh] overflow-y-auto" ref={resultsRef}>
-            <SearchSection
-              title="Films"
-              results={searchResult_Film}
-              maxItems={5}
-              renderItem={(film, key) => (
-                <SearchResultItem
-                  key={key}
-                  to={`/films/${film.id}`}
-                  imageSrc={film.backdrop_path ? `${imgBaseUrl}${film.backdrop_path}` : "backdropnotfound.jpg"}
-                  label={film.title}
-                  sublabel={film.release_date ? getReleaseYear(film.release_date) : null}
-                  linkText="Go to Film"
+            {sectionOrder.map((section) => {
+              if (section === "Films") return (
+                <SearchSection
+                  key="Films"
+                  title="Films"
+                  results={searchResult_Film}
+                  maxItems={5}
+                  renderItem={(film, key) => (
+                    <SearchResultItem
+                      key={key}
+                      to={`/films/${film.id}`}
+                      imageSrc={film.backdrop_path ? `${imgBaseUrl}${film.backdrop_path}` : "backdropnotfound.jpg"}
+                      label={film.title}
+                      sublabel={film.release_date ? getReleaseYear(film.release_date) : null}
+                      linkText="Go to Film"
+                    />
+                  )}
                 />
-              )}
-            />
-            <SearchSection
-              title="Directors"
-              results={searchResult_Director}
-              maxItems={3}
-              renderItem={(person, key) => (
-                <SearchResultItem
-                  key={key}
-                  to={`/person/director/${person.id}`}
-                  imageSrc={person.profile_path ? `${imgBaseUrl}${person.profile_path}` : "profilepicnotfound.jpg"}
-                  label={person.name}
-                  sublabel={null}
-                  linkText="Go to Director"
+              )
+              if (section === "Directors") return (
+                <SearchSection
+                  key="Directors"
+                  title="Directors"
+                  results={searchResult_Director}
+                  maxItems={3}
+                  renderItem={(person, key) => (
+                    <SearchResultItem
+                      key={key}
+                      to={`/person/director/${person.id}`}
+                      imageSrc={person.profile_path ? `${imgBaseUrl}${person.profile_path}` : "profilepicnotfound.jpg"}
+                      label={person.name}
+                      sublabel={null}
+                      linkText="Go to Director"
+                    />
+                  )}
                 />
-              )}
-            />
-            <SearchSection
-              title="Actors"
-              results={searchResult_Actor}
-              maxItems={3}
-              renderItem={(person, key) => (
-                <SearchResultItem
-                  key={key}
-                  to={`/person/actor/${person.id}`}
-                  imageSrc={person.profile_path ? `${imgBaseUrl}${person.profile_path}` : "profilepicnotfound.jpg"}
-                  label={person.name}
-                  sublabel={null}
-                  linkText="Go to Actor"
+              )
+              if (section === "Actors") return (
+                <SearchSection
+                  key="Actors"
+                  title="Actors"
+                  results={searchResult_Actor}
+                  maxItems={3}
+                  renderItem={(person, key) => (
+                    <SearchResultItem
+                      key={key}
+                      to={`/person/actor/${person.id}`}
+                      imageSrc={person.profile_path ? `${imgBaseUrl}${person.profile_path}` : "profilepicnotfound.jpg"}
+                      label={person.name}
+                      sublabel={null}
+                      linkText="Go to Actor"
+                    />
+                  )}
                 />
-              )}
-            />
+              )
+              return null
+            })}
           </div>
         )}
       </div>
