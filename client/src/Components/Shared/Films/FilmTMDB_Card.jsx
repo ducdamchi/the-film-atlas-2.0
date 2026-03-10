@@ -33,12 +33,18 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
 
       titleMarqueeRef.current = el.animate(
         [
-          { transform: "translateX(0)",              offset: 0              },
-          { transform: "translateX(0)",              offset: pauseRatio     },
+          { transform: "translateX(0)", offset: 0 },
+          { transform: "translateX(0)", offset: pauseRatio },
           { transform: `translateX(-${overflow}px)`, offset: 1 - pauseRatio },
-          { transform: `translateX(-${overflow}px)`, offset: 1              },
+          { transform: `translateX(-${overflow}px)`, offset: 1 },
         ],
-        { duration: totalMs, delay: 1000, easing: "linear", direction: "alternate", iterations: Infinity },
+        {
+          duration: totalMs,
+          delay: 1000,
+          easing: "linear",
+          direction: "alternate",
+          iterations: Infinity,
+        },
       )
     } else {
       titleMarqueeRef.current?.cancel()
@@ -107,7 +113,8 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
       {/* Text below poster */}
 
       {/* FIRST LINE: TITLE, YEAR, RATING, VOTE COUNT */}
-      <div className={`md:absolute md:bottom-0 md:left-0 md:z-0 w-full p-2 pb-0 flex justify-between gap-2 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-stone-100 text-base lg:pb-4 lg:text-lg 2xl:text-xl 2xl:pb-5 md:transition-opacity md:duration-200 ${hoverId ? "md:opacity-0 md:pointer-events-none" : ""}`}>
+      <div
+        className={`md:absolute md:bottom-0 md:left-0 md:z-0 w-full p-2 pb-0 flex justify-between gap-2 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-stone-100 text-base lg:pb-4 lg:text-lg 2xl:text-xl 2xl:pb-5 md:transition-opacity md:duration-200 ${hoverId ? "md:opacity-0 md:pointer-events-none" : ""}`}>
         {/* Left side - Title, year */}
         <div className="flex flex-row items-center gap-1 ml-1 min-w-0">
           <div className="overflow-hidden min-w-0 flex-1">
@@ -119,12 +126,14 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
               }}
               className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
               title={filmObject.title}
-              style={{ paddingRight: "1rem" }}>
+              style={{ paddingRight: "0.1rem" }}>
               {filmObject.title}
             </span>
           </div>
           {filmObject.release_date && (
-            <span className="shrink-0 font-thin">{getReleaseYear(filmObject.release_date)}</span>
+            <span className="shrink-0 font-thin">
+              {getReleaseYear(filmObject.release_date)}
+            </span>
           )}
         </div>
 
@@ -180,4 +189,3 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
     </div>
   )
 }
-

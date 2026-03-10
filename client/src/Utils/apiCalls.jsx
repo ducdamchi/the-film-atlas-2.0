@@ -130,12 +130,47 @@ export function queryTopRatedFilmByCountryTMDB({
       },
     })
     .then((response) => {
-      return response.data.results
+      return {
+        results: response.data.results,
+        totalResults: response.data.total_results,
+      }
     })
     .catch((err) => {
       console.log("Error: ", err)
       throw err
     })
+}
+
+/* Probe TMDB to determine appropriate vote_count and rating defaults for a country.
+Uses total_results from a permissive (unfiltered) query to tier the thresholds. */
+export async function probeCountryDefaults(isoA2) {
+  const searchUrl = "https://api.themoviedb.org/3/discover/movie"
+  const apiKey = "14b22a55c02218f84058041c5f553d3d"
+
+  try {
+    const response = await axios.get(searchUrl, {
+      params: {
+        api_key: apiKey,
+        with_origin_country: isoA2,
+        include_adult: false,
+        include_video: false,
+        "with_runtime.gte": 80,
+        page: 1,
+      },
+    })
+
+    const T = response.data.total_results
+
+    if (T < 40) return { voteCount: 0, rating: 0 }
+    if (T < 100) return { voteCount: 0, rating: 5.0 }
+    if (T < 300) return { voteCount: 5, rating: 5.5 }
+    if (T < 800) return { voteCount: 20, rating: 6.0 }
+    if (T < 2000) return { voteCount: 80, rating: 6.5 }
+    return { voteCount: 200, rating: 7.0 }
+  } catch (err) {
+    console.log("Client: Error probing country defaults", err)
+    return { voteCount: 0, rating: 0 }
+  }
 }
 
 export function fetchListByParams({
@@ -414,6 +449,30 @@ export function fetchFilmRatingsFromOMDB(imdbId) {
       console.log("Client: Error fetching ratings from OMDB", err)
       throw err
     })
+}
+
+export function fetchSubtitles(imdb_id) {
+  return axios
+    .get(`${import.meta.env.VITE_API_URL}/proxy/subtitles/${imdb_id}`)
+    .then((response) => response.data)
+    .catch((err) => {
+      console.log("Client: Error fetching subtitles", err)
+      throw err
+    })
+}
+
+export async function fetchSubtitleFile(file_id, filename) {
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/proxy/subtitles/download`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file_id, filename }),
+    },
+  )
+  if (!response.ok) throw new Error("Failed to download subtitle")
+  const blob = await response.blob()
+  return URL.createObjectURL(blob)
 }
 
 export function fetchFilmFromYTS(imdb_id) {

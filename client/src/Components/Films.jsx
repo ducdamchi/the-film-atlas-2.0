@@ -27,27 +27,27 @@ import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa"
 export default function Films() {
   const [searchInput, setSearchInput] = usePersistedState(
     "films-searchInput",
-    ""
+    "",
   )
   const [searchResult, setSearchResult] = useState([])
   const [userFilmList, setUserFilmList] = useState([])
   const [isSearching, setIsSearching] = usePersistedState(
     "films-isSearching",
-    false
+    false,
   )
   const [sortBy, setSortBy] = usePersistedState("films-sortBy", "added_date")
   const [sortDirection, setSortDirection] = usePersistedState(
     "films-sortDirection",
-    "desc"
+    "desc",
   )
   const [numStars, setNumStars] = usePersistedState("films-numStars", 0)
   const [queryString, setQueryString] = usePersistedState(
     "film-queryString",
-    "watched"
+    "watched",
   )
   const [scrollPosition, setScrollPosition] = usePersistedState(
     "films-scrollPosition",
-    0
+    0,
   )
   const { authState, searchModalOpen, setSearchModalOpen } =
     useContext(AuthContext)
@@ -120,10 +120,11 @@ export default function Films() {
       try {
         const original_results = await queryFilmFromTMDB(searchInput)
         const filtered_results = original_results.filter(
-          (movie) => !(movie.backdrop_path === null || movie.poster_path === null)
+          (movie) =>
+            !(movie.backdrop_path === null || movie.poster_path === null),
         )
         const sorted_filtered_results = filtered_results.sort(
-          (a, b) => b.popularity - a.popularity
+          (a, b) => b.popularity - a.popularity,
         )
         setSearchResult(sorted_filtered_results)
       } catch (err) {
@@ -187,7 +188,7 @@ export default function Films() {
             <div className="page-subtitle mb-2 md:ml-12 ">Your Films:</div>
 
             <Toggle_Three
-              label="View Mode"
+              label="Filter"
               width={`20rem`}
               height={`2.5rem`}
               state={queryString}

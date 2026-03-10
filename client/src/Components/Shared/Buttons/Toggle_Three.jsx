@@ -21,6 +21,8 @@ export default function Toggle_Three({ state, setState, stateDetails, label }) {
       setActiveOption(2)
     } else if (state === stateDetails[3].value) {
       setActiveOption(3)
+    } else {
+      setActiveOption(0)
     }
   }, [state])
 
@@ -30,7 +32,7 @@ export default function Toggle_Three({ state, setState, stateDetails, label }) {
       <div className="toggleButton-buttonsContainer">
         <div className="relative flex w-full h-full">
           {/* Slider background */}
-          <div className={`toggleButton-bg w-1/3 ${getSliderTransform()}`} />
+          <div className={`toggleButton-bg w-1/3 ${getSliderTransform()} ${activeOption === 0 ? "invisible" : ""}`} />
 
           {/* Options */}
           <button

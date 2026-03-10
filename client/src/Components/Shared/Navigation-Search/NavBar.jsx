@@ -36,10 +36,15 @@ export default function NavBar() {
   const [mobileMenu, setMobileMenu] = useState(null)
   const [infoDropdownOpen, setInfoDropdownOpen] = useState(false)
   const infoDropdownRef = useRef(null)
+  const [mobileInfoDropdownOpen, setMobileInfoDropdownOpen] = useState(false)
 
   //unit: rem
   const navbarHeight = 4.5
-  const menuHeight = 11.5
+  const menuHeightBase = 8.5
+  const menuHeightExpanded = 13.5
+  const menuHeight = mobileInfoDropdownOpen
+    ? menuHeightExpanded
+    : menuHeightBase
   const setttingsHeight_Authed = 2.5
   const setttingsHeight_Unauthed = 4.2
   const navbarBorderWidth = 0
@@ -85,6 +90,12 @@ export default function NavBar() {
       let timer1, timer2
       if (!menuState.isNeutral) {
         if (menuState.isOpened) {
+          // Pre-position off-screen while still hidden so there is always
+          // a starting offset for the CSS transition to animate from.
+          menuRef.current.style.transform = `translateX(${translateXValue}px)`
+          borderBottomRef.current.style.transform = `translateX(${translateXValue}px)`
+          borderSideRef.current.style.transform = `translateY(${translateYValue}px)`
+
           menuRef.current.style.display = "flex"
           borderBottomRef.current.style.display = "block"
           borderSideRef.current.style.display = "block"
@@ -156,7 +167,20 @@ export default function NavBar() {
     navigate("/login")
   }
 
+  // On mount, always reset menus to closed state.
+  // usePersistedState restores from localStorage, so if the user had a menu open
+  // when they last left the page, the persisted isOpened:true would cause the
+  // hamburger icon to show the close icon while the panel stays hidden (animateMenu
+  // won't run because isNeutral:true). Forcing closed here prevents that inconsistency.
   useEffect(() => {
+    setMenuOpened({ isOpened: false, isNeutral: true })
+    setSettingsOpened({ isOpened: false, isNeutral: true })
+  }, [])
+
+  useEffect(() => {
+    if (!menuOpened.isOpened) {
+      setMobileInfoDropdownOpen(false)
+    }
     // console.log("Before menu animation: ", menuOpened)
     animateMenu(
       menuOpened,
@@ -225,28 +249,28 @@ export default function NavBar() {
           <>
             {/* MOBILE - APP NAME */}
             <div className="lg:hidden h-full flex items-center justify-center pt-0 z-30">
-              <button className="mr-2">
-                {menuOpened.isOpened ? (
-                  <MdClose
-                    className="text-xl mb-[2px]"
-                    onClick={() =>
-                      setMenuOpened({
-                        isOpened: false,
-                        isNeutral: false,
-                      })
-                    }
-                  />
-                ) : (
-                  <MdMenu
-                    className="text-xl mb-[2px]"
-                    onClick={() =>
-                      setMenuOpened({
-                        isOpened: true,
-                        isNeutral: false,
-                      })
-                    }
-                  />
-                )}
+              <button
+                className="mr-2 relative w-5 h-5"
+                onClick={() =>
+                  setMenuOpened({
+                    isOpened: !menuOpened.isOpened,
+                    isNeutral: false,
+                  })
+                }>
+                <MdMenu
+                  className={`text-xl absolute inset-0 transition-all duration-300 ease-in-out ${
+                    menuOpened.isOpened
+                      ? "opacity-0 rotate-90 scale-50"
+                      : "opacity-100 rotate-0 scale-100"
+                  }`}
+                />
+                <MdClose
+                  className={`text-xl absolute inset-0 transition-all duration-300 ease-in-out ${
+                    menuOpened.isOpened
+                      ? "opacity-100 rotate-0 scale-100"
+                      : "opacity-0 -rotate-90 scale-50"
+                  }`}
+                />
               </button>
               <span
                 onClick={() => {
@@ -303,41 +327,59 @@ export default function NavBar() {
                   }}>
                   DIRECTORS
                 </CustomLink>
-                <CustomLink
-                  to="/about"
-                  exact={false}
-                  onClick={() => {
-                    setMenuOpened({ isOpened: false, isNeutral: true })
-
-                    setSettingsOpened({
-                      isOpened: false,
-                      isNeutral: true,
-                    })
-                  }}>
-                  ABOUT
-                </CustomLink>
-                <CustomLink
-                  to="/contact"
-                  exact={false}
-                  onClick={() => {
-                    setMenuOpened({ isOpened: false, isNeutral: true })
-
-                    setSettingsOpened({
-                      isOpened: false,
-                      isNeutral: true,
-                    })
-                  }}>
-                  CONTACT
-                </CustomLink>
-                <CustomLink
-                  to="/docs"
-                  exact={false}
-                  onClick={() => {
-                    setMenuOpened({ isOpened: false, isNeutral: true })
-                    setSettingsOpened({ isOpened: false, isNeutral: true })
-                  }}>
-                  DOCS
-                </CustomLink>
+                <div>
+                  <button
+                    className="flex items-center gap-1 uppercase"
+                    onClick={() => setMobileInfoDropdownOpen((prev) => !prev)}>
+                    INFO
+                    <ChevronDown
+                      className={`w-3 h-3 transition-transform duration-200 ${mobileInfoDropdownOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {mobileInfoDropdownOpen && (
+                    <ul className="flex flex-col gap-2 pl-3 pt-2">
+                      <CustomLink
+                        to="/about"
+                        exact={false}
+                        onClick={() => {
+                          setMenuOpened({ isOpened: false, isNeutral: true })
+                          setSettingsOpened({
+                            isOpened: false,
+                            isNeutral: true,
+                          })
+                          setMobileInfoDropdownOpen(false)
+                        }}>
+                        ABOUT
+                      </CustomLink>
+                      <CustomLink
+                        to="/contact"
+                        exact={false}
+                        onClick={() => {
+                          setMenuOpened({ isOpened: false, isNeutral: true })
+                          setSettingsOpened({
+                            isOpened: false,
+                            isNeutral: true,
+                          })
+                          setMobileInfoDropdownOpen(false)
+                        }}>
+                        CONTACT
+                      </CustomLink>
+                      <CustomLink
+                        to="/docs"
+                        exact={false}
+                        onClick={() => {
+                          setMenuOpened({ isOpened: false, isNeutral: true })
+                          setSettingsOpened({
+                            isOpened: false,
+                            isNeutral: true,
+                          })
+                          setMobileInfoDropdownOpen(false)
+                        }}>
+                        DOCS
+                      </CustomLink>
+                    </ul>
+                  )}
+                </div>
               </ul>
             </div>
             <div
@@ -387,33 +429,31 @@ export default function NavBar() {
                 className="flex items-center gap-1 uppercase hover:underline decoration-solid decoration-2 underline-offset-4"
                 onClick={() => setInfoDropdownOpen((prev) => !prev)}>
                 INFO
-                <ChevronDown className="w-3 h-3" />
+                <ChevronDown
+                  className={`w-3 h-3 transition-transform duration-200 ${infoDropdownOpen ? "rotate-180" : "rotate-0"}`}
+                />
               </button>
-              {infoDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 bg-black border border-stone-600 rounded-none flex flex-col min-w-[8rem] z-500 p-3 gap-2">
-                  <CustomLink
-                    to="/about"
-                    exact={false}
-                    className=""
-                    onClick={() => setInfoDropdownOpen(false)}>
-                    ABOUT
-                  </CustomLink>
-                  <CustomLink
-                    to="/contact"
-                    exact={false}
-                    className=""
-                    onClick={() => setInfoDropdownOpen(false)}>
-                    CONTACT
-                  </CustomLink>
-                  <CustomLink
-                    to="/docs"
-                    exact={false}
-                    className=""
-                    onClick={() => setInfoDropdownOpen(false)}>
-                    DOCS
-                  </CustomLink>
-                </div>
-              )}
+              <div
+                className={`absolute top-full left-0 mt-2 bg-black border border-stone-600 flex flex-col min-w-[8rem] z-500 overflow-hidden transition-all duration-200 ease-out ${infoDropdownOpen ? "max-h-40 opacity-100 p-3 gap-2" : "max-h-0 opacity-0 p-0 gap-0"}`}>
+                <CustomLink
+                  to="/about"
+                  exact={false}
+                  onClick={() => setInfoDropdownOpen(false)}>
+                  ABOUT
+                </CustomLink>
+                <CustomLink
+                  to="/contact"
+                  exact={false}
+                  onClick={() => setInfoDropdownOpen(false)}>
+                  CONTACT
+                </CustomLink>
+                <CustomLink
+                  to="/docs"
+                  exact={false}
+                  onClick={() => setInfoDropdownOpen(false)}>
+                  DOCS
+                </CustomLink>
+              </div>
             </div>
           </ul>
           <button
@@ -502,27 +542,29 @@ export default function NavBar() {
           </div>
         )}
 
-        {!settingsOpened.isOpened ? (
+        <button
+          className="relative w-5 h-5"
+          onClick={() =>
+            setSettingsOpened({
+              isOpened: !settingsOpened.isOpened,
+              isNeutral: false,
+            })
+          }>
           <MdOutlineSettings
-            className="text-xl"
-            onClick={() =>
-              setSettingsOpened({
-                isOpened: true,
-                isNeutral: false,
-              })
-            }
+            className={`text-xl absolute inset-0 transition-all duration-300 ease-in-out ${
+              settingsOpened.isOpened
+                ? "opacity-0 rotate-90 scale-50"
+                : "opacity-100 rotate-0 scale-100"
+            }`}
           />
-        ) : (
           <MdClose
-            className="text-xl"
-            onClick={() =>
-              setSettingsOpened({
-                isOpened: false,
-                isNeutral: false,
-              })
-            }
+            className={`text-xl absolute inset-0 transition-all duration-300 ease-in-out ${
+              settingsOpened.isOpened
+                ? "opacity-100 rotate-0 scale-100"
+                : "opacity-0 -rotate-90 scale-50"
+            }`}
           />
-        )}
+        </button>
       </div>
 
       {/* LAPTOP - USER INFO / AUTH */}

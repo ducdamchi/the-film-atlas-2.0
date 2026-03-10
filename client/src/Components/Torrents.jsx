@@ -13,16 +13,15 @@ export default function Torrents({ ytsTorrents }) {
             {ytsTorrents.map((torrent, key) => {
               return (
                 <a key={key} href={torrent.url}>
-                  <div className="border-1 flex flex-col items-center justify-center gap-1 p-2 pr-2 pl-2 rounded-sm hover:bg-slate-200 transition-all ease-out duration-200 w-auto bg-teal-300 text-stone-900 border-teal-300">
-                    <div className="flex items-center justify-center gap-1 border-b-1 pb-1 uppercase">
-                      <span className="">{torrent?.type}</span>
-                      <span className="">{torrent?.quality}</span>
-                      <span>{`[${torrent?.size}]`}</span>
+                  <div className="border-1 flex flex-col items-start justify-center gap-1 p-3 rounded-sm hover:bg-mauve-200 transition-all ease-out duration-200 w-auto bg-mauve-300 text-stone-900 border-mauve-500">
+                    <div className="flex items-center justify-center gap-1 uppercase text-base">
+                      <span className="font-semibold">{torrent?.type}</span>
+                      <span className="font-semibold">{torrent?.quality}</span>
+                      <span className="font-thin">{`(${torrent?.size})`}</span>
                     </div>
-                    <div className="flex items-center justify-center gap-2 text-base">
+                    <div className="flex items-center justify-center gap-2 text-sm font-thin">
                       {/* <span>{`${torrent?.video_codec}`}</span> */}
-                      <span>{`peers: ${torrent?.peers}`}</span>
-                      <span>{`seeds: ${torrent?.seeds}`}</span>
+                      <span>{`${torrent?.peers} peers  |  ${torrent?.seeds} seeds`}</span>
                     </div>
                   </div>
                 </a>

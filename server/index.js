@@ -1,3 +1,4 @@
+require("dotenv").config({ path: `.env.${process.env.NODE_ENV === "production" ? "production" : "local"}` })
 const express = require("express") //create an instance of express framework
 const app = express()
 const db = require("./models") //import database

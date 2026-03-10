@@ -25,6 +25,7 @@ import { getCountryName, shuffleArray } from "../Utils/helperFunctions"
 import {
   fetchListByParams,
   queryTopRatedFilmByCountryTMDB,
+  probeCountryDefaults,
 } from "../Utils/apiCalls"
 import useCommandKey from "../Hooks/useCommandKey"
 import { usePersistedState } from "../Hooks/usePersistedState"
@@ -39,8 +40,16 @@ import Toggle_Four from "./Shared/Buttons/Toggle_Four"
 import CustomSlider from "./Shared/Buttons/CustomSlider"
 import LoadingPage from "./Shared/Navigation-Search/LoadingPage"
 
-import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa"
-import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md"
+import {
+  FaSortNumericDown,
+  FaSortNumericDownAlt,
+  FaGripLines,
+} from "react-icons/fa"
+import {
+  MdKeyboardArrowDown,
+  MdKeyboardArrowUp,
+  MdDragHandle,
+} from "react-icons/md"
 import { RiArrowDownWideLine, RiArrowUpWideLine } from "react-icons/ri"
 
 export default function MapPage() {
@@ -60,52 +69,53 @@ export default function MapPage() {
   const [userFilmList, setUserFilmList] = useState([])
   const [suggestedFilmList, setSuggestedFilmList] = usePersistedState(
     "map-suggestedFilmList",
-    []
+    [],
   )
   const [isDiscoverMode, setIsDiscoverMode] = usePersistedState(
     "map-isDiscoverMode",
-    false
+    false,
   )
   const [isLoading, setIsLoading] = useState(false)
+  const [discoverTotalResults, setDiscoverTotalResults] = useState(null)
 
   /* Persistent states */
   const [sortBy, setSortBy] = usePersistedState("map-sortBy", "added_date")
   const [sortDirection, setSortDirection] = usePersistedState(
     "map-sortDirection",
-    "desc"
+    "desc",
   )
   const [queryString, setQueryString] = usePersistedState(
     "map-queryString",
-    "discover"
+    "discover",
   )
   const [numStars, setNumStars] = usePersistedState("map-numStars", 0)
   const [discoverBy, setDiscoverBy] = usePersistedState(
     "map-discoverBy",
-    "random"
+    "random",
   )
   const [scrollPosition, setScrollPosition] = usePersistedState(
     "map-scrollPosition",
-    0
+    0,
   )
 
   /* Slider - Rating const */
   const [ratingRange, setRatingRange] = usePersistedState(
     "map-ratingRange",
-    [0, 7]
+    [0, 7],
   )
   const [tempRatingRange, setTempRatingRange] = usePersistedState(
     "map-tempRating",
-    [0, 7]
+    [0, 7],
   )
 
   /* Slider - Vote Count const */
   const [voteCountRange, setVoteCountRange] = usePersistedState(
     "map-voteCountRange",
-    [0, 100]
+    [0, 100],
   )
   const [tempVoteCountRange, setTempVoteCountRange] = usePersistedState(
     "map-tempVoteCount",
-    [0, 100]
+    [0, 100],
   )
 
   /* Authentication */
@@ -122,11 +132,19 @@ export default function MapPage() {
 
   const [showBelowMapContent, setShowBelowMapContent] = usePersistedState(
     "map-showBelowMapContent",
-    false
+    false,
   )
 
   // const [hasMore, setHasMore] = useState(true)
   const isPageRefresh = useRef(true)
+  const calibratedCountryRef = useRef(null) // tracks which country was last probed
+  const lastFetchParamsRef = useRef(null) // prevents duplicate fetches after calibration sets state
+  const autoAdjustedRef = useRef(false) // ensures adaptive rating adjustment fires once per country
+  const mapContainerRef = useRef(null) // used to read map height for drag snap positions
+  const isDragEndRef = useRef(false) // suppresses snap animation when state is updated after a drag
+
+  const RATING_STEPS = [0, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5]
+  const RANDOM_BATCH_SIZE = 3 // pages fetched per load in random mode
 
   const setFeatureStates = useCallback(() => {
     if (!mapRef.current) return
@@ -149,7 +167,7 @@ export default function MapPage() {
           {
             num_watched_films:
               filmsPerCountryData[country.properties.iso_a2].num_watched_films,
-          }
+          },
         )
 
         // if (country.properties.iso_a2 === "")
@@ -165,7 +183,7 @@ export default function MapPage() {
           },
           {
             custom_name: "Palestine",
-          }
+          },
         )
         if (filmsPerCountryData["PS"]) {
           // console.log("Detected films from PS.")
@@ -178,7 +196,7 @@ export default function MapPage() {
             {
               custom_name: "Palestine",
               num_watched_films: filmsPerCountryData["PS"].num_watched_films,
-            }
+            },
           )
         }
       }
@@ -192,7 +210,7 @@ export default function MapPage() {
         setFeatureStates()
       }
     },
-    [setFeatureStates]
+    [setFeatureStates],
   )
 
   const onMapLoad = useCallback(
@@ -208,7 +226,7 @@ export default function MapPage() {
 
       const layers = map.getStyle().layers
       const firstSymbolLayerId = layers.find(
-        (layer) => layer.type === "symbol"
+        (layer) => layer.type === "symbol",
       ).id
 
       if (firstSymbolLayerId) {
@@ -217,7 +235,7 @@ export default function MapPage() {
 
       setIsMapLoaded(true)
     },
-    [onData, setFeatureStates]
+    [onData, setFeatureStates],
   )
 
   const onMapClick = useCallback((event) => {
@@ -314,8 +332,8 @@ export default function MapPage() {
         },
         {
           threshold: 1,
-        }
-      )
+        },
+      ),
     )
 
     if (loadMoreTrigger.current) {
@@ -356,39 +374,81 @@ export default function MapPage() {
             popupInfo.iso_a2 !== undefined &&
             ratingRange.length == 2
           ) {
-            const result = await queryTopRatedFilmByCountryTMDB({
-              page: page.numPages + 1,
-              countryCode: popupInfo.iso_a2,
-              sortBy: discoverBy,
-              ratingRange: ratingRange,
-              voteCountRange: voteCountRange,
-            })
-
-            const filtered_results = result.filter(
-              (movie) =>
-                !(movie.backdrop_path === null || movie.poster_path === null)
-            )
-
             if (discoverBy === "random") {
-              shuffleArray(filtered_results)
-            }
+              // Fetch the next batch of pages in parallel, then shuffle the combined results
+              const pageNums = Array.from(
+                { length: RANDOM_BATCH_SIZE },
+                (_, i) => page.numPages + 1 + i,
+              )
+              const responses = await Promise.all(
+                pageNums.map((p) =>
+                  queryTopRatedFilmByCountryTMDB({
+                    page: p,
+                    countryCode: popupInfo.iso_a2,
+                    sortBy: discoverBy,
+                    ratingRange: ratingRange,
+                    voteCountRange: voteCountRange,
+                  }),
+                ),
+              )
 
-            if (filtered_results.length > 0) {
-              setSuggestedFilmList((prevResults) => [
-                ...prevResults,
-                ...filtered_results,
-              ])
-              setPage((prevPage) => ({
-                ...prevPage,
-                numPages: prevPage.numPages + 1,
-              }))
+              const combined = responses.flatMap((r) => r.results)
+              const filtered_results = combined.filter(
+                (movie) =>
+                  !(movie.backdrop_path === null || movie.poster_path === null),
+              )
+
+              if (filtered_results.length > 0) {
+                shuffleArray(filtered_results)
+                setSuggestedFilmList((prevResults) => [
+                  ...prevResults,
+                  ...filtered_results,
+                ])
+                const totalPages = Math.ceil(discoverTotalResults / 20)
+                setPage((prevPage) => ({
+                  ...prevPage,
+                  numPages: prevPage.numPages + RANDOM_BATCH_SIZE,
+                  hasMore: prevPage.numPages + RANDOM_BATCH_SIZE < totalPages,
+                }))
+              } else {
+                setPage((prevPage) => ({
+                  ...prevPage,
+                  loadMore: false,
+                  hasMore: false,
+                }))
+                console.log("No more pages to load.")
+              }
             } else {
-              setPage((prevPage) => ({
-                ...prevPage,
-                loadMore: false,
-                hasMore: false,
-              }))
-              console.log("No more pages to load.")
+              const { results } = await queryTopRatedFilmByCountryTMDB({
+                page: page.numPages + 1,
+                countryCode: popupInfo.iso_a2,
+                sortBy: discoverBy,
+                ratingRange: ratingRange,
+                voteCountRange: voteCountRange,
+              })
+
+              const filtered_results = results.filter(
+                (movie) =>
+                  !(movie.backdrop_path === null || movie.poster_path === null),
+              )
+
+              if (filtered_results.length > 0) {
+                setSuggestedFilmList((prevResults) => [
+                  ...prevResults,
+                  ...filtered_results,
+                ])
+                setPage((prevPage) => ({
+                  ...prevPage,
+                  numPages: prevPage.numPages + 1,
+                }))
+              } else {
+                setPage((prevPage) => ({
+                  ...prevPage,
+                  loadMore: false,
+                  hasMore: false,
+                }))
+                console.log("No more pages to load.")
+              }
             }
             // If requested country is different from previously requested country
           } else {
@@ -418,8 +478,6 @@ export default function MapPage() {
       // console.log("handle Discover hook doing something: ", page)
       const getSuggestions = async () => {
         try {
-          //Reinitialize setPage, as this API request only gets called when user select a new country or adjust any of the dependecies array below
-          setPage({ numPages: 1, loadMore: false, hasMore: true })
           setIsLoading(true)
           // setScrollPosition(0)
           if (
@@ -427,26 +485,83 @@ export default function MapPage() {
             popupInfo.iso_a2 !== undefined &&
             ratingRange.length == 2
           ) {
-            // This is the standard query whenever any of the parameters change. Default page number is 1.
-            const result = await queryTopRatedFilmByCountryTMDB({
-              page: 1,
-              countryCode: popupInfo.iso_a2,
-              sortBy: discoverBy,
-              ratingRange: ratingRange,
-              voteCountRange: voteCountRange,
-            })
+            const isoA2 = popupInfo.iso_a2
+            let effectiveRatingRange = ratingRange
+            let effectiveVoteCountRange = voteCountRange
 
-            const filtered_results = result.filter(
-              (movie) =>
-                !(movie.backdrop_path === null || movie.poster_path === null)
-            )
+            // Probe TMDB for appropriate defaults when the country changes
+            if (calibratedCountryRef.current !== isoA2) {
+              autoAdjustedRef.current = false
+              setDiscoverTotalResults(null)
 
-            // This means user wants to discover by random
-            if (discoverBy === "random") {
-              shuffleArray(filtered_results)
+              const defaults = await probeCountryDefaults(isoA2)
+              effectiveRatingRange = [0, defaults.rating]
+              effectiveVoteCountRange = [0, defaults.voteCount]
+              calibratedCountryRef.current = isoA2
+
+              setRatingRange(effectiveRatingRange)
+              setVoteCountRange(effectiveVoteCountRange)
+              setTempRatingRange(effectiveRatingRange)
+              setTempVoteCountRange(effectiveVoteCountRange)
             }
 
-            setSuggestedFilmList(filtered_results)
+            // Skip if this exact fetch already ran (e.g. re-render after calibration set state)
+            const paramsKey = `${isoA2}-${discoverBy}-${effectiveRatingRange[1]}-${effectiveVoteCountRange[1]}`
+            if (lastFetchParamsRef.current === paramsKey) return
+            lastFetchParamsRef.current = paramsKey
+
+            if (discoverBy === "random") {
+              // Fetch first batch of pages in parallel, then shuffle the combined results
+              const pageNums = Array.from(
+                { length: RANDOM_BATCH_SIZE },
+                (_, i) => i + 1,
+              )
+              const responses = await Promise.all(
+                pageNums.map((p) =>
+                  queryTopRatedFilmByCountryTMDB({
+                    page: p,
+                    countryCode: isoA2,
+                    sortBy: discoverBy,
+                    ratingRange: effectiveRatingRange,
+                    voteCountRange: effectiveVoteCountRange,
+                  }),
+                ),
+              )
+
+              const { totalResults } = responses[0]
+              const combined = responses.flatMap((r) => r.results)
+              const filtered_results = combined.filter(
+                (movie) =>
+                  !(movie.backdrop_path === null || movie.poster_path === null),
+              )
+              shuffleArray(filtered_results)
+              setSuggestedFilmList(filtered_results)
+              setDiscoverTotalResults(totalResults)
+              setPage({
+                numPages: RANDOM_BATCH_SIZE,
+                loadMore: false,
+                hasMore: totalResults > RANDOM_BATCH_SIZE * 20,
+              })
+            } else {
+              //Reinitialize setPage, as this API request only gets called when user select a new country or adjust any of the dependecies array below
+              setPage({ numPages: 1, loadMore: false, hasMore: true })
+              // This is the standard query whenever any of the parameters change. Default page number is 1.
+              const { results, totalResults } =
+                await queryTopRatedFilmByCountryTMDB({
+                  page: 1,
+                  countryCode: isoA2,
+                  sortBy: discoverBy,
+                  ratingRange: effectiveRatingRange,
+                  voteCountRange: effectiveVoteCountRange,
+                })
+
+              const filtered_results = results.filter(
+                (movie) =>
+                  !(movie.backdrop_path === null || movie.poster_path === null),
+              )
+              setSuggestedFilmList(filtered_results)
+              setDiscoverTotalResults(totalResults)
+            }
 
             // If requested country is different from previously requested country
           } else {
@@ -462,6 +577,41 @@ export default function MapPage() {
       getSuggestions()
     }
   }, [isDiscoverMode, popupInfo, discoverBy, ratingRange, voteCountRange])
+
+  /* Adaptive rating adjustment — relaxes rating if too few results, tightens if too many */
+  useEffect(() => {
+    if (
+      !isDiscoverMode ||
+      autoAdjustedRef.current ||
+      discoverTotalResults === null
+    )
+      return
+
+    const currentRating = ratingRange[1]
+    let nextRating = null
+
+    if (discoverTotalResults < 20 && currentRating > 0) {
+      // Too few results: step rating down
+      const idx = RATING_STEPS.findIndex((s) => s >= currentRating)
+      const currentIdx = idx === -1 ? RATING_STEPS.length - 1 : idx
+      const nextIdx = Math.max(currentIdx - 1, 0)
+      if (RATING_STEPS[nextIdx] !== currentRating)
+        nextRating = RATING_STEPS[nextIdx]
+    } else if (discoverTotalResults > 200 && currentRating < 7.5) {
+      // Too many results: step rating up
+      const idx = RATING_STEPS.findIndex((s) => s > currentRating)
+      const nextIdx = idx === -1 ? RATING_STEPS.length - 1 : idx
+      if (RATING_STEPS[nextIdx] !== currentRating)
+        nextRating = RATING_STEPS[nextIdx]
+    }
+
+    if (nextRating !== null) {
+      setRatingRange([0, nextRating])
+      setTempRatingRange([0, nextRating])
+    }
+
+    autoAdjustedRef.current = true
+  }, [discoverTotalResults, isDiscoverMode, ratingRange])
   /*******************************************************************/
 
   /* Dynamically obtain screen width of window */
@@ -535,13 +685,13 @@ export default function MapPage() {
     }
 
     /* Process console selections */
-    if (authState.status) {
+    if (authState.status && !isDiscoverMode) {
       if (popupInfo && popupInfo.iso_a2 !== undefined) {
-        const fetchLikedFilmsByCountry = async () => {
+        const fetchFilmsByCountry = async () => {
           try {
             setIsLoading(true)
             const result = await fetchListByParams({
-              queryString: "watched/by_country",
+              queryString: queryString,
               countryCode: popupInfo.iso_a2,
               sortBy: sortBy,
               sortDirection: sortDirection,
@@ -554,13 +704,10 @@ export default function MapPage() {
             setIsLoading(false)
           }
         }
-        fetchLikedFilmsByCountry()
+        fetchFilmsByCountry()
       }
     }
-    // else {
-    //   alert("Log in to interact with map!")
-    // }
-  }, [popupInfo, sortBy, sortDirection, numStars])
+  }, [popupInfo, sortBy, sortDirection, numStars, queryString])
 
   /* Clean up event listeners when map unmounts */
   useEffect(() => {
@@ -571,26 +718,70 @@ export default function MapPage() {
     }
   }, [onData])
 
-  /* Hook to handle belowMapRef position based on whether region is valid or not */
-  useEffect(() => {
-    let timer
-    if (belowMapRef.current) {
-      if (!showBelowMapContent) {
-        belowMapRef.current.style.top = "-5rem"
-        timer = setTimeout(() => {}, 200)
-      } else {
-        if (isXlBreakpoint) {
-          belowMapRef.current.style.top = "-48rem"
-        } else {
-          belowMapRef.current.style.top = "-25rem"
-        }
+  /* Compute snap positions in pixels from the map container's actual rendered height */
+  function getSnapPositions() {
+    const mapHeight = mapContainerRef.current
+      ? mapContainerRef.current.getBoundingClientRect().height
+      : isXlBreakpoint
+        ? 880
+        : 640
+    return {
+      peek: -(mapHeight * 0.05), // 5% of map height visible at bottom
+      expanded: -(mapHeight * 0.95), // covers 95% of the map
+    }
+  }
+
+  /* Drag handler for the bottom sheet handle.
+     Defines handleMove/handleUp inside the closure so the same references
+     are used for both addEventListener and removeEventListener. */
+  function onDragHandlePointerDown(e) {
+    if (e.button !== 0) return
+    const initialTopPx = parseFloat(belowMapRef.current.style.top) || 0
+    const startY = e.clientY
+    let isDragging = false
+
+    function handleMove(e) {
+      const delta = e.clientY - startY
+      if (!isDragging) {
+        if (Math.abs(delta) < 5) return // ignore tiny movements (clicks)
+        isDragging = true
+        belowMapRef.current.style.transition = "none"
       }
+      const { peek, expanded } = getSnapPositions()
+      const newTop = Math.min(peek, Math.max(expanded, initialTopPx + delta))
+      belowMapRef.current.style.top = `${newTop}px`
     }
 
-    return () => {
-      clearTimeout(timer)
+    function handleUp() {
+      window.removeEventListener("pointermove", handleMove)
+      window.removeEventListener("pointerup", handleUp)
+      if (!isDragging) return
+      belowMapRef.current.style.transition = "top 0.5s ease-in-out"
+      const finalTop = parseFloat(belowMapRef.current.style.top) || 0
+      const { peek, expanded } = getSnapPositions()
+      const midpoint = (peek + expanded) / 2
+      // sheet is "expanded" when top is closer to the expanded (more negative) snap point
+      isDragEndRef.current = true
+      setShowBelowMapContent(finalTop < midpoint)
     }
-  }, [showBelowMapContent])
+
+    window.addEventListener("pointermove", handleMove)
+    window.addEventListener("pointerup", handleUp)
+  }
+
+  /* Hook to animate the sheet to its snap position.
+     Skipped when the state change came from a drag release — the sheet already
+     sits at the correct position and we don't want it snapping to an end. */
+  useEffect(() => {
+    if (isDragEndRef.current) {
+      isDragEndRef.current = false
+      return
+    }
+    if (!belowMapRef.current) return
+    const { peek, expanded } = getSnapPositions()
+    belowMapRef.current.style.transition = "top 0.5s ease-in-out"
+    belowMapRef.current.style.top = `${showBelowMapContent ? expanded : peek}px`
+  }, [showBelowMapContent, isXlBreakpoint])
 
   useEffect(() => {
     if (screenWidth >= 1280) {
@@ -614,7 +805,9 @@ export default function MapPage() {
       <NavBar />
 
       {/* Entire map */}
-      <div className="w-screen h-[40rem] xl:h-[55rem] relative border-[0.3rem] border-[#b8d5e5]">
+      <div
+        ref={mapContainerRef}
+        className="w-screen h-[40rem] xl:h-[55rem] max-h-[90vh] relative border-[0.3rem] border-[#b8d5e5]">
         <Map
           className=""
           ref={mapRef}
@@ -724,27 +917,19 @@ export default function MapPage() {
 
       {/* Entire page below map */}
       <div
-        className="relative flex flex-col items-center w-full bg-white z-90 min-h-[40rem] xl:min-h-[55rem] rounded-t-4xl transition-all ease-in-out duration-500 shadow-[25px_-8px_30px_rgba(0,0,0,0.15)] [clip-path:inset(-100%_-100%_0_-100%)]"
+        className="relative flex flex-col items-center w-full bg-white z-90 min-h-[40rem] xl:min-h-[55rem] rounded-t-4xl shadow-[25px_-8px_30px_rgba(0,0,0,0.15)] [clip-path:inset(-100%_-100%_0_-100%)]"
         ref={belowMapRef}>
-        <div className="text-4xl mt-0 mb-2 flex items-center justify-center text-gray-300 w-full">
-          {showBelowMapContent ? (
-            <button
-              className="w-full flex items-center justify-center flex flex-col items-center hover:bg-gray-100 transition-all ease-out duration-200 rounded-t-4xl"
-              onClick={() => {
-                setShowBelowMapContent(false)
-              }}>
-              {/* <span className="text-xs uppercase">show map</span> */}
-              <RiArrowDownWideLine />
-            </button>
-          ) : (
-            <button
-              className="w-full flex items-center justify-center hover:bg-gray-100 transition-all ease-out duration-200 rounded-t-4xl"
-              onClick={() => {
-                setShowBelowMapContent(true)
-              }}>
-              <RiArrowUpWideLine />
-            </button>
-          )}
+        {/* Drag handle — drag freely to any height, or click arrow to snap between positions */}
+        <div
+          className="w-full flex flex-col items-center cursor-ns-resize touch-none select-none rounded-t-4xl hover:bg-gray-100 transition-colors ease-out duration-200 py-2 mb-2"
+          onClick={() => setShowBelowMapContent((prev) => !prev)}
+          onPointerDown={onDragHandlePointerDown}>
+          <FaGripLines className="text-2xl text-gray-300" />
+          {/* <button
+            className="text-4xl flex items-center justify-center text-gray-300 w-full py-1"
+            onClick={() => setShowBelowMapContent((prev) => !prev)}>
+            {showBelowMapContent ? <RiArrowDownWideLine /> : <RiArrowUpWideLine />}
+          </button> */}
         </div>
         {popupInfo &&
           popupInfo.iso_a2 !== null &&
@@ -762,16 +947,33 @@ export default function MapPage() {
         )}
 
         <div className="flex flex-col items-center justify-center mt-5 w-[90%] min-w-[20rem] md:w-[35rem]">
-          <Toggle_Three
-            label="View Mode"
-            state={queryString}
-            setState={setQueryString}
+          {/* Discover / My Films toggle */}
+          <Toggle_Two
+            label="Browse"
+            state={isDiscoverMode ? "discover" : "my_films"}
+            setState={(val) => {
+              if (val === "discover") setQueryString("discover")
+              else setQueryString("watched/by_country")
+            }}
             stateDetails={{
               1: { value: "discover", label: "Discover" },
-              2: { value: "watched/by_country", label: "Watched" },
-              3: { value: "watched/rated/by_country", label: "Rated" },
+              2: { value: "my_films", label: "My Films" },
             }}
           />
+
+          {/* Watched / Watchlist / Rated toggle */}
+          {!isDiscoverMode && (
+            <Toggle_Three
+              label="Filter"
+              state={queryString}
+              setState={setQueryString}
+              stateDetails={{
+                1: { value: "watched/by_country", label: "Watched" },
+                2: { value: "watchlisted/by_country", label: "Watchlist" },
+                3: { value: "watched/rated/by_country", label: "Rated" },
+              }}
+            />
+          )}
 
           {!isDiscoverMode && (
             <div className="flex flex-col items-center justify-center">
@@ -857,8 +1059,8 @@ export default function MapPage() {
                 stateDetails={{
                   //"random" is not a valid parameter for TMDB sortBy, so api would return default sortBy, which is popularity.desc
                   1: { value: "random", label: "Random" },
-                  2: { value: "vote_average.desc", label: "Avg. Rating" },
-                  3: { value: "vote_count.desc", label: "Vote Count" },
+                  2: { value: "vote_average.desc", label: "Top Rated" },
+                  3: { value: "vote_count.desc", label: "Most Voted" },
                 }}
               />
 
@@ -914,7 +1116,13 @@ export default function MapPage() {
         {authState.status && !isDiscoverMode && (
           <FilmUser_Gallery
             listOfFilmObjects={userFilmList}
-            queryString={`watched`}
+            queryString={
+              queryString === "watchlisted/by_country"
+                ? "watchlisted"
+                : queryString === "watched/rated/by_country"
+                  ? "watched/rated"
+                  : "watched"
+            }
             sortDirection={sortDirection}
             sortBy={sortBy}
           />

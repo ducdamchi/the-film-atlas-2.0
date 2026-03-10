@@ -14,7 +14,7 @@
     "@maptiler/sdk": "^3.9.0",
     "@material-tailwind/react": "^2.1.10",
     "@radix-ui/react-slot": "^1.2.4",
-    "@tailwindcss/vite": "^4.1.14",
+    "@tailwindcss/vite": "^4.2.1",
     "axios": "^1.12.2",
     "better-react-mathjax": "^2.4.0-beta-1",
     "class-variance-authority": "^0.7.1",
@@ -31,7 +31,7 @@
     "react-router-dom": "^7.9.3",
     "sweetalert2": "^11.26.3",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^4.1.14",
+    "tailwindcss": "^4.2.1",
     "tailwindcss-autofill": "^1.0.2",
     "yup": "^1.7.1"
   },

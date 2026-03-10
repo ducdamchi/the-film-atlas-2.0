@@ -9,12 +9,14 @@ The Film Atlas is a full-stack SaaS app for discovering cinema from underreprese
 ## Repository Structure
 
 Monorepo with two independent packages:
+
 - `client/` — React 19 + Vite + TailwindCSS v4 frontend
 - `server/` — Express 5 + Sequelize + MySQL backend
 
 ## Commands
 
 ### Client (run from `client/`)
+
 ```bash
 npm run dev          # Start Vite dev server
 npm run build        # Build for development
@@ -24,6 +26,7 @@ npm run preview      # Preview production build
 ```
 
 ### Server (run from `server/`)
+
 ```bash
 npm run startDev     # Start with NODE_ENV=development (nodemon)
 npm start            # Start with NODE_ENV=production (nodemon)
@@ -66,3 +69,8 @@ No test runner is configured in either package.
 1. Film/person metadata comes from the **TMDB API** (called directly from the client using a hardcoded API key in `apiCalls.jsx`).
 2. User interactions (watched, watchlisted, director tracking, ratings) are stored in the **app's MySQL database** via the Express backend.
 3. The `InteractionConsole` components in `src/Components/Shared/Buttons/` handle the UI for liking, saving, and rating films.
+
+### Additional Notes
+
+1. In the Map Page, after clicking on a valid country on the map, user can select 'Discover' or 'My Films'. Discover allows them to browse films from that country, queried via TMDB. 'My Films' present filter options: 'Watched', 'Watchlist', and 'Rated', which let them browse films that they have watched, watchlisted, or rated from the selected country, queried via the app's database.
+2. Because of voting bias, films from lesser known regions does not have a high vote count. This means vote counts have to be lowered when discovering films from those countries, otherwise the map page will display 'no results found'.

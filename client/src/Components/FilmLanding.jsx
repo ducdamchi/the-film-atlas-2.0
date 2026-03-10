@@ -11,6 +11,7 @@ import {
 import {
   fetchFilmFromTMDB,
   fetchFilmFromYTS,
+  fetchSubtitles,
   fetchFilmRatingsFromOMDB,
   fetchFilmAwardsFromWikidata,
 } from "../Utils/apiCalls"
@@ -25,6 +26,7 @@ import InteractionConsole from "./Shared/Buttons/InteractionConsole"
 import PersonList from "./Shared/LandingPage/PersonList"
 import TrailerModal from "./Shared/LandingPage/TrailerModal"
 import Torrents from "./Torrents"
+import Subtitles from "./Subtitles"
 
 import { IoMdCalendar, IoIosTimer } from "react-icons/io"
 import { BiPlay } from "react-icons/bi"
@@ -39,8 +41,9 @@ export default function FilmLanding() {
   const [trailerLink, setTrailerLink] = useState(null)
   const [backdropColor, setBackdropColor] = useState([0, 0, 0])
   const [openTrailer, setOpenTrailer] = useState(false)
-  const [torrentVisible, setTorrentVisible] = useState(false)
+  const [secretPanel, setSecretPanel] = useState(null) // "torrents" | "subtitles" | null
   const [ytsTorrents, setYtsTorrents] = useState([])
+  const [subtitles, setSubtitles] = useState([])
   const [filmRatings, setFilmRatings] = useState(null)
   const [filmAwards, setFilmAwards] = useState(null)
 
@@ -54,10 +57,10 @@ export default function FilmLanding() {
   }
   useCommandKey(toggleSearchModal, "k")
 
-  function toggleTorrentView() {
-    setTorrentVisible((status) => !status)
+  function toggleSecretPanel() {
+    setSecretPanel((cur) => (cur ? null : "torrents"))
   }
-  useCommandKey(toggleTorrentView, "j")
+  useCommandKey(toggleSecretPanel, "j")
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,6 +77,8 @@ export default function FilmLanding() {
       if (tmdbId) {
         try {
           setSearchModalOpen(false) // close search modal if it's somehow open
+          setYtsTorrents([])
+          setSubtitles([])
           setIsLoading(true)
           const result = await fetchFilmFromTMDB(tmdbId)
           setMovieDetails(result)
@@ -195,23 +200,35 @@ export default function FilmLanding() {
   }, [movieDetails])
 
   useEffect(() => {
-    // console.log("in uef hook")
-    const fetchYtsData = async () => {
-      if (torrentVisible && movieDetails.imdb_id) {
-        try {
-          setIsLoading(true)
-          const result = await fetchFilmFromYTS(movieDetails.imdb_id)
-          // console.log("YTS response:", result.data.movie.torrents)
-          setYtsTorrents(result.data.movie.torrents)
-        } catch (err) {
-          console.error("Error loading YTS data: ", err)
-        } finally {
-          setIsLoading(false)
-        }
+    if (!secretPanel || !movieDetails.imdb_id) return
+
+    const fetchYTS = async () => {
+      try {
+        const result = await fetchFilmFromYTS(movieDetails.imdb_id)
+        setYtsTorrents(result.data.movie?.torrents ?? [])
+      } catch (err) {
+        console.error("Error loading YTS data:", err)
+        setYtsTorrents([])
       }
     }
-    fetchYtsData()
-  }, [torrentVisible, movieDetails])
+
+    const fetchOpenSubtitles = async () => {
+      try {
+        const result = await fetchSubtitles(movieDetails.imdb_id)
+        console.log("Subtitles:", result.data)
+        setSubtitles(result.data)
+      } catch (err) {
+        console.error("Error loading subtitles:", err)
+      }
+    }
+
+    const fetchPanelData = async () => {
+      setIsLoading(true)
+      await Promise.all([fetchYTS(), fetchOpenSubtitles()])
+      setIsLoading(false)
+    }
+    fetchPanelData()
+  }, [secretPanel, movieDetails])
 
   // useEffect(() => {
   //   console.log("Trailer Link:", trailerLink)
@@ -508,11 +525,6 @@ export default function FilmLanding() {
                 )}
               </div>
 
-              {/* Torrents will show here */}
-              {torrentVisible && ytsTorrents && (
-                <Torrents ytsTorrents={ytsTorrents} />
-              )}
-
               {/* Ratings & Awards section */}
               {(filmRatings || filmAwards) && (
                 <div className="p-4 pt-2">
@@ -605,7 +617,7 @@ export default function FilmLanding() {
 
                     {/* Awards section */}
                     {filmAwards && (
-                      <div className="text-stone-900 border-1 p-5 py-4 rounded-sm w-fit bg-lime-300 border-lime-300">
+                      <div className="text-stone-900 border-1 p-5 py-4 rounded-sm w-fit bg-lime-400/85 border-lime-400">
                         {/* <div className="landing-sectionTitle mb-2">awards</div> */}
                         {filmAwards.wins.length > 0 && (
                           <div className="mb-3">
@@ -663,6 +675,14 @@ export default function FilmLanding() {
                     )}
                   </div>
                 </div>
+              )}
+
+              {/* Secret panel — torrents & subtitles */}
+              {secretPanel && (
+                <>
+                  <Torrents ytsTorrents={ytsTorrents} />
+                  <Subtitles subtitles={subtitles} />
+                </>
               )}
 
               {/* Cast and crew section */}
