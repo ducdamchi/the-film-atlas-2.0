@@ -20,7 +20,7 @@ export default function PersonList({ title, listOfPeople, type }) {
                   src={
                     person.profile_path !== null
                       ? `${imgBaseUrl}${person.profile_path}`
-                      : `profilepicnotfound.jpg`
+                      : `/profilepicnotfound.jpg`
                   }
                 />
               </div>

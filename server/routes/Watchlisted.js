@@ -23,7 +23,7 @@ router.get("/", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
-         wlf."createdAt" AS "Saves.createdAt"
+         wlf."createdAt" AS added_date
        FROM "WatchlistedFilms" wlf
        JOIN "Films" f ON f.id = wlf."filmId"
        WHERE wlf."userId" = $1
@@ -57,7 +57,7 @@ router.get("/by_country", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
-         wlf."createdAt" AS "Saves.createdAt"
+         wlf."createdAt" AS added_date
        FROM "WatchlistedFilms" wlf
        JOIN "Films" f ON f.id = wlf."filmId"
        WHERE wlf."userId" = $1

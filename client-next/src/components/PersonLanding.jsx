@@ -180,7 +180,7 @@ export default function PersonLanding() {
             src={
               personDetails.profile_path !== null
                 ? `${imgBaseUrl}${personDetails.profile_path}`
-                : `profilepicnotfound.jpg`
+                : `/profilepicnotfound.jpg`
             }
             alt=""
           />
@@ -189,7 +189,7 @@ export default function PersonLanding() {
             src={
               personDetails.profile_path !== null
                 ? `${imgBaseUrl}${personDetails.profile_path}`
-                : `profilepicnotfound.jpg`
+                : `/profilepicnotfound.jpg`
             }
             alt=""
           />
@@ -198,7 +198,7 @@ export default function PersonLanding() {
             src={
               personDetails.profile_path !== null
                 ? `${imgBaseUrl}${personDetails.profile_path}`
-                : `profilepicnotfound.jpg`
+                : `/profilepicnotfound.jpg`
             }
             alt=""
           />

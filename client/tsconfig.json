@@ -3,6 +3,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "allowJs": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true
   }
 }

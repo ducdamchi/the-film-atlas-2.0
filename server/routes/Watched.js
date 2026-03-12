@@ -43,7 +43,7 @@ router.get("/", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
-         wf."createdAt" AS "Likes.createdAt"
+         wf."createdAt" AS added_date
        FROM "WatchedFilms" wf
        JOIN "Films" f ON f.id = wf."filmId"
        WHERE wf."userId" = $1
@@ -83,7 +83,7 @@ router.get("/rated", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
-         wf."updatedAt" AS "Likes.updatedAt"
+         wf."updatedAt" AS added_date
        FROM "WatchedFilms" wf
        JOIN "Films" f ON f.id = wf."filmId"
        WHERE wf."userId" = $1 ${starsClause}
@@ -128,7 +128,52 @@ router.get("/by_country", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
-         wf."createdAt" AS "Likes.createdAt"
+         wf."createdAt" AS added_date
+       FROM "WatchedFilms" wf
+       JOIN "Films" f ON f.id = wf."filmId"
+       WHERE wf."userId" = $1
+         AND f.origin_country @> to_jsonb($2::text)
+         ${starsClause}
+       ORDER BY ${col} ${sortDirection}`,
+      params
+    )
+
+    return res.status(200).json(rows)
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: "Error Fetching Content" })
+  }
+})
+
+/* GET: Fetch rated films from a certain country (stars > 0, optionally filtered by exact star count) */
+router.get("/rated/by_country", validateToken, async (req, res) => {
+  try {
+    const jwtUserId = req.user.id
+    const sortBy = req.query.sortBy || "added_date"
+    const sortDirection =
+      req.query.sortDirection?.toUpperCase() === "ASC" ? "ASC" : "DESC"
+    const countryCode = req.query.countryCode
+    const numStars = parseInt(req.query.numStars)
+
+    if (!countryCode || countryCode.length !== 2) {
+      return res.status(404).json({ error: "Country Code Not Found" })
+    }
+
+    const col = RATED_SORT_COLUMNS[sortBy] ?? RATED_SORT_COLUMNS.added_date
+
+    let starsClause = `AND wf.stars > 0`
+    const params = [jwtUserId, countryCode]
+
+    if (numStars > 0) {
+      params.push(numStars)
+      starsClause = `AND wf.stars = $${params.length}`
+    }
+
+    const { rows } = await pool.query(
+      `SELECT
+         f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
+         f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
+         wf."updatedAt" AS added_date
        FROM "WatchedFilms" wf
        JOIN "Films" f ON f.id = wf."filmId"
        WHERE wf."userId" = $1

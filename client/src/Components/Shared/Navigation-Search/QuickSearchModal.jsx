@@ -240,7 +240,7 @@ export default function QuickSearchModal({
                     <SearchResultItem
                       key={key}
                       to={`/person/director/${person.id}`}
-                      imageSrc={person.profile_path ? `${imgBaseUrl}${person.profile_path}` : "profilepicnotfound.jpg"}
+                      imageSrc={person.profile_path ? `${imgBaseUrl}${person.profile_path}` : "/profilepicnotfound.jpg"}
                       label={person.name}
                       sublabel={null}
                       linkText="Go to Director"
@@ -258,7 +258,7 @@ export default function QuickSearchModal({
                     <SearchResultItem
                       key={key}
                       to={`/person/actor/${person.id}`}
-                      imageSrc={person.profile_path ? `${imgBaseUrl}${person.profile_path}` : "profilepicnotfound.jpg"}
+                      imageSrc={person.profile_path ? `${imgBaseUrl}${person.profile_path}` : "/profilepicnotfound.jpg"}
                       label={person.name}
                       sublabel={null}
                       linkText="Go to Actor"

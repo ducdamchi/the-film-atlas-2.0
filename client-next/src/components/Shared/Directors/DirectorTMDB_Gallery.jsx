@@ -32,7 +32,7 @@ export default function DirectorTMDB_Gallery({ listOfDirectorObjects }) {
                     src={
                       directorObject.profile_path !== null
                         ? `${imgBaseUrl}${directorObject.profile_path}`
-                        : `profilepicnotfound.jpg`
+                        : `/profilepicnotfound.jpg`
                     }
                     alt=""
                     onClick={() => {

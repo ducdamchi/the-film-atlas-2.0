@@ -226,7 +226,7 @@ export default function FilmUser_Card({ filmObject, queryString }) {
                         src={
                           dir.profile_path !== null
                             ? `${imgBaseUrl}${dir.profile_path}`
-                            : "profilepicnotfound.jpg"
+                            : "/profilepicnotfound.jpg"
                         }
                       />
                     </div>

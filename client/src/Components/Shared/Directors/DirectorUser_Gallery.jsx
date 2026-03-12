@@ -167,7 +167,7 @@ export default function DirectorUser_Gallery({
                         src={
                           groupObject.profile_path !== null
                             ? `${imgBaseUrl}${groupObject.profile_path}`
-                            : `profilepicnotfound.jpg`
+                            : `/profilepicnotfound.jpg`
                         }
                       />
                       {hoverId === key && (
