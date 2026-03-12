@@ -7,10 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "NODE_ENV=production nodemon index.js",
     "startDev": "NODE_ENV=development nodemon index.js",
-    "migrate:export": "bash scripts/export-db.sh",
-    "migrate:transfer": "node scripts/transfer-db.js",
-    "migrate": "npm run migrate:export && npm run migrate:transfer",
-    "migrate:import": "bash scripts/import-db.sh"
+    "db:migrate": "node db/migrate.js"
   },
   "keywords": [],
   "author": "",
@@ -22,9 +19,11 @@
     "dotenv": "^17.3.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.15.2",
+    "kysely": "^0.28.11",
     "nodemon": "^3.1.10",
-    "sequelize": "^6.37.7",
-    "sequelize-cli": "^6.6.3"
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.18.0"
   }
 }

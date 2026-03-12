@@ -1,139 +1,103 @@
 const express = require("express")
 const router = express.Router()
-const { Users, Directors, WatchedDirectors } = require("../models")
+const pool = require("../db/pool")
 const { validateToken } = require("../middlewares/AuthMiddleware")
 
-/* GET: Fetch all directors whose films users have liked */
+// ORDER BY whitelist — never interpolate user input directly into SQL
+const SORT_COLUMNS = {
+  name_desc: `d.name ASC`,
+  name_asc: `d.name DESC`,
+  highest_star_desc: `uds.highest_star DESC`,
+  highest_star_asc: `uds.highest_star ASC`,
+  score_desc: `uds.score DESC`,
+  score_asc: `uds.score ASC`,
+}
+
+/* GET: Fetch all directors whose films a user has watched */
 router.get("/", validateToken, async (req, res) => {
   try {
-    const jwtUserId = req.user.id //UserId in signed JWT
+    const jwtUserId = req.user.id
     const sortBy = req.query.sortBy || "name"
     const sortDirection = req.query.sortDirection || "desc"
-    const sortCommand = `${sortBy}_${sortDirection}`
-    // const numStars = req.query.numStars
+    const sortKey = `${sortBy}_${sortDirection}`
 
-    let order
-    switch (sortCommand) {
-      // Sorting by association model attribute
-      case "name_desc":
-        order = [[{ model: Directors, as: "watchedDirectors" }, "name", "ASC"]]
-        break
-      case "name_asc":
-        order = [[{ model: Directors, as: "watchedDirectors" }, "name", "DESC"]]
-        break
+    const orderClause = SORT_COLUMNS[sortKey] ?? SORT_COLUMNS.name_desc
 
-      // Sorting by junction table attribute
-      case "highest_star_desc":
-        order = [
-          [
-            { model: Directors, as: "watchedDirectors" },
-            WatchedDirectors,
-            "highest_star",
-            "DESC",
-          ],
-        ]
-        break
-      case "highest_star_asc":
-        order = [
-          [
-            { model: Directors, as: "watchedDirectors" },
-            WatchedDirectors,
-            "highest_star",
-            "ASC",
-          ],
-        ]
-        break
-      case "score_desc":
-        order = [
-          [
-            { model: Directors, as: "watchedDirectors" },
-            WatchedDirectors,
-            "score",
-            "DESC",
-          ],
-        ]
-        break
-      case "score_asc":
-        order = [
-          [
-            { model: Directors, as: "watchedDirectors" },
-            WatchedDirectors,
-            "score",
-            "ASC",
-          ],
-        ]
-        break
-    }
+    const { rows } = await pool.query(
+      `SELECT
+         d.id, d.name, d.profile_path,
+         uds.num_watched_films  AS "UserDirectorStats.num_watched_films",
+         uds.num_starred_films  AS "UserDirectorStats.num_starred_films",
+         uds.num_stars_total    AS "UserDirectorStats.num_stars_total",
+         uds.highest_star       AS "UserDirectorStats.highest_star",
+         uds.avg_rating         AS "UserDirectorStats.avg_rating",
+         uds.score              AS "UserDirectorStats.score"
+       FROM "UserDirectorStats" uds
+       JOIN "Directors" d ON d.id = uds."directorId"
+       WHERE uds."userId" = $1
+       ORDER BY ${orderClause}`,
+      [jwtUserId]
+    )
 
-    const userWithWatchedDirectors = await Users.findByPk(jwtUserId, {
-      include: [
-        {
-          model: Directors,
-          as: "watchedDirectors",
-          attributes: ["id", "name", "profile_path"],
-          through: {
-            attributes: [
-              "num_watched_films",
-              "num_starred_films",
-              "num_stars_total",
-              "highest_star",
-              "avg_rating",
-              "score",
-            ],
-          },
-        },
-      ],
-      order: order,
-    })
+    // Shape response to match frontend expectations (nested WatchedDirectors object)
+    const shaped = rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      profile_path: row.profile_path,
+      WatchedDirectors: {
+        num_watched_films: row["UserDirectorStats.num_watched_films"],
+        num_starred_films: row["UserDirectorStats.num_starred_films"],
+        num_stars_total: row["UserDirectorStats.num_stars_total"],
+        highest_star: row["UserDirectorStats.highest_star"],
+        avg_rating: row["UserDirectorStats.avg_rating"],
+        score: row["UserDirectorStats.score"],
+      },
+    }))
 
-    if (!userWithWatchedDirectors) {
-      return res.status(404).json({ error: "User Not Found" })
-    } else {
-      return res.status(200).json(userWithWatchedDirectors.watchedDirectors)
-    }
+    return res.status(200).json(shaped)
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: "Error Fetching All Directors Info" })
   }
 })
 
+/* GET: Fetch stats for a specific director */
 router.get("/:tmdbId", validateToken, async (req, res) => {
   try {
-    const tmdbId = req.params.tmdbId //Director's tmdbId used in URL
-    const jwtUserId = req.user.id //UserId in signed JWT
+    const tmdbId = req.params.tmdbId
+    const jwtUserId = req.user.id
 
-    /* Find Director instance */
-    const director = await Directors.findOne({ where: { id: tmdbId } })
-    /* If director not already in app's db, User couldn't have watched films by them*/
-    if (!director) {
+    // Check if director exists in our DB
+    const directorResult = await pool.query(
+      `SELECT id FROM "Directors" WHERE id = $1 LIMIT 1`,
+      [tmdbId]
+    )
+    if (directorResult.rows.length === 0) {
       return res
         .status(200)
         .json({ watched: 0, starred: 0, highest_star: 0, score: 0 })
     }
 
-    /* Find User instance */
-    const user = await Users.findByPk(jwtUserId)
-    if (!user) {
-      return res.status(404).json({ error: "User Not Found" })
-    }
+    const udsResult = await pool.query(
+      `SELECT num_watched_films, num_starred_films, highest_star, score, avg_rating
+       FROM "UserDirectorStats"
+       WHERE "directorId" = $1 AND "userId" = $2 LIMIT 1`,
+      [tmdbId, jwtUserId]
+    )
 
-    const watchedDirector = await WatchedDirectors.findOne({
-      where: {
-        directorId: tmdbId,
-        userId: jwtUserId,
-      },
-    })
-    if (!watchedDirector) {
+    if (udsResult.rows.length === 0) {
       return res
         .status(200)
         .json({ watched: 0, starred: 0, highest_star: 0, score: 0 })
     }
+
+    const row = udsResult.rows[0]
     return res.status(200).json({
-      watched: watchedDirector.num_watched_films,
-      starred: watchedDirector.num_starred_films,
-      highest_star: watchedDirector.highest_star,
-      score: watchedDirector.score,
-      avg_rating: watchedDirector.avg_rating,
+      watched: row.num_watched_films,
+      starred: row.num_starred_films,
+      highest_star: row.highest_star,
+      score: row.score,
+      avg_rating: row.avg_rating,
     })
   } catch (err) {
     console.error(err)

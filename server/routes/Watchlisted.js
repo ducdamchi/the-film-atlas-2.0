@@ -1,82 +1,37 @@
 const express = require("express")
 const router = express.Router()
-const {
-  Users,
-  Films,
-  Directors,
-  WatchedDirectors,
-  WatchedDirectorLikes,
-  Likes,
-  Saves,
-} = require("../models")
+const pool = require("../db/pool")
 const { validateToken } = require("../middlewares/AuthMiddleware")
-const { Op, fn, col, Sequelize } = require("sequelize")
 
-/* Avg_rating: total stars / total films watched. max value = 3
-  watchScore: use logarithm function that rewards a director when a user watches multiple films from them. max value = 1 (when user watches 10 or more films, watchScore = 1) 
-  finalScore: max(avg_rating) = 3; max(watchScore) = 1; multiply avg_rating by 2 (max 6); multiply watchScore by 4 (max 4). This will achieve a score on a scale of 10, where avg_rating has 60% weight, and num_watched_films has 40% weight.*/
-function calculateScore(num_stars_total, num_watched_films) {
-  const watchScore = Math.min(1, Math.log(num_watched_films + 1) / Math.log(10))
-  const finalScore = Number(
-    (num_stars_total / num_watched_films) * 2 + watchScore * 4
-  ).toFixed(2)
-  return finalScore
+// ORDER BY whitelist — never interpolate user input directly into SQL
+const SORT_COLUMNS = {
+  added_date: `wlf."createdAt"`,
+  released_date: `f.release_date`,
 }
 
-/* GET: Fetch all films added to watchlist by a user */
+/* GET: Fetch all films on a user's watchlist */
 router.get("/", validateToken, async (req, res) => {
   try {
-    const jwtUserId = req.user.id //UserId in signed JWT
+    const jwtUserId = req.user.id
     const sortBy = req.query.sortBy || "added_date"
-    const sortDirection = req.query.sortDirection || "desc"
-    const sortCommand = `${sortBy}_${sortDirection}`
-    let order
-    switch (sortCommand) {
-      case "added_date_desc":
-        order = [
-          [{ model: Films, as: "savedFilms" }, Saves, "createdAt", "DESC"],
-        ]
-        break
-      case "added_date_asc":
-        order = [
-          [{ model: Films, as: "savedFilms" }, Saves, "createdAt", "ASC"],
-        ]
-        break
-      case "released_date_desc":
-        order = [[{ model: Films, as: "savedFilms" }, "release_date", "DESC"]]
-        break
-      case "released_date_asc":
-        order = [[{ model: Films, as: "savedFilms" }, "release_date", "ASC"]]
-        break
-    }
-    const userWithSavedFilms = await Users.findByPk(jwtUserId, {
-      include: [
-        {
-          model: Films,
-          as: "savedFilms",
-          attributes: [
-            "id",
-            "title",
-            "runtime",
-            "directors",
-            "directorNamesForSorting",
-            "poster_path",
-            "backdrop_path",
-            "origin_country",
-            "release_date",
-          ],
-          through: {
-            attributes: ["createdAt"],
-          },
-        },
-      ],
-      order: order,
-    })
-    if (!userWithSavedFilms) {
-      return res.status(404).json({ error: "User Not Found" })
-    } else {
-      return res.status(200).json(userWithSavedFilms.savedFilms)
-    }
+    const sortDirection =
+      req.query.sortDirection?.toUpperCase() === "ASC" ? "ASC" : "DESC"
+
+    const col = SORT_COLUMNS[sortBy] ?? SORT_COLUMNS.added_date
+
+    const { rows } = await pool.query(
+      `SELECT
+         f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
+         f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
+         wlf."createdAt" AS "Saves.createdAt"
+       FROM "WatchlistedFilms" wlf
+       JOIN "Films" f ON f.id = wlf."filmId"
+       WHERE wlf."userId" = $1
+       ORDER BY ${col} ${sortDirection}`,
+      [jwtUserId]
+    )
+
+    return res.status(200).json(rows)
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: "Error Fetching Content" })
@@ -88,300 +43,217 @@ router.get("/by_country", validateToken, async (req, res) => {
   try {
     const jwtUserId = req.user.id
     const sortBy = req.query.sortBy || "added_date"
-    const sortDirection = req.query.sortDirection || "desc"
-    const sortCommand = `${sortBy}_${sortDirection}`
+    const sortDirection =
+      req.query.sortDirection?.toUpperCase() === "ASC" ? "ASC" : "DESC"
     const countryCode = req.query.countryCode
-    let order
 
     if (!countryCode || countryCode.length !== 2) {
       return res.status(404).json({ error: "Country Code Not Found" })
     }
 
-    switch (sortCommand) {
-      case "added_date_desc":
-        order = [
-          [{ model: Films, as: "savedFilms" }, Saves, "createdAt", "DESC"],
-        ]
-        break
-      case "added_date_asc":
-        order = [
-          [{ model: Films, as: "savedFilms" }, Saves, "createdAt", "ASC"],
-        ]
-        break
-      case "released_date_desc":
-        order = [[{ model: Films, as: "savedFilms" }, "release_date", "DESC"]]
-        break
-      case "released_date_asc":
-        order = [[{ model: Films, as: "savedFilms" }, "release_date", "ASC"]]
-        break
-    }
+    const col = SORT_COLUMNS[sortBy] ?? SORT_COLUMNS.added_date
 
-    const whereCondition = Sequelize.literal(
-      `JSON_CONTAINS(origin_country, '"${countryCode}"')`
+    const { rows } = await pool.query(
+      `SELECT
+         f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
+         f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
+         wlf."createdAt" AS "Saves.createdAt"
+       FROM "WatchlistedFilms" wlf
+       JOIN "Films" f ON f.id = wlf."filmId"
+       WHERE wlf."userId" = $1
+         AND f.origin_country @> to_jsonb($2::text)
+       ORDER BY ${col} ${sortDirection}`,
+      [jwtUserId, countryCode]
     )
 
-    const userWithSavedFilms = await Users.findByPk(jwtUserId, {
-      include: [
-        {
-          model: Films,
-          as: "savedFilms",
-          attributes: [
-            "id",
-            "title",
-            "runtime",
-            "directors",
-            "directorNamesForSorting",
-            "poster_path",
-            "backdrop_path",
-            "origin_country",
-            "release_date",
-          ],
-          where: whereCondition,
-          through: {
-            attributes: ["createdAt"],
-          },
-        },
-      ],
-      order: order,
-    })
-
-    if (!userWithSavedFilms) {
-      return res
-        .status(200)
-        .json({ error: `User Not Found / Films from ${countryCode} Not Found` })
-    } else {
-      return res.status(200).json(userWithSavedFilms.savedFilms)
-    }
+    return res.status(200).json(rows)
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: "Error Fetching Content" })
   }
 })
 
-/* GET: Check if a film is added to watchlist by a user */
+/* GET: Check if a film is on a user's watchlist */
 router.get("/:tmdbId", validateToken, async (req, res) => {
   try {
-    const tmdbId = req.params.tmdbId //tmdbId used in URL
-    const jwtUserId = req.user.id //UserId in signed JWT
+    const tmdbId = req.params.tmdbId
+    const jwtUserId = req.user.id
 
-    /* Find Film instance */
-    const film = await Films.findOne({ where: { id: tmdbId } })
-    /* If Film not already in app's db, User couldn't have liked it */
-    if (!film) {
-      return res.status(200).json({ liked: false })
+    // If film not in our DB, user couldn't have watchlisted it
+    const filmResult = await pool.query(
+      `SELECT id FROM "Films" WHERE id = $1 LIMIT 1`,
+      [tmdbId]
+    )
+    if (filmResult.rows.length === 0) {
+      return res.status(200).json({ saved: false })
     }
 
-    /* Find User instance */
-    const user = await Users.findByPk(jwtUserId)
-    if (!user) {
-      return res.status(404).json({ error: "User Not Found" })
-    }
-
-    const saved = await user.hasSavedFilm(film)
-    return res.status(200).json({ saved: saved })
+    const savedResult = await pool.query(
+      `SELECT id FROM "WatchlistedFilms" WHERE "filmId" = $1 AND "userId" = $2 LIMIT 1`,
+      [tmdbId, jwtUserId]
+    )
+    return res
+      .status(200)
+      .json({ saved: savedResult.rows.length > 0 })
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: "Error Checking Watchlist Status" })
   }
 })
 
-/* POST: Add a film to watchlist junction table */
+/* POST: Add a film to the watchlist */
 router.post("/", validateToken, async (req, res) => {
   try {
-    const jwtUserId = req.user.id //UserId in signed JWT
+    const jwtUserId = req.user.id
     const reqData = req.body
-    const user = await Users.findByPk(jwtUserId)
-    let deleteResult
 
-    if (!user) {
-      return res.status(404).json({ error: "User Not Found" })
-    }
+    // Upsert Film
+    await pool.query(
+      `INSERT INTO "Films"
+         (id, title, runtime, directors, "directorNamesForSorting",
+          poster_path, backdrop_path, origin_country, release_date)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       ON CONFLICT (id) DO NOTHING`,
+      [
+        reqData.tmdbId,
+        reqData.title,
+        reqData.runtime,
+        JSON.stringify(reqData.directors),
+        reqData.directorNamesForSorting,
+        reqData.poster_path,
+        reqData.backdrop_path,
+        JSON.stringify(reqData.origin_country),
+        reqData.release_date,
+      ]
+    )
 
-    /* Either find existing film or create new film */
-    const [film, created] = await Films.findOrCreate({
-      where: {
-        id: reqData.tmdbId,
-      },
-      defaults: {
-        tmdbId: reqData.tmdbId,
-        title: reqData.title,
-        runtime: reqData.runtime,
-        directors: reqData.directors,
-        directorNamesForSorting: reqData.directorNamesForSorting,
-        poster_path: reqData.poster_path,
-        backdrop_path: reqData.backdrop_path,
-        origin_country: reqData.origin_country,
-        release_date: reqData.release_date,
-      },
-    })
+    // Insert into WatchlistedFilms
+    await pool.query(
+      `INSERT INTO "WatchlistedFilms" ("filmId", "userId")
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
+      [reqData.tmdbId, jwtUserId]
+    )
 
-    /* Add film to Saves junction table */
-    await user.addSavedFilm(film)
-    const savedFilm = await Saves.findOne({
-      where: {
-        userId: jwtUserId,
-        filmId: reqData.tmdbId,
-      },
-    })
-    if (!savedFilm || !user.hasSavedFilm(film)) {
-      return res.status(500).json({ error: "Error adding film to Saves" })
-    }
+    // If film was in WatchedFilms, remove it and clean up director stats
+    const watchedResult = await pool.query(
+      `SELECT id FROM "WatchedFilms" WHERE "filmId" = $1 AND "userId" = $2 LIMIT 1`,
+      [reqData.tmdbId, jwtUserId]
+    )
 
-    /* Check if film is in Likes junction table. If so, remove because a Watched film should not be in Watchlist */
-    const likedFilm = await Likes.findOne({
-      where: {
-        userId: jwtUserId,
-        filmId: reqData.tmdbId,
-      },
-    })
-    /* Handle the removal of likedFilm similar to DELETE request sent to Watched.js */
-    if (likedFilm) {
-      for (const director of film.directors) {
-        const watchedDirector = await WatchedDirectors.findOne({
-          where: {
-            directorId: director.tmdbId,
-            userId: jwtUserId,
-          },
-        })
-        if (!watchedDirector) {
-          return res.status(404).json({
-            error: `Cannot find entry for director ${director.name}, id: ${director.tmdbId} in WatchedDirector junction table.`,
-          })
-        }
+    if (watchedResult.rows.length > 0) {
+      const likedFilmId = watchedResult.rows[0].id
 
-        /* Add Like instance to WatchedDirectorLikes junction table */
-        // deleteResult = await WatchedDirectorLikes.destroy({
-        //   where: {
-        //     watchedDirectorId: watchedDirector.id,
-        //     likeId: likedFilm.id,
-        //   },
-        // })
-        // if (deleteResult <= 0) {
-        //   return res
-        //     .status(500)
-        //     .json({ error: "Error Removing Watched Director Like" })
-        // }
+      // Get directors from the film
+      const filmResult = await pool.query(
+        `SELECT directors FROM "Films" WHERE id = $1 LIMIT 1`,
+        [reqData.tmdbId]
+      )
+      const directors = filmResult.rows[0]?.directors || []
 
-        await watchedDirector.removeWatchedDirectorLike(likedFilm)
-
-        const likesFromWatchedDirector = await WatchedDirectors.findByPk(
-          watchedDirector.id,
-          {
-            include: [
-              {
-                model: Likes,
-                as: "watchedDirectorLikes",
-                attributes: [],
-                through: {
-                  attributes: [],
-                },
-              },
-            ],
-            attributes: [
-              //use watchedDirectorLikes to refer to alias given to Likes table.
-              [
-                fn("COUNT", col("watchedDirectorLikes.filmId")),
-                "num_watched_films",
-              ],
-              [fn("SUM", col("watchedDirectorLikes.stars")), "num_stars_total"],
-              [fn("MAX", col("watchedDirectorLikes.stars")), "highest_star"],
-            ],
-            group: ["WatchedDirectors.id"], // This returns one row per WatchedDirectors record with aggregates for THAT director only
-            raw: true, //return plain JS objects instead of model instances
-          }
+      for (const director of directors) {
+        const udsResult = await pool.query(
+          `SELECT id FROM "UserDirectorStats" WHERE "directorId" = $1 AND "userId" = $2 LIMIT 1`,
+          [director.tmdbId, jwtUserId]
         )
-        if (!likesFromWatchedDirector) {
-          return res.status(500).json({
-            error: "Error Fetching Aggregations for Watched Directors.",
-          })
-        }
+        if (udsResult.rows.length === 0) continue
+        const directorStatsId = udsResult.rows[0].id
 
-        if (likesFromWatchedDirector.num_watched_films === 0) {
-          deleteResult = await WatchedDirectors.destroy({
-            where: {
-              directorId: director.tmdbId,
-              userId: jwtUserId,
-            },
-          })
-          if (deleteResult !== 1) {
-            return res
-              .status(500)
-              .json({ error: "Error Removing Watched Director" })
-          }
+        // Remove from UserDirectorFilms
+        await pool.query(
+          `DELETE FROM "UserDirectorFilms" WHERE "watchedFilmId" = $1 AND "directorStatsId" = $2`,
+          [likedFilmId, directorStatsId]
+        )
+
+        // Recalculate aggregates
+        const aggResult = await pool.query(
+          `SELECT
+             COUNT(wf.id)::int AS num_watched_films,
+             COUNT(CASE WHEN wf.stars > 0 THEN 1 END)::int AS num_starred_films,
+             COALESCE(SUM(wf.stars), 0)::int AS num_stars_total,
+             COALESCE(MAX(wf.stars), 0)::int AS highest_star
+           FROM "UserDirectorFilms" udf
+           JOIN "WatchedFilms" wf ON wf.id = udf."watchedFilmId"
+           WHERE udf."directorStatsId" = $1`,
+          [directorStatsId]
+        )
+        const agg = aggResult.rows[0]
+
+        if (agg.num_watched_films === 0) {
+          await pool.query(`DELETE FROM "UserDirectorStats" WHERE id = $1`, [
+            directorStatsId,
+          ])
         } else {
-          const [affectedRows] = await WatchedDirectors.update(
-            {
-              num_watched_films: likesFromWatchedDirector.num_watched_films,
-              num_stars_total: likesFromWatchedDirector.num_stars_total,
-              avg_rating:
-                likesFromWatchedDirector.num_stars_total /
-                likesFromWatchedDirector.num_watched_films,
-              highest_star: likesFromWatchedDirector.highest_star,
-              score: calculateScore(
-                likesFromWatchedDirector.num_stars_total,
-                likesFromWatchedDirector.num_watched_films
-              ),
-            },
-            {
-              where: {
-                directorId: director.tmdbId,
-                userId: jwtUserId,
-              },
-            }
+          const watchScore = Math.min(
+            1,
+            Math.log(agg.num_watched_films + 1) / Math.log(10)
           )
-          if (affectedRows !== 1) {
-            return res.status(500).json({
-              error: "Error Updating Watched Directors with new Aggregations.",
-            })
-          }
+          const score =
+            agg.num_starred_films === 0
+              ? Number(watchScore * 4).toFixed(2)
+              : Number(
+                  (agg.num_stars_total / agg.num_starred_films) * 2 +
+                    watchScore * 4
+                ).toFixed(2)
+
+          await pool.query(
+            `UPDATE "UserDirectorStats" SET
+               num_watched_films = $1,
+               num_starred_films = $2,
+               num_stars_total   = $3,
+               avg_rating        = $4,
+               highest_star      = $5,
+               score             = $6,
+               "updatedAt"       = now()
+             WHERE id = $7`,
+            [
+              agg.num_watched_films,
+              agg.num_starred_films,
+              agg.num_stars_total,
+              agg.num_starred_films === 0
+                ? 0
+                : agg.num_stars_total / agg.num_starred_films,
+              agg.highest_star,
+              score,
+              directorStatsId,
+            ]
+          )
         }
       }
 
-      deleteResult = await Likes.destroy({
-        where: {
-          userId: jwtUserId,
-          filmId: film.id,
-        },
-      })
-      if (deleteResult !== 1) {
-        return res.status(500).json({ error: "Error Removing Like" })
-      }
+      await pool.query(
+        `DELETE FROM "WatchedFilms" WHERE "filmId" = $1 AND "userId" = $2`,
+        [reqData.tmdbId, jwtUserId]
+      )
     }
 
-    return res.status(200).json({ saved: user.hasSavedFilm(film) })
+    return res.status(200).json({ saved: true })
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: "Error Adding Entry" })
   }
 })
 
-/* DELETE: Removed a film 'unsaved' by User from watchlist junction table */
+/* DELETE: Remove a film from the watchlist */
 router.delete("/", validateToken, async (req, res) => {
   try {
-    const jwtUserId = req.user.id //UserId in signed JWT
+    const jwtUserId = req.user.id
     const tmdbId = req.body.tmdbId
 
-    /* Find Film instance */
-    const film = await Films.findOne({ where: { id: tmdbId } })
-    if (!film) {
-      return res.status(404).json({ error: "Film Not Found" })
+    const result = await pool.query(
+      `DELETE FROM "WatchlistedFilms" WHERE "filmId" = $1 AND "userId" = $2 RETURNING id`,
+      [tmdbId, jwtUserId]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Film Not Found in Watchlist" })
     }
 
-    /* Find User instance */
-    const user = await Users.findByPk(jwtUserId)
-    if (!user) {
-      return res.status(404).json({ error: "User Not Found" })
-    }
-
-    await user.removeSavedFilm(film)
-    const saved = await user.hasSavedFilm(film)
-    if (saved) {
-      return res.status(500).json({ error: "Error Removing Entry" })
-    }
-    return res.status(200).json({ saved: saved })
+    return res.status(200).json({ saved: false })
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: "Error Removing Entry" })
   }
 })
+
 module.exports = router
