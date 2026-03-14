@@ -5,48 +5,102 @@ import {
   probeCountryDefaults,
 } from "@/Utils/apiCalls"
 import { shuffleArray } from "@/Utils/helperFunctions"
+import type { TMDBFilmSummary } from "@/types/tmdb"
+import type { DiscoverPageState } from "@/types/map"
+import type { PopupInfo } from "@/types/map"
 
-const RATING_STEPS = [0, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5]
+const RATING_STEPS = [0, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5] as const
 const RANDOM_BATCH_SIZE = 3
 
-export function useDiscoverFilms({ isDiscoverMode, popupInfo }) {
-  const [suggestedFilmList, setSuggestedFilmList] = usePersistedState(
-    "map-suggestedFilmList",
-    [],
-  )
-  const [page, setPage] = usePersistedState("map-page", {
+interface UseDiscoverFilmsParams {
+  isDiscoverMode: boolean
+  popupInfo: PopupInfo | null
+}
+
+/**
+ * The full return value of useDiscoverFilms.
+ *
+ * All range state is a [min, max] tuple matching `DiscoverFilmParams` in map.ts.
+ * `discoverTotalResults` is null until the first successful probe/fetch so that
+ * the adaptive rating logic can distinguish "not yet loaded" from "0 results".
+ */
+export interface UseDiscoverFilmsResult {
+  suggestedFilmList: TMDBFilmSummary[]
+  page: DiscoverPageState
+  setPage: React.Dispatch<React.SetStateAction<DiscoverPageState>>
+  discoverBy: string
+  setDiscoverBy: React.Dispatch<React.SetStateAction<string>>
+  ratingRange: [number, number]
+  setRatingRange: React.Dispatch<React.SetStateAction<[number, number]>>
+  tempRatingRange: [number, number]
+  setTempRatingRange: React.Dispatch<React.SetStateAction<[number, number]>>
+  voteCountRange: [number, number]
+  setVoteCountRange: React.Dispatch<React.SetStateAction<[number, number]>>
+  tempVoteCountRange: [number, number]
+  setTempVoteCountRange: React.Dispatch<React.SetStateAction<[number, number]>>
+  discoverTotalResults: number | null
+  isLoading: boolean
+  loadMoreTrigger: React.RefObject<HTMLDivElement | null>
+}
+
+/**
+ * Manages paginated TMDB film discovery for the selected map country.
+ *
+ * All range state ([min, max] tuples) is typed as `[number, number]` rather
+ * than `number[]` because the code always accesses index [1] for the filter
+ * threshold — a plain `number[]` would allow empty arrays through without a
+ * compile-time error, while the tuple ensures both elements always exist.
+ *
+ * `discoverTotalResults` is `number | null` (not `number`) because null is the
+ * explicit sentinel meaning "probe hasn't run yet" — the adaptive adjustment
+ * effect guards on this before running, preventing premature re-adjustments.
+ */
+export function useDiscoverFilms({
+  isDiscoverMode,
+  popupInfo,
+}: UseDiscoverFilmsParams): UseDiscoverFilmsResult {
+  const [suggestedFilmList, setSuggestedFilmList] = usePersistedState<
+    TMDBFilmSummary[]
+  >("map-suggestedFilmList", [])
+
+  const [page, setPage] = usePersistedState<DiscoverPageState>("map-page", {
     numPages: 1,
     loadMore: false,
     hasMore: true,
   })
-  const [discoverBy, setDiscoverBy] = usePersistedState(
+
+  const [discoverBy, setDiscoverBy] = usePersistedState<string>(
     "map-discoverBy",
     "random",
   )
-  const [ratingRange, setRatingRange] = usePersistedState(
+
+  const [ratingRange, setRatingRange] = usePersistedState<[number, number]>(
     "map-ratingRange",
     [0, 7],
   )
-  const [tempRatingRange, setTempRatingRange] = usePersistedState(
-    "map-tempRating",
-    [0, 7],
-  )
-  const [voteCountRange, setVoteCountRange] = usePersistedState(
-    "map-voteCountRange",
-    [0, 100],
-  )
-  const [tempVoteCountRange, setTempVoteCountRange] = usePersistedState(
-    "map-tempVoteCount",
-    [0, 100],
-  )
-  const [discoverTotalResults, setDiscoverTotalResults] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
 
-  const loadMoreTrigger = useRef(null)
-  const isPageRefresh = useRef(true)
-  const calibratedCountryRef = useRef(null)
-  const lastFetchParamsRef = useRef(null)
-  const autoAdjustedRef = useRef(false)
+  const [tempRatingRange, setTempRatingRange] = usePersistedState<
+    [number, number]
+  >("map-tempRating", [0, 7])
+
+  const [voteCountRange, setVoteCountRange] = usePersistedState<
+    [number, number]
+  >("map-voteCountRange", [0, 100])
+
+  const [tempVoteCountRange, setTempVoteCountRange] = usePersistedState<
+    [number, number]
+  >("map-tempVoteCount", [0, 100])
+
+  const [discoverTotalResults, setDiscoverTotalResults] = useState<
+    number | null
+  >(null)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const loadMoreTrigger = useRef<HTMLDivElement | null>(null)
+  const isPageRefresh = useRef<boolean>(true)
+  const calibratedCountryRef = useRef<string | null>(null)
+  const lastFetchParamsRef = useRef<string | null>(null)
+  const autoAdjustedRef = useRef<boolean>(false)
 
   /* Intersection Observer */
   useEffect(() => {
@@ -68,6 +122,7 @@ export function useDiscoverFilms({ isDiscoverMode, popupInfo }) {
     }
     return () => {
       if (loadMoreTrigger.current) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         observer.unobserve(loadMoreTrigger.current)
       }
       setPage((prevPage) => ({ ...prevPage, loadMore: false }))
@@ -83,7 +138,7 @@ export function useDiscoverFilms({ isDiscoverMode, popupInfo }) {
           if (
             popupInfo &&
             popupInfo.iso_a2 !== undefined &&
-            ratingRange.length == 2
+            ratingRange.length === 2
           ) {
             if (discoverBy === "random") {
               const pageNums = Array.from(
@@ -109,7 +164,9 @@ export function useDiscoverFilms({ isDiscoverMode, popupInfo }) {
               if (filtered_results.length > 0) {
                 shuffleArray(filtered_results)
                 setSuggestedFilmList((prev) => [...prev, ...filtered_results])
-                const totalPages = Math.ceil(discoverTotalResults / 20)
+                const totalPages = Math.ceil(
+                  (discoverTotalResults ?? 0) / 20,
+                )
                 setPage((prevPage) => ({
                   ...prevPage,
                   numPages: prevPage.numPages + RANDOM_BATCH_SIZE,
@@ -178,11 +235,11 @@ export function useDiscoverFilms({ isDiscoverMode, popupInfo }) {
           if (
             popupInfo &&
             popupInfo.iso_a2 !== undefined &&
-            ratingRange.length == 2
+            ratingRange.length === 2
           ) {
             const isoA2 = popupInfo.iso_a2
-            let effectiveRatingRange = ratingRange
-            let effectiveVoteCountRange = voteCountRange
+            let effectiveRatingRange: [number, number] = ratingRange
+            let effectiveVoteCountRange: [number, number] = voteCountRange
 
             if (calibratedCountryRef.current !== isoA2) {
               autoAdjustedRef.current = false
@@ -272,7 +329,7 @@ export function useDiscoverFilms({ isDiscoverMode, popupInfo }) {
       return
 
     const currentRating = ratingRange[1]
-    let nextRating = null
+    let nextRating: number | null = null
 
     if (discoverTotalResults < 20 && currentRating > 0) {
       const idx = RATING_STEPS.findIndex((s) => s >= currentRating)

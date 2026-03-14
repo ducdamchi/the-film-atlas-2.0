@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import "../styles.css"
 
-import { AuthContext } from "../Utils/authContext.jsx"
+import { AuthContext } from "../Utils/authContext"
 // @ts-ignore - JS component
 import NavBar from "../components/Shared/Navigation-Search/NavBar.jsx"
 // @ts-ignore - JS component

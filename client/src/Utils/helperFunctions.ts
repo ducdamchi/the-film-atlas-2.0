@@ -1,5 +1,5 @@
 /* Converts ISO_A2 country codes into full country name */
-export function getCountryName(code) {
+export function getCountryName(code: string): string | undefined {
   // Check if the Intl.DisplayNames API is supported
   if (Intl && Intl.DisplayNames) {
     // Create a new instance for 'en' (English) with 'region' type
@@ -11,7 +11,7 @@ export function getCountryName(code) {
 }
 
 /* Converts full date of format yyyy-mm-dd to yyyy only */
-export function getReleaseYear(release_date) {
+export function getReleaseYear(release_date: string): number | "N/A" {
   const date = new Date(release_date)
   const year = date.getFullYear()
 
@@ -23,9 +23,9 @@ export function getReleaseYear(release_date) {
 }
 
 /* Converts date of format yyyy-mm (e.g. 2025-10) to Month Year string (e.g. October 2025)*/
-export function getNiceMonthYear(dateString) {
+export function getNiceMonthYear(dateString: string): string {
   const [year, month] = dateString.split("-")
-  const inputDate = new Date(year, month - 1)
+  const inputDate = new Date(Number(year), Number(month) - 1)
   const currentDate = new Date()
 
   if (
@@ -47,17 +47,15 @@ export function getNiceMonthYear(dateString) {
 }
 
 /* Converts date of format yyyy-mm-dd (e.g. 2025-10-25) to Month Date Year string (e.g. October 25, 2025)*/
-export function getNiceMonthDateYear(dateString) {
+export function getNiceMonthDateYear(dateString: string): string {
   const [year, month, date] = dateString.split("-")
-  const inputDate = new Date(year, month - 1, date)
-  // const [year, month, date] = dateString.split("-")
-  // const currentDate = new Date()
-  const options = { year: "numeric", month: "long", day: "numeric" }
+  const inputDate = new Date(Number(year), Number(month) - 1, Number(date))
+  const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric" }
   return new Intl.DateTimeFormat("en-US", options).format(inputDate)
 }
 
 /* Calculate age from birthday and deathday in the string format yyyy-mm-dd. If deathday left empty, person is not deceased -> use current year. */
-export function getAge(birthday, deathday) {
+export function getAge(birthday: string | null | undefined, deathday: string | null | undefined): number | "N/A" {
   if (birthday) {
     const birth = new Date(birthday)
     if (deathday) {
@@ -72,7 +70,12 @@ export function getAge(birthday, deathday) {
   }
 }
 
-export function getNameParts(fullName) {
+export interface NameParts {
+  firstNameInitial: string
+  lastName: string
+}
+
+export function getNameParts(fullName: string | null | undefined): NameParts | "" {
   if (!fullName || typeof fullName !== "string") return ""
 
   const nameParts = fullName.trim().split(/\s+/) // Handles multiple spaces
@@ -87,9 +90,9 @@ export function getNameParts(fullName) {
   return { firstNameInitial, lastName }
 }
 
-export function shuffleArray(array) {
+export function shuffleArray<T>(array: T[]): T[] {
   let currentIndex = array.length
-  let randomIndex
+  let randomIndex: number
 
   // While there remain elements to shuffle.
   while (currentIndex !== 0) {
@@ -110,9 +113,9 @@ export function shuffleArray(array) {
 // Darken an [r, g, b] color by clamping its OKLCH lightness to maxL (0–1).
 // Preserves hue and chroma — only the perceptual lightness is reduced.
 // maxL=0.3 is a good default for ensuring white text readability.
-export function darkenColorToOklch([r, g, b], maxL = 0.3) {
+export function darkenColorToOklch([r, g, b]: [number, number, number], maxL = 0.3): [number, number, number] {
   // sRGB (0–255) → linear light
-  const toLinear = (c) => {
+  const toLinear = (c: number): number => {
     c = c / 255
     return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
   }
@@ -150,7 +153,7 @@ export function darkenColorToOklch([r, g, b], maxL = 0.3) {
   const bLin =  0.0556434 * Xn - 0.2040259 * Yn + 1.0572252 * Zn
 
   // Linear → sRGB (0–255)
-  const toSRGB = (c) => {
+  const toSRGB = (c: number): number => {
     c = Math.max(0, Math.min(1, c))
     return Math.round((c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055) * 255)
   }
@@ -158,7 +161,7 @@ export function darkenColorToOklch([r, g, b], maxL = 0.3) {
 }
 
 // Convert RGB to relative luminance
-export const getLuminance = (r, g, b) => {
+export const getLuminance = (r: number, g: number, b: number): number => {
   const [rs, gs, bs] = [r, g, b].map((c) => {
     c = c / 255
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
@@ -167,17 +170,20 @@ export const getLuminance = (r, g, b) => {
 }
 
 // Calculate contrast ratio
-export const getContrastRatio = (l1, l2) => {
+export const getContrastRatio = (l1: number, l2: number): number => {
   const lighter = Math.max(l1, l2)
   const darker = Math.min(l1, l2)
   return (lighter + 0.05) / (darker + 0.05)
 }
 
 // Adjust color to ensure sufficient contrast
-export const ensureContrast = (bgColor, textColor) => {
+export const ensureContrast = (
+  bgColor: [number, number, number],
+  textColor: [number, number, number],
+): [number, number, number] => {
   const bgLuminance = getLuminance(...bgColor)
-  let textLuminance = getLuminance(...textColor)
-  let contrastRatio = getContrastRatio(bgLuminance, textLuminance)
+  const textLuminance = getLuminance(...textColor)
+  const contrastRatio = getContrastRatio(bgLuminance, textLuminance)
 
   // WCAG AA requires at least 4.5:1 for normal text
   const minContrast = 4.5
