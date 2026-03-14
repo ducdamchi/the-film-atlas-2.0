@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@tanstack/react-router"
 import InteractionConsole from "./InteractionConsole"
 
 export default function LaptopInteractionConsole({
@@ -20,7 +20,7 @@ export default function LaptopInteractionConsole({
             <div
               className="w-full text-white px-7 pb-5 lg:pb-6"
               onClick={() => {
-                navigate(`/films/${filmObject.id}`)
+                navigate({ to: `/films/${filmObject.id}` })
                 if (setPage) {
                   setPage((prevPage) => ({ ...prevPage, loadMore: false }))
                 }
@@ -157,7 +157,7 @@ export default function LaptopInteractionConsole({
             <div
               className="border-red-500 absolute w-full h-full z-0 bottom-0"
               onClick={() => {
-                navigate(`/films/${filmObject.id}`)
+                navigate({ to: `/films/${filmObject.id}` })
                 if (setPage) {
                   setPage((prevPage) => ({ ...prevPage, loadMore: false }))
                 }

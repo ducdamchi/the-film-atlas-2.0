@@ -1,6 +1,6 @@
 /* Libraries */
 import React, { useEffect, useState, useContext, useRef } from "react"
-import { useLocation, useParams, useNavigate, Link } from "react-router-dom"
+import { useLocation, useParams, useNavigate, Link } from "@tanstack/react-router"
 import axios from "axios"
 
 /* Custom functions */
@@ -268,7 +268,7 @@ export default function InteractionConsole({
             <div
               className="text-white w-[85%] pr-4 pl-4 pb-2 mb-5"
               onClick={() => {
-                navigate(`/films/${movieDetails.id}`)
+                navigate({ to: `/films/${movieDetails.id}` })
               }}>
               <span className="text-[9.5px]/1">
                 {movieDetails.overview?.slice(0, 180)}

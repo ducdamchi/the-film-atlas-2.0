@@ -2,7 +2,6 @@ import React, { useContext, useState } from "react"
 import NavBar from "./Shared/Navigation-Search/NavBar"
 import QuickSearchModal from "./Shared/Navigation-Search/QuickSearchModal"
 import { AuthContext } from "../Utils/authContext"
-import "../App.css"
 import Swal from "sweetalert2"
 import useCommandKey from "../Hooks/useCommandKey"
 

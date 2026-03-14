@@ -1,6 +1,6 @@
 import React from "react"
 import { FaGithub } from "react-icons/fa"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@tanstack/react-router"
 
 // export default function Footer() {
 //   return (
@@ -65,7 +65,7 @@ export default function FooterWithSocialLinks() {
                 {items.map((link) => (
                   <li key={link.name}>
                     <div
-                      onClick={() => navigate(link.link)}
+                      onClick={() => navigate({ to: link.link })}
                       className="py-1.5 font-normal transition-colors hover:text-blue-gray-900 cursor-pointer hover:underline">
                       {link.name}
                     </div>

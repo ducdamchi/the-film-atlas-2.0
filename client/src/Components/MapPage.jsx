@@ -7,7 +7,6 @@ import {
 
 import "@maptiler/sdk/dist/maptiler-sdk.css"
 import "react-range-slider-input/dist/style.css"
-import "../App.css"
 
 import { AuthContext } from "../Utils/authContext"
 import { getCountryName } from "../Utils/helperFunctions"

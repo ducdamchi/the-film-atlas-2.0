@@ -1,7 +1,6 @@
 import React from "react"
 import RangeSlider from "react-range-slider-input"
 import "react-range-slider-input/dist/style.css"
-import "../../../App.css"
 
 export default function CustomSlider({
   width,

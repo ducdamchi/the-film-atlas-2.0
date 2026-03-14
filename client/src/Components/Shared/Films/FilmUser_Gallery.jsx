@@ -29,49 +29,12 @@ export default function FilmUser_Gallery({
 
         switch (queryString) {
           case "watched":
-            switch (sortBy) {
-              case "added_date":
-                const timestamp = film.Likes?.createdAt
-                if (!timestamp) {
-                  // console.log("Watched: No timestamp")
-                  return groups
-                }
-                targetKey = timestamp.slice(0, 7)
-                groupName = getNiceMonthYear(targetKey)
-                break
-              case "released_date":
-                targetKey = getReleaseYear(film.release_date)
-                groupName = targetKey
-                break
-            }
-            break
           case "watchlisted":
-            switch (sortBy) {
-              case "added_date":
-                // console.log(film)
-                const timestamp = film.Saves?.createdAt
-                if (!timestamp) {
-                  // console.log("Watchlisted: No timestamp")
-                  return groups
-                }
-                targetKey = timestamp.slice(0, 7)
-                groupName = getNiceMonthYear(targetKey)
-                break
-              case "released_date":
-                targetKey = getReleaseYear(film.release_date)
-                groupName = targetKey
-                break
-            }
-            break
           case "watched/rated":
             switch (sortBy) {
               case "added_date":
-                // console.log(film)
-                const timestamp = film.Likes?.updatedAt
-                if (!timestamp) {
-                  // console.log("Starred: No timestamp")
-                  return groups
-                }
+                const timestamp = film.added_date
+                if (!timestamp) return groups
                 targetKey = timestamp.slice(0, 7)
                 groupName = getNiceMonthYear(targetKey)
                 break
@@ -96,8 +59,6 @@ export default function FilmUser_Gallery({
         groups[targetKey].groupName = groupName
         return groups
       }, {})
-
-      // console.log(grouped)
 
       /* Convert grouped list to array and sort based on sortDirection */
       let sortedFilmGroups

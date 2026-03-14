@@ -1,6 +1,6 @@
 import React, { useContext } from "react"
 import { Formik, Form, Field, ErrorMessage } from "formik"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@tanstack/react-router"
 import * as Yup from "yup"
 import axios from "axios"
 
@@ -38,7 +38,7 @@ export default function LogIn() {
             id: response.data.id,
             status: true,
           })
-          navigate("/")
+          navigate({ to: "/" })
         }
       })
   }

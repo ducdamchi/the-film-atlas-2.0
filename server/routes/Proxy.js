@@ -61,6 +61,22 @@ router.post("/subtitles/download", async (req, res) => {
   }
 })
 
+router.get("/image", async (req, res) => {
+  const { url } = req.query
+  if (!url || !url.startsWith("https://image.tmdb.org/")) {
+    return res.status(400).json({ error: "Invalid image URL" })
+  }
+  try {
+    const response = await axios.get(url, { responseType: "stream" })
+    res.setHeader("Content-Type", response.headers["content-type"] || "image/jpeg")
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    response.data.pipe(res)
+  } catch (err) {
+    console.error("Server: Image proxy failed:", err.message)
+    res.status(err?.response?.status || 500).json({ error: "Failed to fetch image" })
+  }
+})
+
 router.get("/yts/:imdbId", async (req, res) => {
   const { imdbId } = req.params
   const hosts = ["https://yts.lt", "https://yts.bz", "https://yts.gg"]

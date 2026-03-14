@@ -4,7 +4,7 @@ import { usePersistedState } from "./usePersistedState"
 export function useBottomSheet() {
   const belowMapRef = useRef(null)
   const mapContainerRef = useRef(null)
-  const isDragEndRef = useRef(false)      // tells snapEffect to skip animation
+  const isDragEndRef = useRef(false) // tells snapEffect to skip animation
   const dragClickGuardRef = useRef(false) // tells handleDragAreaClick to suppress post-drag click
   const [showBelowMapContent, setShowBelowMapContent] = usePersistedState(
     "map-showBelowMapContent",
@@ -57,14 +57,14 @@ export function useBottomSheet() {
     function handleUp() {
       window.removeEventListener("pointermove", handleMove)
       window.removeEventListener("pointerup", handleUp)
-      console.log("[handleUp] isDragging:", isDragging)
+      // console.log("[handleUp] isDragging:", isDragging)
       if (!isDragging) return
       belowMapRef.current.style.transition = "top 0.5s ease-in-out"
       const finalTop = parseFloat(belowMapRef.current.style.top) || 0
       const { peek, expanded } = getSnapPositions()
       const midpoint = (peek + expanded) / 2
       const nextValue = finalTop < midpoint
-      console.log("[handleUp] finalTop:", finalTop, "midpoint:", midpoint, "→ setShowBelowMapContent:", nextValue)
+      // console.log("[handleUp] finalTop:", finalTop, "midpoint:", midpoint, "→ setShowBelowMapContent:", nextValue)
       isDragEndRef.current = true
       dragClickGuardRef.current = true
       setShowBelowMapContent(nextValue)
@@ -75,23 +75,23 @@ export function useBottomSheet() {
   }
 
   useEffect(() => {
-    console.log("[snapEffect] isDragEndRef:", isDragEndRef.current, "showBelowMapContent:", showBelowMapContent)
+    // console.log("[snapEffect] isDragEndRef:", isDragEndRef.current, "showBelowMapContent:", showBelowMapContent)
     if (isDragEndRef.current) {
       isDragEndRef.current = false
-      console.log("[snapEffect] drag end detected — skipping snap, resetting ref")
+      // console.log("[snapEffect] drag end detected — skipping snap, resetting ref")
       return
     }
     if (!belowMapRef.current) return
     const { peek, expanded } = getSnapPositions()
-    console.log("[snapEffect] snapping to:", showBelowMapContent ? "expanded" : "peek")
+    // console.log("[snapEffect] snapping to:", showBelowMapContent ? "expanded" : "peek")
     belowMapRef.current.style.transition = "top 0.5s ease-in-out"
     belowMapRef.current.style.top = `${showBelowMapContent ? expanded : peek}px`
   }, [showBelowMapContent, isXlBreakpoint])
 
   function handleDragAreaClick() {
-    console.log("[handleDragAreaClick] dragClickGuardRef:", dragClickGuardRef.current)
+    // console.log("[handleDragAreaClick] dragClickGuardRef:", dragClickGuardRef.current)
     if (dragClickGuardRef.current) {
-      console.log("[handleDragAreaClick] suppressing post-drag click")
+      // console.log("[handleDragAreaClick] suppressing post-drag click")
       dragClickGuardRef.current = false
       return
     }

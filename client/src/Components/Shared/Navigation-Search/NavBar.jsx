@@ -1,5 +1,5 @@
 import { useContext, useState, useRef, useEffect, useCallback } from "react"
-import { Link, useMatch, useResolvedPath, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router"
 import { AuthContext } from "../../../Utils/authContext"
 import { BiSearchAlt2, BiMenu, BiSolidMessageRoundedDots } from "react-icons/bi"
 import { MdClose, MdMenu, MdOutlineSettings, MdSearch } from "react-icons/md"
@@ -60,8 +60,9 @@ export default function NavBar() {
     // to: URL path (e.g., "/about", "/contact")
     // children: Content inside the link (text, icons, etc.)
     // ...props: Any other props passed to the component (className, onClick, etc.)
-    const resolvedPath = useResolvedPath(to)
-    const isActive = useMatch({ path: resolvedPath.pathname, end: exact })
+    const routerState = useRouterState()
+    const currentPath = routerState.location.pathname
+    const isActive = exact ? currentPath === to : currentPath.startsWith(to)
     return (
       <div
         className={
@@ -164,7 +165,7 @@ export default function NavBar() {
     localStorage.removeItem("navbar-settingsOpened")
 
     setAuthState({ username: "", id: 0, status: false })
-    navigate("/login")
+    navigate({ to: "/login" })
   }
 
   // On mount, always reset menus to closed state.
@@ -274,7 +275,7 @@ export default function NavBar() {
               </button>
               <span
                 onClick={() => {
-                  navigate("/about")
+                  navigate({ to: "/about" })
                 }}
                 className="font-logo text-base uppercase font-black flex items-center justify-center p-1 cursor-pointer">
                 The Film Atlas
@@ -405,7 +406,7 @@ export default function NavBar() {
         <div className="hidden lg:flex h-full items-center justify-center">
           <span
             onClick={() => {
-              navigate("/about")
+              navigate({ to: "/about" })
             }}
             className="font-logo font-black uppercase text-lg lg:text-xl cursor-pointer">
             The Film Atlas

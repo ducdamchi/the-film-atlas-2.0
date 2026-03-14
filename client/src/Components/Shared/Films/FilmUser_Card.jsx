@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { getColorSync } from "colorthief"
+import { useNavigate } from "@tanstack/react-router"
 
 import {
   getCountryName,
@@ -101,24 +102,22 @@ export default function FilmUser_Card({ filmObject, queryString }) {
   }, [hoverId])
 
   useEffect(() => {
+    if (window.innerWidth >= 768) return
+    if (!filmObject.backdrop_path) return
+
     const filmCard = document.getElementById(`film-card-${filmObject.id}`)
     const img = new Image()
     img.crossOrigin = "anonymous"
 
-    if (!filmObject.backdrop_path) return
-
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://image.tmdb.org/t/p/w500${filmObject.backdrop_path}`)}`
+    const proxyUrl = `${import.meta.env.VITE_API_URL}/proxy/image?url=${encodeURIComponent(`https://image.tmdb.org/t/p/w500${filmObject.backdrop_path}`)}`
     img.src = proxyUrl
 
     img.onload = () => {
-      const colorThief = new ColorThief()
-      let domColor
-      let brightness
       try {
-        domColor = colorThief.getColor(img)
+        const domColor = getColorSync(img).array()
         /* Check brightness of dominant color to ensure readability
         Formula: https://www.nbdtech.com/Blog/archive/2008/04/27/Calculating-the-Perceived-Brightness-of-a-Color.aspx */
-        brightness = Math.round(
+        const brightness = Math.round(
           Math.sqrt(
             domColor[0] * domColor[0] * 0.241 +
               domColor[1] * domColor[1] * 0.691 +
@@ -128,7 +127,7 @@ export default function FilmUser_Card({ filmObject, queryString }) {
 
         if (brightness > 194) {
           filmCard.style.backgroundColor = `rgba(${domColor[0]}, ${domColor[1]}, ${domColor[2]}, 0.4)`
-        } else if (130 < brightness <= 194) {
+        } else if (brightness > 130) {
           filmCard.style.backgroundColor = `rgba(${domColor[0] * 1.2}, ${domColor[1] * 1.2}, ${domColor[2] * 1.2}, 0.4)`
         } else {
           filmCard.style.backgroundColor = `rgba(${domColor[0] * 1.8}, ${domColor[1] * 1.8}, ${domColor[2] * 1.8}, 0.4)`
@@ -157,7 +156,7 @@ export default function FilmUser_Card({ filmObject, queryString }) {
           }
           alt=""
           onClick={() => {
-            navigate(`/films/${filmObject.id}`)
+            navigate({ to: `/films/${filmObject.id}` })
           }}
         />
       </div>
@@ -181,7 +180,7 @@ export default function FilmUser_Card({ filmObject, queryString }) {
           <div className="overflow-hidden w-full text-base">
             <span
               ref={titleSpanRef}
-              onClick={() => navigate(`/films/${filmObject.id}`)}
+              onClick={() => navigate({ to: `/films/${filmObject.id}` })}
               className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
               title={filmObject.title}
               style={{ paddingRight: "1rem" }}>
@@ -219,7 +218,7 @@ export default function FilmUser_Card({ filmObject, queryString }) {
                   <div
                     key={key}
                     className="flex flex-col items-center justify-center gap-1 "
-                    onClick={() => navigate(`/person/director/${dir.tmdbId}`)}>
+                    onClick={() => navigate({ to: `/person/director/${dir.tmdbId}` })}>
                     <div className="relative max-w-[8rem] h-[2.5rem] aspect-1/1 overflow-hidden rounded-full ">
                       <img
                         className="object-cover grayscale transform -translate-y-1 hover:scale-[1.05] "

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@tanstack/react-router"
 
 export default function DirectorTMDB_Gallery({ listOfDirectorObjects }) {
   const imgBaseUrl = "https://image.tmdb.org/t/p/original"
@@ -36,7 +36,7 @@ export default function DirectorTMDB_Gallery({ listOfDirectorObjects }) {
                     }
                     alt=""
                     onClick={() => {
-                      navigate(`/person/director/${directorObject.id}`)
+                      navigate({ to: `/person/director/${directorObject.id}` })
                     }}
                   />
                   <div className="border-red-500 absolute bottom-0 left-0 h-[10rem] md:h-[15rem] w-full bg-gradient-to-t from-black/90 to-transparent"></div>

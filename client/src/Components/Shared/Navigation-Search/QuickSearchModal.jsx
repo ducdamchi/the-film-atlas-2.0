@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "@tanstack/react-router"
 
 import { getReleaseYear } from "../../../Utils/helperFunctions"
 import {
@@ -194,9 +194,7 @@ export default function QuickSearchModal({
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  navigate("/films", {
-                    state: { searchInputFromQuickSearch: e.target.value },
-                  })
+                  navigate({ to: "/films", state: { searchInputFromQuickSearch: e.target.value } })
                 }
               }}
             />

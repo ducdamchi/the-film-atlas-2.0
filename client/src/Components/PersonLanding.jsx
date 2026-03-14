@@ -1,6 +1,6 @@
 /* Libraries */
 import React, { useEffect, useState, useContext } from "react"
-import { useParams } from "react-router-dom"
+import { useParams } from "@tanstack/react-router"
 
 /* Custom functions */
 import { AuthContext } from "../Utils/authContext"
@@ -21,7 +21,7 @@ export default function PersonLanding() {
   const [isLoading, setIsLoading] = useState(false)
   const [personDetails, setPersonDetails] = useState({})
   const [filmography, setFilmography] = useState({})
-  const { job, tmdbId } = useParams()
+  const { job, tmdbId } = useParams({ strict: false })
   const [scrollPosition, setScrollPosition] = usePersistedState(
     `${job}Landing-scrollPosition`,
     0,

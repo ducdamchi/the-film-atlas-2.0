@@ -1,5 +1,5 @@
 import React, { useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@tanstack/react-router"
 
 export default function PersonList({ title, listOfPeople, type }) {
   const imgBaseUrl = "https://image.tmdb.org/t/p/original"
@@ -29,7 +29,7 @@ export default function PersonList({ title, listOfPeople, type }) {
                   <div
                     className="uppercase w-full hover:text-blue-800"
                     onClick={() => {
-                      navigate(`/person/director/${person.id}`)
+                      navigate({ to: `/person/director/${person.id}` })
                     }}>
                     {person.name}
                   </div>
@@ -38,7 +38,7 @@ export default function PersonList({ title, listOfPeople, type }) {
                   <div
                     className="uppercase w-full hover:text-blue-800"
                     onClick={() => {
-                      navigate(`/person/actor/${person.id}`)
+                      navigate({ to: `/person/actor/${person.id}` })
                     }}>
                     {person.name}
                   </div>

@@ -1,6 +1,7 @@
 /* Libraries */
 import React, { useEffect, useState, useContext, useRef } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { getColorSync } from "colorthief"
+import { useParams, useNavigate } from "@tanstack/react-router"
 
 /* Custom functions */
 import {
@@ -49,7 +50,7 @@ export default function FilmLanding() {
 
   const { authState, searchModalOpen, setSearchModalOpen } =
     useContext(AuthContext)
-  const { tmdbId } = useParams()
+  const { tmdbId } = useParams({ strict: false })
   const navigate = useNavigate()
 
   function toggleSearchModal() {
@@ -157,12 +158,11 @@ export default function FilmLanding() {
 
       if (!movieDetails.backdrop_path) return
 
-      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://image.tmdb.org/t/p/w500${movieDetails.backdrop_path}`)}`
+      const proxyUrl = `${import.meta.env.VITE_API_URL}/proxy/image?url=${encodeURIComponent(`https://image.tmdb.org/t/p/w500${movieDetails.backdrop_path}`)}`
       backdrop.src = proxyUrl
 
       backdrop.onload = () => {
-        const colorThief = new ColorThief()
-        const domColor = colorThief.getColor(backdrop)
+        const domColor = getColorSync(backdrop).array()
         setBackdropColor(darkenColorToOklch(domColor, 0.3))
       }
     } catch (err) {
@@ -215,7 +215,7 @@ export default function FilmLanding() {
     const fetchOpenSubtitles = async () => {
       try {
         const result = await fetchSubtitles(movieDetails.imdb_id)
-        console.log("Subtitles:", result.data)
+        // console.log("Subtitles:", result.data)
         setSubtitles(result.data)
       } catch (err) {
         console.error("Error loading subtitles:", err)
@@ -317,7 +317,9 @@ export default function FilmLanding() {
                               className=" hover:text-blue-400 transition-all ease-out duration-200"
                               style={{ cursor: "pointer" }}
                               onClick={() => {
-                                navigate(`/person/director/${director.id}`)
+                                navigate({
+                                  to: `/person/director/${director.id}`,
+                                })
                               }}>{`${director.name}`}</span>
                             {/* Add a comma if it's not the last country on the list */}
                             {key !== directors.length - 1 && (
@@ -456,7 +458,9 @@ export default function FilmLanding() {
                                 className=" hover:text-blue-800 transition-all ease-out duration-200"
                                 style={{ cursor: "pointer" }}
                                 onClick={() => {
-                                  navigate(`/person/director/${director.id}`)
+                                  navigate({
+                                    to: `/person/director/${director.id}`,
+                                  })
                                 }}>{`${director.name}`}</span>
                               {/* Add a comma if it's not the last country on the list */}
                               {key !== directors.length - 1 && (

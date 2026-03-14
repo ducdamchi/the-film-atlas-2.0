@@ -3,7 +3,7 @@ import NavBar from "./Shared/Navigation-Search/NavBar"
 import QuickSearchModal from "./Shared/Navigation-Search/QuickSearchModal"
 import { GoSquareFill } from "react-icons/go"
 import { AuthContext } from "../Utils/authContext"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@tanstack/react-router"
 import useCommandKey from "../Hooks/useCommandKey"
 
 export default function Terms() {
@@ -187,7 +187,7 @@ export default function Terms() {
               <div className="mb-2">
                 Your privacy is important to us. Please review our separate{" "}
                 <span
-                  onClick={() => navigate("/privacy")}
+                  onClick={() => navigate({ to: "/privacy" })}
                   className="text-blue-800 cursor-pointer">
                   Privacy Policy
                 </span>{" "}
@@ -262,7 +262,7 @@ export default function Terms() {
                 If you have any questions about these Terms, please contact us
                 via{" "}
                 <span
-                  onClick={() => navigate("/contact")}
+                  onClick={() => navigate({ to: "/contact" })}
                   className="text-blue-800 cursor-pointer">
                   this form
                 </span>

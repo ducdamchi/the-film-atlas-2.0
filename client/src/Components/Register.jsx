@@ -1,6 +1,6 @@
 import React, { useContext } from "react"
 import { Formik, Form, Field, ErrorMessage } from "formik"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "@tanstack/react-router"
 import * as Yup from "yup"
 import axios from "axios"
 import NavBar from "./Shared/Navigation-Search/NavBar"
@@ -29,7 +29,7 @@ export default function Register() {
         if (response.data.error) {
           alert("Error Registering User.")
         } else {
-          navigate("/login")
+          navigate({ to: "/login" })
         }
       })
   }

@@ -1,7 +1,7 @@
 /* Libraries */
 import axios from "axios"
 import React, { useEffect, useState, useContext, useRef } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "@tanstack/react-router"
 
 /* Custom functions */
 import { AuthContext } from "../Utils/authContext"
@@ -147,9 +147,10 @@ export default function Films() {
             sortDirection: sortDirection,
             numStars: numStars,
           })
+          // console.log("results from fetchUserFilmList: ", results)
           setUserFilmList(results)
         } catch (err) {
-          console.err("Error Fetching User Film List: ", err)
+          console.error("Error Fetching User Film List: ", err)
         } finally {
           setIsLoading(false)
         }
@@ -159,7 +160,7 @@ export default function Films() {
     // else {
     //   alert("Log in to interact with films!")
     // }
-  }, [sortBy, sortDirection, queryString, numStars])
+  }, [sortBy, sortDirection, queryString, numStars, authState.status])
 
   return (
     <div className="font-primary mt-20 min-h-screen">

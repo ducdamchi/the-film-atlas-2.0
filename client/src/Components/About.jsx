@@ -4,9 +4,9 @@ import QuickSearchModal from "./Shared/Navigation-Search/QuickSearchModal"
 import { GoSquareFill } from "react-icons/go"
 import { AuthContext } from "../Utils/authContext"
 import { RiProgress8Line, RiProgress4Line } from "react-icons/ri"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@tanstack/react-router"
 import useCommandKey from "../Hooks/useCommandKey"
-import { Link } from "react-router-dom"
+import { Link } from "@tanstack/react-router"
 import { BiLogoGithub } from "react-icons/bi"
 
 export default function About() {
@@ -175,7 +175,7 @@ export default function About() {
               Interested?{" "}
               <span
                 onClick={() => {
-                  navigate("/contact")
+                  navigate({ to: "/contact" })
                 }}
                 className="text-blue-800 cursor-pointer">
                 Join our team!

@@ -193,6 +193,7 @@ export function fetchListByParams({
       },
     })
     .then((response) => {
+      // console.log("from fetchListByParams: ", response.data)
       return response.data
     })
     .catch((err) => {

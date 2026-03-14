@@ -1,10 +1,10 @@
 import React, { useContext, useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link } from "@tanstack/react-router"
 import NavBar from "./Shared/Navigation-Search/NavBar"
 import QuickSearchModal from "./Shared/Navigation-Search/QuickSearchModal"
 import { GoSquareFill } from "react-icons/go"
 import { AuthContext } from "../Utils/authContext"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@tanstack/react-router"
 import useCommandKey from "../Hooks/useCommandKey"
 
 import { MathJax, MathJaxContext } from "better-react-mathjax"

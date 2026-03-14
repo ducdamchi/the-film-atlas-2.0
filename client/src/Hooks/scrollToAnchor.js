@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { useLocation } from "react-router-dom"
+import { useLocation } from "@tanstack/react-router"
 
 export default function ScrollToAnchor() {
   const location = useLocation()

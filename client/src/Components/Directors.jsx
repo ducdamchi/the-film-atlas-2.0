@@ -1,6 +1,6 @@
 /* Libraries */
 import React, { useEffect, useState, useContext, useRef } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "@tanstack/react-router"
 
 /* Custom functions */
 import { AuthContext } from "../Utils/authContext"

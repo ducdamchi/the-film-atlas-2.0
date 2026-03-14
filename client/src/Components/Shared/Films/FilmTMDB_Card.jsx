@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@tanstack/react-router"
 
 import { getReleaseYear } from "../../../Utils/helperFunctions"
 import { fetchFilmFromTMDB } from "../../../Utils/apiCalls"
@@ -92,7 +92,7 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
           }
           alt=""
           onClick={() => {
-            navigate(`/films/${filmObject.id}`)
+            navigate({ to: `/films/${filmObject.id}` })
             setPage((prevPage) => ({ ...prevPage, loadMore: false }))
           }}
         />
@@ -121,7 +121,7 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
             <span
               ref={titleSpanRef}
               onClick={() => {
-                navigate(`/films/${filmObject.id}`)
+                navigate({ to: `/films/${filmObject.id}` })
                 setPage((prevPage) => ({ ...prevPage, loadMore: false }))
               }}
               className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
