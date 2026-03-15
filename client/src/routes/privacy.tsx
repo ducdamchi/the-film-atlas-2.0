@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-// @ts-ignore - JS component
-import Privacy from "../components/Privacy.jsx"
+import Privacy from "../components/Privacy"
 
 export const Route = createFileRoute("/privacy")({
   component: Privacy,

@@ -4,14 +4,10 @@ import axios from "axios"
 import "../styles.css"
 
 import { AuthContext } from "../Utils/authContext"
-// @ts-ignore - JS component
-import NavBar from "../components/Shared/Navigation-Search/NavBar.jsx"
-// @ts-ignore - JS component
-import Footer from "../components/Shared/Navigation-Search/Footer.jsx"
-// @ts-ignore - JS component
-import LoadingPage from "../components/Shared/Navigation-Search/LoadingPage.jsx"
-// @ts-ignore - JS hook
-import ScrollToAnchor from "../Hooks/scrollToAnchor.js"
+import NavBar from "../components/Shared/layout/NavBar"
+import Footer from "../components/Shared/layout/Footer"
+import LoadingPage from "../components/Shared/layout/LoadingPage"
+import ScrollToAnchor from "../Hooks/scrollToAnchor"
 
 export const Route = createRootRoute({
   component: RootComponent,

@@ -122,7 +122,7 @@
   --accent: var(--color-bg-page);
   --accent-foreground: var(--color-text-dark);
   --destructive: oklch(55% 0.245 27);
-  --border: var(--color-text-dark);
+  --border: var(--color-bg-control);
   --input: var(--color-bg-control);
   --ring: oklch(70% 0.015 286);
   --chart-1: oklch(0.646 0.222 41.116);

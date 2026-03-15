@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-// @ts-ignore - JS component
-import FilmLanding from "../../components/FilmLanding.jsx"
+import FilmLanding from "../../components/FilmLanding"
 
 export const Route = createFileRoute("/films/$tmdbId_")({
   component: FilmLanding,

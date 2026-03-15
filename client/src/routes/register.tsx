@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-// @ts-ignore - JS component
-import Register from "../components/Register.jsx"
+import Register from "../components/Register"
 
 export const Route = createFileRoute("/register")({
   component: Register,

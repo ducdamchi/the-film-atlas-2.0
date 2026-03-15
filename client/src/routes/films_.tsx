@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-// @ts-ignore - JS component
-import Films from "../components/Films.jsx"
+import Films from "../components/Films"
 
 export const Route = createFileRoute("/films_")({
   component: Films,

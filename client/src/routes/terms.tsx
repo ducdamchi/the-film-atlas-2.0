@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-// @ts-ignore - JS component
-import Terms from "../components/Terms.jsx"
+import Terms from "../components/Terms"
 
 export const Route = createFileRoute("/terms")({
   component: Terms,
