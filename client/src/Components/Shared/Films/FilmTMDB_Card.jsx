@@ -124,7 +124,7 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
                 navigate({ to: `/films/${filmObject.id}` })
                 setPage((prevPage) => ({ ...prevPage, loadMore: false }))
               }}
-              className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
+              className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-hover-accent cursor-pointer"
               title={filmObject.title}
               style={{ paddingRight: "0.1rem" }}>
               {filmObject.title}
@@ -164,25 +164,7 @@ export default function FilmTMDB_Card({ filmObject, setPage }) {
           movieDetails={movieDetails}
           isLoading={isLoading}
           setIsLoading={setIsLoading}
-          css={{
-            height: "1.4rem",
-            textColor: "black",
-            hoverBg: "none",
-            hoverTextColor: "none",
-            fontSize: "13px",
-            likeSize: "1.1rem",
-            saveSize: "1.5rem",
-            starSize: "1.3rem",
-            flexGap: "2px",
-            likeColor: "white",
-            saveColor: "white",
-            likedBgColor: "oklch(44.4% 0.177 26.899)",
-            savedBgColor: "oklch(44.8% 0.119 151.328)",
-            buttonPadding: "2px",
-            paddingTopBottom: "0px",
-            paddingLeftRight: "10px",
-            buttonHeight: "2rem",
-          }}
+          variant="card"
           showOverview={false}
         />
       </div>

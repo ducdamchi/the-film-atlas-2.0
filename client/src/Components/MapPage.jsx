@@ -176,7 +176,7 @@ export default function MapPage() {
               anchor="bottom"
               closeOnClick={false}
               onClose={() => setPopupInfo(null)}>
-              <div className="flex flex-col items-center justify-center hover:text-blue-600 cursor-pointer">
+              <div className="flex flex-col items-center justify-center hover:text-hover-link cursor-pointer">
                 {popupInfo.custom_name !== undefined && (
                   <span className="font-bold">{popupInfo.custom_name}</span>
                 )}

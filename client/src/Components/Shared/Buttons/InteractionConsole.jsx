@@ -1,7 +1,6 @@
 /* Libraries */
-import React, { useEffect, useState, useContext, useRef } from "react"
-import { useLocation, useParams, useNavigate, Link } from "@tanstack/react-router"
-import axios from "axios"
+import React, { useEffect, useState, useContext } from "react"
+import { useNavigate } from "@tanstack/react-router"
 
 /* Custom functions */
 import {
@@ -23,25 +22,25 @@ import {
   BiListCheck,
   BiHeart,
   BiSolidHeart,
-  BiStar,
-  BiSolidStar,
 } from "react-icons/bi"
-import { AiFillClockCircle } from "react-icons/ai"
 
+/**
+ * @param {"card"|"overlay-sm"|"overlay-lg"|"landing-sm"|"landing-lg"} variant
+ * Styling is driven by CSS custom properties set on .console-{variant} in styles.css
+ */
 export default function InteractionConsole({
   tmdbId,
   directors,
   movieDetails,
   setIsLoading,
   isLoading,
-  css,
+  variant,
   showOverview,
 }) {
   const [isLiked, setIsLiked] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [officialRating, setOfficialRating] = useState(null) //0 for liked but unrated; 1, 2, 3 for corresponding stars; null when film unliked
   const [requestedRating, setRequestedRating] = useState(-1) //-1 when neutral (no requests), 0 for unrated; 1, 2, 3 for stars.
-  // const [isLoading, setIsLoading] = useState(false)
 
   const { authState, loading } = useContext(AuthContext)
   const navigate = useNavigate()
@@ -83,15 +82,13 @@ export default function InteractionConsole({
 
     return req
   }
+
   async function handleLike() {
-    /* If user is logged in, they can like/unlike. */
     if (authState.status) {
-      // setIsLoading(true)
       try {
         if (!isLiked) {
           const req = createReqBody("like")
           req["stars"] = requestedRating !== -1 ? requestedRating : 0
-          console.log("Request:", req)
           const result = await likeFilm(req)
           if (result.error) {
             console.error("Server: ", result.error)
@@ -99,13 +96,12 @@ export default function InteractionConsole({
             setIsLiked(result.liked)
             setOfficialRating(result.stars)
             setRequestedRating(-1)
-            setIsSaved(false) //optimistically "unsave" film on client side. upon reload this value will get updated with actual Save status.
+            setIsSaved(false)
           }
         } else {
           const result = await unlikeFilm(movieDetails.id)
-
           if (result.error) {
-            console.error("Server: ", response.data.error)
+            console.error("Server: ", result.error)
           } else {
             setIsLiked(result.liked)
             setOfficialRating(result.stars)
@@ -114,31 +110,23 @@ export default function InteractionConsole({
       } catch (err) {
         alert("Error liking/unliking film, please try again.")
         console.error("Error in handleLike(): ", err)
-      } finally {
-        // setIsLoading(false)
       }
-      /* If user not logged in, alert */
     } else {
       alert("Log in to interact with films!")
       return
     }
   }
+
   async function handleSave() {
-    /* If user is logged in, they can save/unsave */
     if (authState.status) {
-      // setIsLoading(true)
       try {
         if (!isSaved) {
           const req = createReqBody("save")
-
-          console.log(movieDetails)
-          console.log("Save request: ", req)
           const result = await saveFilm(req)
           if (result.error) {
             console.error("Server: ", result.error)
           } else {
             setIsSaved(result.saved)
-            //optimistically "unlike" film on client side. upon reload this value will get updated with actual Like status (incl ratings).
             setIsLiked(false)
             setOfficialRating(null)
           }
@@ -153,29 +141,21 @@ export default function InteractionConsole({
       } catch (err) {
         alert("Error saving/unsaving film, please try again.")
         console.error("Error in handleSave(): ", err)
-      } finally {
-        // setIsLoading(false)
       }
-
-      /* If user not logged in, alert */
     } else {
       alert("Log in to interact with films!")
       return
     }
   }
+
   async function handleRate() {
-    /* If user is logged in, they can like/unlike. */
     if (authState.status) {
       try {
-        /* Only take action if requested rating differs from official rating */
         if (requestedRating !== officialRating) {
-          /* Rate film if requested rating is in valid range */
           if (requestedRating >= 0 && requestedRating <= 3) {
-            /* IMPORTANT: If a film has not been liked when it is rated, send a like request with the requested Rating */
             if (!isLiked) {
               const req = createReqBody("like")
               req["stars"] = requestedRating !== -1 ? requestedRating : 0
-              console.log("Request:", req)
               const result = await likeFilm(req)
               if (result.error) {
                 console.error("Server: ", result.error)
@@ -183,7 +163,7 @@ export default function InteractionConsole({
                 setIsLiked(result.liked)
                 setOfficialRating(result.stars)
                 setRequestedRating(-1)
-                setIsSaved(false) //optimistically "unsave" film on client side. upon reload this value will get updated with actual Save status.
+                setIsSaved(false)
               }
             } else {
               const req = createReqBody("rate")
@@ -193,11 +173,11 @@ export default function InteractionConsole({
                 console.error("Server: ", result.error)
               } else {
                 setOfficialRating(result.stars)
-                setRequestedRating(-1) //neutral state
+                setRequestedRating(-1)
               }
             }
           } else if (requestedRating == -1) {
-            // console.log("Requested rating: back to neutral (-1)")
+            // neutral state, no action
           } else {
             console.error("Requested rating out of range.")
           }
@@ -208,10 +188,8 @@ export default function InteractionConsole({
       } finally {
         setIsLoading(false)
       }
-      /* If user not logged in, alert */
     } else {
       if (requestedRating !== -1 && requestedRating !== null) {
-        console.log(requestedRating)
         alert("Log in to interact with films!")
         return
       }
@@ -219,11 +197,9 @@ export default function InteractionConsole({
   }
 
   useEffect(() => {
-    // console.log("hook triggered")
     handleRate()
   }, [requestedRating])
 
-  /* Fetch film info for Landing Page */
   useEffect(() => {
     const fetchPageData = async () => {
       if (authState.status && tmdbId) {
@@ -242,11 +218,7 @@ export default function InteractionConsole({
           if (saveResult.error) {
             console.error("Server: ", saveResult.error)
           } else {
-            if (saveResult.saved) {
-              setIsSaved(true)
-            } else {
-              setIsSaved(false)
-            }
+            setIsSaved(saveResult.saved)
           }
         } catch (err) {
           console.error("Error loading film data: ", err)
@@ -262,8 +234,8 @@ export default function InteractionConsole({
     <>
       {!isLoading && (
         <div
-          className={`flex flex-col z-30 items-center justify-center gap-0`}
-          style={{ color: css.textColor }}>
+          className={`console-${variant} flex flex-col z-30 items-center justify-center gap-0`}
+          style={{ color: "var(--console-text)" }}>
           {showOverview && (
             <div
               className="text-white w-[85%] pr-4 pl-4 pb-2 mb-5"
@@ -278,42 +250,39 @@ export default function InteractionConsole({
           )}
 
           <div
-            className={`flex justify-center items-end w-full`}
+            className="flex justify-center items-end w-full"
             style={{
-              gap: css.flexGap,
-              height: css.height,
+              gap: "var(--console-gap)",
+              height: "var(--console-height)",
             }}>
+            {/* Watched button */}
             <button
               alt="Add to watched"
               title="Add to watched"
-              className={`hover:text-[var(--hover-text-color)] transition-all duration-200 ease-out hover:bg-[var(--hover-bg-color)] h-full flex items-center  p-0`}
-              style={{
-                "--hover-text-color": css.hoverTextColor,
-                "--hover-bg-color": css.hoverBg,
-                padding: css.buttonPadding,
-              }}
+              className="hover:text-[var(--console-hover-text)] transition-all duration-200 ease-out hover:bg-[var(--console-hover-bg)] h-full flex items-center p-0"
+              style={{ padding: "var(--console-button-padding)" }}
               onClick={handleLike}>
               {isLiked ? (
                 <div
                   className="console-button"
                   style={{
-                    backgroundColor: css.likedBgColor,
-                    borderColor: css.likedBgColor,
-                    padding: `${css.paddingTopBottom} ${css.paddingLeftRight}`,
-                    height: css.buttonHeight,
+                    backgroundColor: "var(--color-liked)",
+                    borderColor: "var(--color-liked)",
+                    padding:
+                      "var(--console-padding-tb) var(--console-padding-lr)",
+                    height: "var(--console-button-height)",
                   }}>
                   <BiSolidHeart
-                    style={{ color: css.likeColor, fontSize: css.likeSize }}
-                    // className={`text-${css.likeColor} text-${css.likeSize}`}
+                    style={{
+                      color: "white",
+                      fontSize: "var(--console-like-size)",
+                    }}
                   />
                   <span
                     style={{
-                      color: css.likeColor,
-                      fontSize: css.fontSize,
-                      "--hover-text-color": css.hoverTextColor,
-                    }}
-                    // className={`text-${css.likeColor} text-${css.fontSize}`}
-                  >
+                      color: "white",
+                      fontSize: "var(--console-font-size)",
+                    }}>
                     Watched
                   </span>
                 </div>
@@ -321,47 +290,46 @@ export default function InteractionConsole({
                 <div
                   className="console-button"
                   style={{
-                    padding: `${css.paddingTopBottom} ${css.paddingLeftRight}`,
-                    height: css.buttonHeight,
+                    padding:
+                      "var(--console-padding-tb) var(--console-padding-lr)",
+                    height: "var(--console-button-height)",
                   }}>
-                  <BiHeart
-                    // className={`text-${css.likeSize}`}
-                    style={{ fontSize: css.likeSize }}
-                  />
-                  <span
-                    // className={`text-${css.fontSize}`}
-                    style={{ fontSize: css.fontSize }}>
+                  <BiHeart style={{ fontSize: "var(--console-like-size)" }} />
+                  <span style={{ fontSize: "var(--console-font-size)" }}>
                     Watched
                   </span>
                 </div>
               )}
             </button>
+
+            {/* Watchlist button */}
             <button
               alt="Add to watchlist"
               title="Add to watchlist"
-              className={`hover:text-[var(--hover-text-color)] transition-all duration-200 ease-out hover:bg-[var(--hover-bg-color)] h-full flex items-center`}
-              style={{
-                "--hover-text-color": css.hoverTextColor,
-                "--hover-bg-color": css.hoverBg,
-                padding: css.buttonPadding,
-              }}
+              className="hover:text-[var(--console-hover-text)] transition-all duration-200 ease-out hover:bg-[var(--console-hover-bg)] h-full flex items-center"
+              style={{ padding: "var(--console-button-padding)" }}
               onClick={handleSave}>
               {isSaved ? (
                 <div
                   className="console-button"
                   style={{
-                    backgroundColor: css.savedBgColor,
-                    borderColor: css.savedBgColor,
-                    padding: `${css.paddingTopBottom} ${css.paddingLeftRight}`,
-                    height: css.buttonHeight,
+                    backgroundColor: "var(--color-saved)",
+                    borderColor: "var(--color-saved)",
+                    padding:
+                      "var(--console-padding-tb) var(--console-padding-lr)",
+                    height: "var(--console-button-height)",
                   }}>
                   <BiListCheck
-                    // className={`text-${css.saveColor} text-${css.saveSize}`}
-                    style={{ color: css.saveColor, fontSize: css.saveSize }}
+                    style={{
+                      color: "white",
+                      fontSize: "var(--console-save-size)",
+                    }}
                   />
                   <span
-                    // className={`text-${css.saveColor} text-${css.fontSize}`}
-                    style={{ color: css.saveColor, fontSize: css.fontSize }}>
+                    style={{
+                      color: "white",
+                      fontSize: "var(--console-font-size)",
+                    }}>
                     Watchlist
                   </span>
                 </div>
@@ -369,37 +337,27 @@ export default function InteractionConsole({
                 <div
                   className="console-button"
                   style={{
-                    padding: `${css.paddingTopBottom} ${css.paddingLeftRight}`,
-                    height: css.buttonHeight,
+                    padding:
+                      "var(--console-padding-tb) var(--console-padding-lr)",
+                    height: "var(--console-button-height)",
                   }}>
                   <BiListPlus
-                    className={`text-${css.saveSize}`}
-                    style={{ fontSize: css.saveSize }}
+                    style={{ fontSize: "var(--console-save-size)" }}
                   />
-                  <span
-                    // className={`text-${css.fontSize}`}
-                    style={{ fontSize: css.fontSize }}>
+                  <span style={{ fontSize: "var(--console-font-size)" }}>
                     Watchlist
                   </span>
                 </div>
               )}
             </button>
+
             <TripleStarRating
               officialRating={officialRating}
               setRequestedRating={setRequestedRating}
-              css={css}
             />
           </div>
         </div>
       )}
     </>
   )
-}
-
-{
-  /* 
-          <div className="text-white w-[85%] flex items-center justify-center gap-2 pr-4 pl-4 pb-4">
-            <AiFillClockCircle />
-            <span className="">{`${movieDetails.runtime} minutes`}</span>
-          </div> */
 }

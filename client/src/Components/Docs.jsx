@@ -82,12 +82,12 @@ export default function Docs() {
                     <ul className="docs-menu-content">
                       <Link
                         to="/docs#getting-started-glance"
-                        className="hover:text-blue-800">
+                        className="hover:text-hover-link">
                         At A Glance
                       </Link>
                       <Link
                         to="/docs#getting-started-account"
-                        className="hover:text-blue-800">
+                        className="hover:text-hover-link">
                         Creating An Account
                       </Link>
                     </ul>
@@ -101,22 +101,22 @@ export default function Docs() {
                     <ul className="docs-menu-content">
                       <Link
                         to="/docs#feature-map"
-                        className="hover:text-blue-800">
+                        className="hover:text-hover-link">
                         Map Page
                       </Link>
                       <Link
                         to="/docs#feature-film"
-                        className="hover:text-blue-800">
+                        className="hover:text-hover-link">
                         Films Page
                       </Link>
                       <Link
                         to="/docs#feature-director"
-                        className="hover:text-blue-800">
+                        className="hover:text-hover-link">
                         Directors Page
                       </Link>
                       <Link
                         to="/docs#feature-search"
-                        className="hover:text-blue-800">
+                        className="hover:text-hover-link">
                         Quick Search
                       </Link>
                     </ul>
@@ -129,17 +129,17 @@ export default function Docs() {
                     <ul className="docs-menu-content">
                       <Link
                         to="/docs#curation-origin"
-                        className="hover:text-blue-800">
+                        className="hover:text-hover-link">
                         Origin Country
                       </Link>
                       <Link
                         to="/docs#curation-stars"
-                        className="hover:text-blue-800">
+                        className="hover:text-hover-link">
                         Stars (Films)
                       </Link>
                       <Link
                         to="/docs#curation-score"
-                        className="hover:text-blue-800">
+                        className="hover:text-hover-link">
                         Score (Directors)
                       </Link>
                     </ul>
@@ -152,7 +152,7 @@ export default function Docs() {
                     <ul className="docs-menu-content">
                       <Link
                         to="/docs#crit-review-bias"
-                        className="hover:text-blue-800">
+                        className="hover:text-hover-link">
                         Voting Bias
                       </Link>
                     </ul>
@@ -190,7 +190,7 @@ export default function Docs() {
                   <div className="flex flex-col gap-20">
                     <div className="flex flex-col gap-2">
                       <Link
-                        className="docs-subtitle hover:text-blue-800 cursor-pointer transition-all ease-out duration-200"
+                        className="docs-subtitle hover:text-hover-link cursor-pointer transition-all ease-out duration-200"
                         to="/map"
                         target="_blank"
                         rel="noopener noreferrer">
@@ -210,7 +210,7 @@ export default function Docs() {
 
                     <div className="flex flex-col gap-2">
                       <Link
-                        className="docs-subtitle hover:text-blue-800 cursor-pointer transition-all ease-out duration-200"
+                        className="docs-subtitle hover:text-hover-link cursor-pointer transition-all ease-out duration-200"
                         to="/films"
                         target="_blank"
                         rel="noopener noreferrer">
@@ -238,7 +238,7 @@ export default function Docs() {
 
                     <div className="flex flex-col gap-2">
                       <Link
-                        className="docs-subtitle hover:text-blue-800 cursor-pointer transition-all ease-out duration-200"
+                        className="docs-subtitle hover:text-hover-link cursor-pointer transition-all ease-out duration-200"
                         to="/directors"
                         target="_blank"
                         rel="noopener noreferrer">
@@ -1453,8 +1453,8 @@ export default function Docs() {
                         href="https://www.themoviedb.org/?language=en-US"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-blue-800 cursor-pointer">
-                        <div className="docs-subtitle hover:text-blue-800">
+                        className="hover:text-hover-link cursor-pointer">
+                        <div className="docs-subtitle hover:text-hover-link">
                           The Movies Database
                         </div>
                       </a>{" "}
@@ -1476,8 +1476,8 @@ export default function Docs() {
                         href="https://maplibre.org/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-blue-800 cursor-pointer">
-                        <div className="docs-subtitle hover:text-blue-800">
+                        className="hover:text-hover-link cursor-pointer">
+                        <div className="docs-subtitle hover:text-hover-link">
                           Map Libre
                         </div>
                       </a>{" "}
@@ -1499,8 +1499,8 @@ export default function Docs() {
                         href="https://www.maptiler.com/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-blue-800 cursor-pointer">
-                        <div className="docs-subtitle hover:text-blue-800">
+                        className="hover:text-hover-link cursor-pointer">
+                        <div className="docs-subtitle hover:text-hover-link">
                           Map Tiler
                         </div>
                       </a>{" "}

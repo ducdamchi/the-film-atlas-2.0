@@ -189,7 +189,7 @@ export default function About() {
                 href="https://github.com/ducdamchi"
                 target="_blank"
                 rel="noopener noreferrer">
-                <BiLogoGithub className="text-3xl hover:text-blue-800" />
+                <BiLogoGithub className="text-3xl hover:text-hover-link" />
               </a>
               Duc Dam
             </div>

@@ -578,7 +578,7 @@ export default function NavBar() {
           {/* <div className="font-thin text-base ">|</div> */}
           <Button
             variant="outline"
-            className="hover:bg-zinc-200 text-white border-1 bg-black border-white hover:text-blue-800 transition-all ease-out duration-200"
+            className="hover:bg-zinc-200 text-white border-1 bg-black border-white hover:text-hover-link transition-all ease-out duration-200"
             onClick={logOut}>
             Log Out
           </Button>
@@ -587,7 +587,7 @@ export default function NavBar() {
         <div className="hidden lg:flex flex items-center justify-end gap-2 text-base font-extralight">
           <Button
             variant="outline"
-            className="hover:bg-zinc-200 text-white border-1 bg-black border-white hover:text-blue-800 transition-all ease-out duration-200">
+            className="hover:bg-zinc-200 text-white border-1 bg-black border-white hover:text-hover-link transition-all ease-out duration-200">
             <CustomLink className="" to="/login" underline={false}>
               Log In
             </CustomLink>
@@ -595,7 +595,7 @@ export default function NavBar() {
           {/* <div className="">|</div> */}
           <Button
             variant="outline"
-            className="hover:bg-zinc-200 text-white border-1 bg-black border-white hover:text-blue-800 transition-all ease-out duration-200">
+            className="hover:bg-zinc-200 text-white border-1 bg-black border-white hover:text-hover-link transition-all ease-out duration-200">
             <CustomLink className="" to="/register" underline={false}>
               Register
             </CustomLink>

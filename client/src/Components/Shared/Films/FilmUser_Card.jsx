@@ -181,7 +181,7 @@ export default function FilmUser_Card({ filmObject, queryString }) {
             <span
               ref={titleSpanRef}
               onClick={() => navigate({ to: `/films/${filmObject.id}` })}
-              className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-blue-400 cursor-pointer"
+              className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-hover-accent cursor-pointer"
               title={filmObject.title}
               style={{ paddingRight: "1rem" }}>
               {filmObject.title}
@@ -210,7 +210,7 @@ export default function FilmUser_Card({ filmObject, queryString }) {
           </div>
         </div>
         {/* Right side - director's photo*/}
-        <div className="flex flex-col items-center justify-center gap-1 max-w-[22rem] mr-2 text-[12px] hover:text-blue-800 transition-all duration-300 ease-out">
+        <div className="flex flex-col items-center justify-center gap-1 max-w-[22rem] mr-2 text-[12px] hover:text-hover-link transition-all duration-300 ease-out">
           {queryString && filmObject.directors && (
             <div className="border-amber-400 flex items-start gap-1 justify-center">
               {filmObject.directors.map((dir, key) => {
@@ -252,25 +252,7 @@ export default function FilmUser_Card({ filmObject, queryString }) {
           movieDetails={movieDetails}
           isLoading={isLoading}
           setIsLoading={setIsLoading}
-          css={{
-            height: "1.4rem",
-            textColor: "black",
-            hoverBg: "none",
-            hoverTextColor: "none",
-            fontSize: "13px",
-            likeSize: "1.1rem",
-            saveSize: "1.5rem",
-            starSize: "1.3rem",
-            flexGap: "2px",
-            likeColor: "white",
-            saveColor: "white",
-            likedBgColor: "oklch(44.4% 0.177 26.899)",
-            savedBgColor: "oklch(44.8% 0.119 151.328)",
-            buttonPadding: "2px",
-            paddingTopBottom: "0px",
-            paddingLeftRight: "10px",
-            buttonHeight: "2rem",
-          }}
+          variant="card"
           showOverview={false}
         />
       </div>

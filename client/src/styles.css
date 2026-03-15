@@ -3,58 +3,192 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Customize the popup close button */
-.maplibregl-popup-close-button {
-  width: 1.5rem !important;
-  height: 1.5rem !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.2s ease !important;
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-atlas-blue: var(--color-atlas-blue);
+  --color-atlas-green: var(--color-atlas-green);
+  --color-atlas-pink: var(--color-atlas-pink);
+  --color-liked: var(--color-liked);
+  --color-saved: var(--color-saved);
+  --color-star: var(--color-star);
+  --color-hover-accent: var(--color-hover-accent);
+  --color-hover-link: var(--color-hover-link);
+
+  --color-body: var(--color-text-dark);
+  --color-subtle: var(--color-text-muted);
+  --color-on-dark: var(--color-text-light);
+  --color-page: var(--color-bg-page);
+  --color-surface: var(--color-bg-elevated);
+  --color-control: var(--color-bg-control);
+  --color-overlay: var(--color-bg-dark);
 }
 
-/* Key colors throughout map:
-#b8d5e5 blue
-#d5e5b8 green
-#e5b8d5 pink
-stone-900: almost-dark text color
-stone-200: almost-white text color
-stone-100: off-white background color
-*/
+:root {
+  --radius: 0.625rem;
 
-/* Google Fonts candidates for "THE FILM ATLAS" page title:
-Red Rose, Cal Sans, Paytone One, Bungee Shade, Russo One, Black Ops One */
+  --font-primary: "Outfit", "Optima", "Helvetica", sans-serif;
+  --font-logo: "Rammetto One", "Optima", "Helvetica", sans-serif;
 
-.font-logo {
-  /* font-family: "Black Ops One", sans-serif; */
-  font-family: "Rammetto One", "Optima", "Helvetica", sans-serif;
-  /* font-family: "Russo One", sans-serif; */
+  /* --- Brand accent trio ---
+     These three pastels are the visual signature of the app: used as decorative
+     border accents on the navbar's animated slide-in panels and as the map border.
+     Pulled from L~85% to L~72% for more presence against the black nav without
+     losing the editorial pastel character. */
+  --color-atlas-blue: oklch(72% 0.07 220);
+  --color-atlas-green: oklch(72% 0.08 140);
+  --color-atlas-pink: oklch(72% 0.07 340);
+
+  /* --- Interaction state colors ---
+     Semantic, not decorative. Each has one job. --color-star is the canonical
+     value; components must reference the token rather than the raw oklch literal. */
+  --color-liked: oklch(44% 0.177 27);
+  --color-saved: oklch(45% 0.119 151);
+  --color-star: oklch(65% 0.241 354);
+  --color-hover-accent: oklch(71% 0.165 255);
+  --color-hover-link: oklch(39% 0.195 269);
+
+  /* --- Text scale (3 stops) --- */
+  --color-text-dark: oklch(18% 0.005 56);
+  --color-text-light: oklch(93% 0.003 49);
+  --color-text-muted: oklch(52% 0.006 56);
+
+  /* --- Surface scale (4 stops: page < surface < control < void) --- */
+  --color-bg-page: oklch(96% 0.003 48);
+  --color-bg-elevated: oklch(100% 0 0);
+  --color-bg-control: oklch(90% 0 0);
+  --color-bg-dark: oklch(0% 0 0);
+
+  /* --- Slider component border (single-use structural token) --- */
+  --slider-border: oklch(86% 0.007 269);
+
+  /* --- shadcn/ui semantic tokens ---
+     Wired directly to the brand surface and text scale above.
+     --secondary, --muted, and --accent were all identical (oklch 0.967) in the
+     original; they now share --color-bg-page via a single resolved value.
+     --card, --popover, and --background were all oklch(1 0 0); they now share
+     --color-bg-elevated. --sidebar-* tokens mirror the base tokens — no sidebar
+     component exists in this app so there's no benefit in diverging them. */
+  --background: var(--color-bg-elevated);
+  --foreground: var(--color-text-dark);
+  --card: var(--color-bg-elevated);
+  --card-foreground: var(--color-text-dark);
+  --popover: var(--color-bg-elevated);
+  --popover-foreground: var(--color-text-dark);
+  --primary: var(--color-text-dark);
+  --primary-foreground: var(--color-text-light);
+  --secondary: var(--color-bg-page);
+  --secondary-foreground: var(--color-text-dark);
+  --muted: var(--color-bg-page);
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-bg-page);
+  --accent-foreground: var(--color-text-dark);
+  --destructive: oklch(55% 0.245 27);
+  --border: var(--color-text-dark);
+  --input: var(--color-bg-control);
+  --ring: oklch(70% 0.015 286);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: var(--color-bg-elevated);
+  --sidebar-foreground: var(--color-text-dark);
+  --sidebar-primary: var(--color-text-dark);
+  --sidebar-primary-foreground: var(--color-text-light);
+  --sidebar-accent: var(--color-bg-page);
+  --sidebar-accent-foreground: var(--color-text-dark);
+  --sidebar-border: var(--color-bg-control);
+  --sidebar-ring: var(--ring);
 }
 
-/* .font-heading {
-  font-family: "Sen", "Optima", "Helvetica", sans-serif;
-} */
+.dark {
+  /* --- Dark mode surface scale ---
+     Warm-neutral dark (hue 56) keeps the cinematic feel rather than the cold
+     blue-grey that shadcn defaults ship with. Three stops give enough hierarchy
+     without multiplying tokens. */
+  --color-text-dark: oklch(93% 0.003 49);
+  --color-text-light: oklch(18% 0.005 56);
+  --color-text-muted: oklch(62% 0.006 56);
+  --color-bg-page: oklch(14% 0.003 56);
+  --color-bg-elevated: oklch(19% 0.003 56);
+  --color-bg-control: oklch(27% 0.004 56);
 
-.font-primary,
-.font-heading {
-  /* font-family: "Josefin Sans", "Optima", "Helvetica", sans-serif; */
-  /* font-family: "Inconsolata", "Optima", "Helvetica", sans-serif; */
-  font-family: "Outfit", "Optima", "Helvetica", sans-serif;
-  /* font-family: "League Spartan", "Optima", "Helvetica", sans-serif; */
+  /* --- shadcn/ui tokens inherit from above --- no values need repeating --- */
+  --destructive: oklch(70% 0.191 22);
+  --border: oklch(100% 0 0 / 10%);
+  --input: oklch(100% 0 0 / 15%);
+  --ring: oklch(55% 0.016 286);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .font-logo {
+    font-family: var(--font-logo);
+  }
+  .font-primary,
+  .font-heading {
+    font-family: var(--font-primary);
+  }
 }
 
 @layer components {
-  .page-title {
-    @apply uppercase font-bold text-xl md:text-2xl lg:text-3xl flex items-center justify-center w-full md:mt-10 mt-5;
-  }
-
+  .page-title,
   .page-title-map {
     @apply uppercase font-bold text-xl md:text-2xl lg:text-3xl flex items-center justify-center w-full;
   }
+  .page-title {
+    @apply mt-5 md:mt-10;
+  }
 
   .page-subtitle {
-    @apply font-bold text-base md:text-xl lg:text-2xl  w-auto;
+    @apply font-bold text-base md:text-xl lg:text-2xl w-auto;
   }
 
   .yourListConsole {
@@ -94,7 +228,7 @@ Red Rose, Cal Sans, Paytone One, Bungee Shade, Russo One, Black Ops One */
   }
 
   .auth-svgContainer {
-    @apply fixed z-0 top-0 h-screen bg-black overflow-visible flex flex-row gap-0 scale-200 overflow-hidden;
+    @apply fixed z-0 top-0 h-screen bg-black overflow-hidden flex flex-row gap-0 scale-200;
   }
 
   .auth-svg {
@@ -102,7 +236,7 @@ Red Rose, Cal Sans, Paytone One, Bungee Shade, Russo One, Black Ops One */
   }
 
   .auth-formContainer {
-    @apply mt-35 z-100 bg-white text-gray-900 border-[#b8d5e5] border-5 w-auto min-w-[20rem] relative md:p-5 rounded-md;
+    @apply mt-35 z-100 bg-white text-gray-900 border-atlas-blue border-5 w-auto min-w-[20rem] relative md:p-5 rounded-md;
   }
 
   .auth-form {
@@ -130,14 +264,15 @@ Red Rose, Cal Sans, Paytone One, Bungee Shade, Russo One, Black Ops One */
   }
 
   .landing-main-img {
-    @apply max-h-screen object-cover scale-[1] brightness-80;
+    @apply max-h-screen object-cover brightness-80;
   }
 
   .landing-transparent-layer {
-    @apply border-0 border-red-500 absolute top-0 left-0 h-[5rem] sm:h-[10rem] lg:h-[15rem] w-full;
+    @apply absolute top-0 left-0 h-[5rem] sm:h-[10rem] lg:h-[15rem] w-full;
   }
+
   .landing-transparent-layer-bottom {
-    @apply border-0 border-red-500 absolute bottom-0 left-0 h-[2rem] sm:h-[3rem] lg:h-[7rem] w-full;
+    @apply absolute bottom-0 left-0 h-[2rem] sm:h-[3rem] lg:h-[7rem] w-full;
   }
 
   .landing-page-title {
@@ -149,7 +284,7 @@ Red Rose, Cal Sans, Paytone One, Bungee Shade, Russo One, Black Ops One */
   }
 
   .landing-img-text-container {
-    @apply absolute top-0 left-0 h-[25rem] p-5 w-full border-0;
+    @apply absolute top-0 left-0 h-[25rem] p-5 w-full;
   }
 
   .landing-img-text-right {
@@ -209,130 +344,94 @@ Red Rose, Cal Sans, Paytone One, Bungee Shade, Russo One, Black Ops One */
   }
 
   .docs-menu-heading {
-    @apply hover:text-blue-800 uppercase font-extralight text-sm md:text-base;
+    @apply hover:text-hover-link uppercase font-extralight text-sm md:text-base;
   }
 
   .docs-menu-content {
     @apply flex flex-col pl-4 justify-center items-start gap-1 border-l-1 border-stone-900/30;
   }
-}
 
-@theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-}
-
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  /* --border: oklch(0 0 0); */
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067);
-}
-
-.dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+  .console-card,
+  .console-overlay-sm,
+  .console-overlay-lg,
+  .console-landing-sm,
+  .console-landing-lg {
+    --console-hover-bg: none;
   }
-  body {
-    @apply bg-background text-foreground;
+
+  .console-card {
+    --console-text: black;
+    --console-font-size: 13px;
+    --console-like-size: 1.1rem;
+    --console-save-size: 1.5rem;
+    --console-star-size: 1.3rem;
+    --console-gap: 2px;
+    --console-height: auto;
+    --console-button-padding: 2px;
+    --console-padding-tb: 0;
+    --console-padding-lr: 10px;
+    --console-button-height: 2rem;
+    --console-hover-text: transparent;
+  }
+
+  .console-overlay-sm {
+    --console-text: white;
+    --console-font-size: 12px;
+    --console-like-size: 1rem;
+    --console-save-size: 1.4rem;
+    --console-star-size: 1.2rem;
+    --console-gap: 4px;
+    --console-height: 1.4rem;
+    --console-button-padding: 4px;
+    --console-padding-tb: 6px;
+    --console-padding-lr: 10px;
+    --console-button-height: 1.7rem;
+    --console-hover-text: var(--color-hover-accent);
+  }
+
+  .console-overlay-lg {
+    --console-text: white;
+    --console-font-size: 14px;
+    --console-like-size: 1rem;
+    --console-save-size: 1.4rem;
+    --console-star-size: 1.3rem;
+    --console-gap: 4px;
+    --console-height: 1.4rem;
+    --console-button-padding: 4px;
+    --console-padding-tb: 16px;
+    --console-padding-lr: 16px;
+    --console-button-height: 2.2rem;
+    --console-hover-text: var(--color-hover-accent);
+  }
+
+  .console-landing-sm {
+    --console-text: var(--color-text-light);
+    --console-font-size: 14px;
+    --console-like-size: 1.1rem;
+    --console-save-size: 1.6rem;
+    --console-star-size: 1.4rem;
+    --console-gap: 10px;
+    --console-height: auto;
+    --console-button-padding: 0;
+    --console-padding-tb: 0;
+    --console-padding-lr: 10px;
+    --console-button-height: 2.5rem;
+    --console-hover-text: var(--color-hover-accent);
+  }
+
+  .console-landing-lg {
+    --console-text: var(--color-text-light);
+    --console-font-size: 16px;
+    --console-like-size: 1.3rem;
+    --console-save-size: 1.8rem;
+    --console-star-size: 1.6rem;
+    --console-gap: 15px;
+    --console-height: auto;
+    --console-button-padding: 0;
+    --console-padding-tb: 10px;
+    --console-padding-lr: 15px;
+    --console-button-height: 3rem;
+    --console-hover-text: var(--color-hover-accent);
   }
 }
 
@@ -357,33 +456,44 @@ Red Rose, Cal Sans, Paytone One, Bungee Shade, Russo One, Black Ops One */
   }
 }
 
-/* Vote Average slider settings */
+.maplibregl-popup-close-button {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
 #slider-simple {
   height: 0.75rem;
   border-radius: 0.75rem;
-  border: 1px solid oklch(85.751% 0.00732 268.581);
-  background: oklch(100% 0.00011 271.152);
+  border: 1px solid var(--slider-border);
+  background: var(--color-bg-elevated);
 }
 
 #slider-simple .range-slider__range {
   border-radius: 0.75rem;
-  background: oklch(21.6% 0.006 56.043);
+  background: var(--color-text-dark);
 }
+
 #slider-simple .range-slider__thumb {
   width: 1.5rem;
   height: 1.5rem;
-  border: 1px solid oklch(85.751% 0.00732 268.581);
+  border: 1px solid var(--slider-border);
   background: rgb(255, 255, 255);
   filter: drop-shadow(-1px 3px 3px rgba(0, 0, 0, 0.3));
 }
+
 #slider-simple .range-slider__thumb[data-lower] {
   width: 0;
   border: none;
 }
 
 .swal2-popup {
-  border-radius: 0px;
-  font-family: "Outfit", "Optima", "Helvetica", sans-serif;
+  border-radius: 0;
+  font-family: var(--font-primary);
 }
 
 .swal2-html-container {
@@ -401,18 +511,19 @@ Red Rose, Cal Sans, Paytone One, Bungee Shade, Russo One, Black Ops One */
 .swal2-actions {
   margin-right: 2rem;
 }
+
 .swal2-actions button {
   font-size: clamp(0.8rem, calc(1.5vw + 0.4rem), 1rem);
 }
 
-.swal2-actions:hover .swal2-actions button {
+.swal2-actions:hover button {
   scale: 1.03;
 }
 
 .swal2-confirm {
   transition: 200ms ease-in-out;
   border: 1px solid black !important;
-  border-radius: 0px;
+  border-radius: 0;
   background-color: white;
   padding: 0.4rem;
   width: 5rem;

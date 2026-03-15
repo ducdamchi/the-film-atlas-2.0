@@ -27,7 +27,7 @@ export default function PersonList({ title, listOfPeople, type }) {
               <div className="font-bold h-auto w-full flex flex-col items-start justify-start text-sm lg:text-base text-center text-left text-stone-900 p-2 z-20 inline-block wrap-anywhere">
                 {person.jobs?.includes("Director") && (
                   <div
-                    className="uppercase w-full hover:text-blue-800"
+                    className="uppercase w-full hover:text-hover-link"
                     onClick={() => {
                       navigate({ to: `/person/director/${person.id}` })
                     }}>
@@ -36,7 +36,7 @@ export default function PersonList({ title, listOfPeople, type }) {
                 )}
                 {person.known_for_department?.includes("Acting") && (
                   <div
-                    className="uppercase w-full hover:text-blue-800"
+                    className="uppercase w-full hover:text-hover-link"
                     onClick={() => {
                       navigate({ to: `/person/actor/${person.id}` })
                     }}>

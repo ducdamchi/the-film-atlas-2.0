@@ -314,7 +314,7 @@ export default function FilmLanding() {
                         return (
                           <span key={key}>
                             <span
-                              className=" hover:text-blue-400 transition-all ease-out duration-200"
+                              className=" hover:text-hover-accent transition-all ease-out duration-200"
                               style={{ cursor: "pointer" }}
                               onClick={() => {
                                 navigate({
@@ -385,24 +385,7 @@ export default function FilmLanding() {
                 directors={directors}
                 movieDetails={movieDetails}
                 setIsLoading={setIsLoading}
-                css={{
-                  textColor: "oklch(92.3% 0.003 48.717)",
-                  hoverBg: "none",
-                  hoverTextColor: "oklch(70.7% 0.165 254.624)",
-                  fontSize: "14px",
-                  likeSize: "1.1rem",
-                  saveSize: "1.6rem",
-                  starSize: "1.4rem",
-                  flexGap: "10px",
-                  likeColor: "white",
-                  saveColor: "white",
-                  likedBgColor: "oklch(44.4% 0.177 26.899)",
-                  savedBgColor: "oklch(44.8% 0.119 151.328)",
-                  buttonPadding: "0px",
-                  paddingTopBottom: "0px",
-                  paddingLeftRight: "10px",
-                  buttonHeight: "2.5rem",
-                }}
+                variant="landing-sm"
                 showOverview={false}
               />
             </div>
@@ -412,24 +395,7 @@ export default function FilmLanding() {
                 directors={directors}
                 movieDetails={movieDetails}
                 setIsLoading={setIsLoading}
-                css={{
-                  textColor: "oklch(92.3% 0.003 48.717)",
-                  hoverBg: "none",
-                  hoverTextColor: "oklch(70.7% 0.165 254.624)",
-                  fontSize: "16px",
-                  likeSize: "1.3rem",
-                  saveSize: "1.8rem",
-                  starSize: "1.6rem",
-                  flexGap: "15px",
-                  likeColor: "white",
-                  saveColor: "white",
-                  likedBgColor: "oklch(44.4% 0.177 26.899)",
-                  savedBgColor: "oklch(44.8% 0.119 151.328)",
-                  buttonPadding: "0px",
-                  paddingTopBottom: "10px",
-                  paddingLeftRight: "15px",
-                  buttonHeight: "3rem",
-                }}
+                variant="landing-lg"
                 showOverview={false}
               />
             </div>
@@ -455,7 +421,7 @@ export default function FilmLanding() {
                           return (
                             <span key={key}>
                               <span
-                                className=" hover:text-blue-800 transition-all ease-out duration-200"
+                                className=" hover:text-hover-link transition-all ease-out duration-200"
                                 style={{ cursor: "pointer" }}
                                 onClick={() => {
                                   navigate({
