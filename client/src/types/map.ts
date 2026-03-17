@@ -5,10 +5,10 @@
  * properties, and TMDB discover query parameters.
  *
  * Derived from:
- *   - src/Components/MapPage.jsx
- *   - src/Hooks/useMapInteraction.js   (popupInfo shape set in onMapClick)
- *   - src/Hooks/useDiscoverFilms.js    (queryTopRatedFilmByCountryTMDB params)
- *   - src/Utils/apiCalls.jsx           (queryTopRatedFilmByCountryTMDB signature)
+ *   - src/components/MapPage.jsx
+ *   - src/hooks/useMapInteraction.js   (popupInfo shape set in onMapClick)
+ *   - src/hooks/useDiscoverFilms.js    (queryTopRatedFilmByCountryTMDB params)
+ *   - src/utils/apiCalls.jsx           (queryTopRatedFilmByCountryTMDB signature)
  */
 
 // ---------------------------------------------------------------------------

@@ -19,11 +19,13 @@ const watchedRouter = require("./routes/Watched.js")
 const watchlistedRouter = require("./routes/Watchlisted.js")
 const directorsRouter = require("./routes/Directors.js")
 const proxyRouter = require("./routes/Proxy.js")
+const settingsRouter = require("./routes/Settings.js")
 
 app.use("/auth", authRouter)
 app.use("/profile/me/watched", watchedRouter)
 app.use("/profile/me/watchlisted", watchlistedRouter)
 app.use("/profile/me/directors", directorsRouter)
+app.use("/profile/me", settingsRouter)
 app.use("/proxy", proxyRouter)
 
 // Connect to PostgreSQL then start server

@@ -8,8 +8,8 @@
  *   - server/routes/Watched.js   (GET /:tmdbId, POST, DELETE, PUT responses)
  *   - server/routes/Watchlisted.js  (GET /:tmdbId, POST, DELETE responses)
  *   - server/routes/Directors.js  (GET /:tmdbId response)
- *   - src/Utils/apiCalls.jsx   (fetchFilmRatingsFromOMDB, fetchFilmAwardsFromWikidata)
- *   - src/Components/FilmLanding.jsx  (filmRatings / filmAwards usage)
+ *   - src/utils/apiCalls.jsx   (fetchFilmRatingsFromOMDB, fetchFilmAwardsFromWikidata)
+ *   - src/components/FilmLanding.jsx  (filmRatings / filmAwards usage)
  */
 
 // ---------------------------------------------------------------------------

@@ -1,8 +1,22 @@
 # Migration Plan: PostgreSQL + TanStack Start
 
-**Status**: Planning
-**Last updated**: 2026-03-12
+**Status**: Phases 1–3 COMPLETE · Phase 4 (Production RDS) NOT STARTED
+**Last updated**: 2026-03-17
 **Phases**: 4 — Backup → Dev DB Migration → Dev Framework Migration → Production Migration
+
+### Completion summary (as of 2026-03-17)
+- **Phase 1** ✅ — Git tag `v1.0-pre-migration` pushed; dev MySQL dump saved
+- **Phase 2** ✅ — PostgreSQL + Kysely live on dev; all routes rewritten; Sequelize/MySQL2 removed
+- **Phase 3** ✅ — TanStack Router live in `client/`; Express stripped to pure API server
+- **Phase 4** ⏸ — Production RDS migration not yet started
+
+### Key deviations from original plan
+- Phase 2: pgloader failed (MySQL 9.4 uses caching_sha2_password); used custom Node.js migration script instead
+- Phase 2: PostgreSQL version is 18 (plan said 16) — fine, superset
+- Phase 2: PostGIS not installed (disk ran full during brew install) — non-blocking
+- Phase 3: Used Option B (merged into existing `client/`) not Option A (separate `client-next/`)
+- Phase 3: SSR via Vinxi/TanStack Start not yet enabled — client-side rendering still in use; deferred to Phase 4 or later
+- Phase 3: Dev server runs on port 3000 (not 3001 as planned)
 
 ### Stack decisions
 
@@ -417,21 +431,21 @@ npm run startDev
 - Verify all routes work: `/auth`, `/profile/me/watched`, `/profile/me/watchlisted`, `/profile/me/directors`
 - Verify the client connects properly with `npm run dev` from `client/`
 
-### 2.11 Dev DB Migration Checklist
+### 2.11 Dev DB Migration Checklist ✅ COMPLETE
 
-- [ ] PostgreSQL 16 installed and running locally
-- [ ] `tfa-db-dev` created in PostgreSQL
-- [ ] pgloader migration complete (or Kysely migrations run fresh on empty DB)
-- [ ] UUID/INTEGER type mismatch resolved
-- [ ] PostGIS extension enabled
-- [ ] `sequelize`, `sequelize-cli`, `mysql2` uninstalled
-- [ ] `pg` and `kysely` installed
-- [ ] `server/models/` deleted, `server/db/` created (pool, kysely, types, migrations)
-- [ ] `server/config/config.json` deleted, DB config moved to env vars via `server/db/pool.js`
-- [ ] Kysely baseline migration (`001_initial_schema.js`) written and applied
-- [ ] All routes rewritten (no Sequelize imports remaining)
-- [ ] Dev server starts without errors
-- [ ] Client dev server connects and all pages load
+- [x] PostgreSQL 18 installed and running locally (plan said 16, 18 is fine)
+- [x] `tfa-db-dev` created in PostgreSQL
+- [x] Data migration complete (via custom Node.js script — pgloader failed on MySQL 9.4)
+- [x] UUID/INTEGER type mismatch resolved
+- [ ] PostGIS extension enabled — SKIPPED (disk full during install, non-blocking)
+- [x] `sequelize`, `sequelize-cli`, `mysql2` uninstalled
+- [x] `pg` and `kysely` installed
+- [x] `server/models/` deleted, `server/db/` created (pool, kysely, types, migrations)
+- [x] `server/config/config.json` deleted, DB config moved to env vars via `server/db/pool.js`
+- [x] Kysely baseline migration (`001_initial_schema.js`) written and applied
+- [x] All routes rewritten (no Sequelize imports remaining)
+- [x] Dev server starts without errors
+- [x] Client dev server connects and all pages load
 
 ---
 
@@ -557,21 +571,21 @@ export default defineConfig({
 })
 ```
 
-### 3.6 TanStack Start Migration Checklist
+### 3.6 TanStack Router Migration Checklist ✅ COMPLETE (Router only — SSR deferred)
 
-- [ ] New TanStack Start project scaffolded
-- [ ] All routes mapped and file-based routes created
-- [ ] `react-router-dom` imports replaced with `@tanstack/react-router`
-- [ ] `AuthContext` working as client provider
-- [ ] `FilmLanding` and `PersonLanding` have SSR loaders (TMDB data server-fetched)
-- [ ] `MapPage` and map components confirmed client-only
-- [ ] TMDB API key moved server-side (out of client bundle)
-- [ ] TailwindCSS v4 working
-- [ ] shadcn/ui components copied
-- [ ] `express.static` and `index.html` catch-all removed from `server/index.js`
-- [ ] Vite proxy configured in `client-next/vite.config.ts` for `/auth` and `/profile`
-- [ ] Dev build works (`npm run dev` in `client-next/`, `npm run startDev` in `server/`)
-- [ ] Production build works (`npm run build`)
+- [x] TanStack Router integrated into existing `client/` (Option B — not separate `client-next/`)
+- [x] All routes mapped and file-based routes created in `client/src/routes/`
+- [x] `react-router-dom` imports replaced with `@tanstack/react-router`
+- [x] `AuthContext` working as client provider (in `__root.tsx`)
+- [ ] `FilmLanding` and `PersonLanding` have SSR loaders — DEFERRED (SSR not yet enabled)
+- [x] `MapPage` and map components confirmed client-only
+- [ ] TMDB API key moved server-side — DEFERRED (waiting on SSR)
+- [x] TailwindCSS v4 working
+- [x] shadcn/ui components present
+- [x] `express.static` and `index.html` catch-all removed from `server/index.js`
+- [x] Vite proxy configured in `client/vite.config.ts` for `/auth` and `/profile`
+- [x] Dev build works (`npm run dev` in `client/`, `npm run startDev` in `server/`)
+- [x] Production build works (`npm run build`)
 
 ---
 

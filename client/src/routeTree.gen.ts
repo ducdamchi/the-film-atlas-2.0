@@ -10,10 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FilmsRouteImport } from './routes/films_'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DirectorsRouteImport } from './routes/directors'
@@ -26,6 +29,16 @@ import { Route as PersonJobTmdbIdRouteImport } from './routes/person/$job/$tmdbI
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -46,6 +59,11 @@ const MapRoute = MapRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FilmsRoute = FilmsRouteImport.update({
@@ -96,10 +114,13 @@ export interface FileRoutesByFullPath {
   '/directors': typeof DirectorsRoute
   '/docs': typeof DocsRoute
   '/films': typeof FilmsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/person/$job/$tmdbId': typeof PersonJobTmdbIdRoute
@@ -111,10 +132,13 @@ export interface FileRoutesByTo {
   '/directors': typeof DirectorsRoute
   '/docs': typeof DocsRoute
   '/films': typeof FilmsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/person/$job/$tmdbId': typeof PersonJobTmdbIdRoute
@@ -127,10 +151,13 @@ export interface FileRoutesById {
   '/directors': typeof DirectorsRoute
   '/docs': typeof DocsRoute
   '/films_': typeof FilmsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/films/$tmdbId_': typeof FilmsTmdbIdRoute
   '/person/$job/$tmdbId': typeof PersonJobTmdbIdRoute
@@ -144,10 +171,13 @@ export interface FileRouteTypes {
     | '/directors'
     | '/docs'
     | '/films'
+    | '/forgot-password'
     | '/login'
     | '/map'
     | '/privacy'
     | '/register'
+    | '/reset-password'
+    | '/settings'
     | '/terms'
     | '/films/$tmdbId'
     | '/person/$job/$tmdbId'
@@ -159,10 +189,13 @@ export interface FileRouteTypes {
     | '/directors'
     | '/docs'
     | '/films'
+    | '/forgot-password'
     | '/login'
     | '/map'
     | '/privacy'
     | '/register'
+    | '/reset-password'
+    | '/settings'
     | '/terms'
     | '/films/$tmdbId'
     | '/person/$job/$tmdbId'
@@ -174,10 +207,13 @@ export interface FileRouteTypes {
     | '/directors'
     | '/docs'
     | '/films_'
+    | '/forgot-password'
     | '/login'
     | '/map'
     | '/privacy'
     | '/register'
+    | '/reset-password'
+    | '/settings'
     | '/terms'
     | '/films/$tmdbId_'
     | '/person/$job/$tmdbId'
@@ -190,10 +226,13 @@ export interface RootRouteChildren {
   DirectorsRoute: typeof DirectorsRoute
   DocsRoute: typeof DocsRoute
   FilmsRoute: typeof FilmsRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   MapRoute: typeof MapRoute
   PrivacyRoute: typeof PrivacyRoute
   RegisterRoute: typeof RegisterRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SettingsRoute: typeof SettingsRoute
   TermsRoute: typeof TermsRoute
   FilmsTmdbIdRoute: typeof FilmsTmdbIdRoute
   PersonJobTmdbIdRoute: typeof PersonJobTmdbIdRoute
@@ -206,6 +245,20 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -234,6 +287,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/films_': {
@@ -302,10 +362,13 @@ const rootRouteChildren: RootRouteChildren = {
   DirectorsRoute: DirectorsRoute,
   DocsRoute: DocsRoute,
   FilmsRoute: FilmsRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   MapRoute: MapRoute,
   PrivacyRoute: PrivacyRoute,
   RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SettingsRoute: SettingsRoute,
   TermsRoute: TermsRoute,
   FilmsTmdbIdRoute: FilmsTmdbIdRoute,
   PersonJobTmdbIdRoute: PersonJobTmdbIdRoute,

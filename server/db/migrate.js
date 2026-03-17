@@ -1,3 +1,4 @@
+require("dotenv").config({ path: require("path").join(__dirname, "../.env.local") })
 const { Migrator, FileMigrationProvider } = require("kysely")
 const path = require("path")
 const db = require("./kysely")

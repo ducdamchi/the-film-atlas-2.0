@@ -1,28 +1,37 @@
 const { verify } = require("jsonwebtoken")
+const pool = require("../db/pool")
 
-const validateToken = (req, res, next) => {
-  const accessToken = req.header("accessToken")
+const validateToken = async (req, res, next) => {
+  const token = req.headers.accesstoken
+  if (!token) return res.status(401).json({ error: "No token." })
 
-  // If no access token generated, user not logged in
-  if (!accessToken) {
-    return res.json({ error: "User not logged in." })
+  try {
+    const decoded = verify(token, process.env.JWT_SECRET)
 
-    // User logged in
-  } else {
-    try {
-      // verify the access token
-      const validToken = verify(accessToken, "secretstring")
+    const { rows } = await pool.query(
+      `SELECT password_changed_at, account_status FROM "Users" WHERE id = $1`,
+      [decoded.id]
+    )
+    const user = rows[0]
 
-      // req.user can be accessed by any endpoint that uses 'validateToken'
-      req.user = validToken
-
-      // if valid, move forward with request
-      if (validToken) {
-        return next()
-      }
-    } catch (err) {
-      return res.json({ error: err })
+    if (!user || user.account_status !== "active") {
+      return res.status(401).json({ error: "Account inactive." })
     }
+
+    // Invalidate tokens issued before the last password change
+    if (user.password_changed_at) {
+      const changedAt = new Date(user.password_changed_at).getTime() / 1000
+      if (decoded.iat < changedAt) {
+        return res
+          .status(401)
+          .json({ error: "Session expired. Please log in again." })
+      }
+    }
+
+    req.user = decoded
+    return next()
+  } catch {
+    return res.status(401).json({ error: "Invalid token." })
   }
 }
 

@@ -3,11 +3,13 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import "../styles.css"
 
-import { AuthContext } from "../Utils/authContext"
-import NavBar from "../components/Shared/layout/NavBar"
-import Footer from "../components/Shared/layout/Footer"
-import LoadingPage from "../components/Shared/layout/LoadingPage"
-import ScrollToAnchor from "../Hooks/scrollToAnchor"
+import { AuthContext } from "../utils/authContext"
+import NavBar from "../components/layout/NavBar"
+import Footer from "../components/layout/Footer"
+import LoadingPage from "../components/layout/LoadingPage"
+import ScrollToAnchor from "../hooks/scrollToAnchor"
+import { LocationBanner } from "../components/LocationBanner"
+import { CompleteProfileModal } from "../components/CompleteProfileModal"
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -19,6 +21,9 @@ function RootComponent() {
     username: "",
     id: 0,
     status: false,
+    email: null as string | null,
+    locationCountry: null as string | null,
+    locationSource: null as string | null,
   })
   const [searchModalOpen, setSearchModalOpen] = useState(false)
 
@@ -40,6 +45,9 @@ function RootComponent() {
             username: response.data.username,
             id: response.data.id,
             status: true,
+            email: response.data.email ?? null,
+            locationCountry: response.data.location_country ?? null,
+            locationSource: response.data.location_source ?? null,
           })
         }
       })
@@ -67,7 +75,12 @@ function RootComponent() {
       }}>
       <ScrollToAnchor />
       <NavBar />
-      <Outlet />
+      <LocationBanner />
+      {authState.status && !authState.email ? (
+        <CompleteProfileModal />
+      ) : (
+        <Outlet />
+      )}
       <Footer />
     </AuthContext.Provider>
   )

@@ -8,8 +8,8 @@
  *   - server/routes/Watched.js   (SELECT columns, POST body, response shapes)
  *   - server/routes/Watchlisted.js
  *   - server/routes/Directors.js
- *   - src/Components/Shared/Buttons/InteractionConsole.jsx
- *   - src/Components/Shared/Films/FilmUser_Card.jsx
+ *   - src/components/Shared/Buttons/InteractionConsole.jsx
+ *   - src/components/Shared/Films/FilmUser_Card.jsx
  */
 
 // ---------------------------------------------------------------------------

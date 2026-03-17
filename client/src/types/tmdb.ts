@@ -3,11 +3,11 @@
  *
  * Types that mirror the TMDB REST API response shapes actually consumed by
  * this application.  Fields were derived by tracing every property access in:
- *   - src/Utils/apiCalls.jsx
- *   - src/Components/FilmLanding.jsx
- *   - src/Components/Films.jsx
- *   - src/Components/Shared/Films/FilmUser_Card.jsx
- *   - src/Hooks/useDiscoverFilms.js
+ *   - src/utils/apiCalls.jsx
+ *   - src/components/FilmLanding.jsx
+ *   - src/components/Films.jsx
+ *   - src/components/Shared/Films/FilmUser_Card.jsx
+ *   - src/hooks/useDiscoverFilms.js
  *
  * Only fields the application actually reads are typed here.  TMDB returns
  * many more fields; they will simply be ignored by TypeScript.

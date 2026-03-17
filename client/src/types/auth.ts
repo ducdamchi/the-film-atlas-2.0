@@ -5,7 +5,7 @@
  *
  * Derived from:
  *   - src/routes/__root.tsx  (AuthState initialisation + verify response)
- *   - src/Utils/authContext.jsx  (context value object)
+ *   - src/utils/authContext.jsx  (context value object)
  *   - server/routes/Auth.js  (verify endpoint returns req.user = { username, id })
  */
 
@@ -21,6 +21,9 @@ export interface AuthState {
   username: string
   id: number
   status: boolean
+  email?: string | null
+  locationCountry?: string | null
+  locationSource?: string | null
 }
 
 /**

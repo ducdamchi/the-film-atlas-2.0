@@ -2,21 +2,23 @@
 
 ## Overview
 
-The `client/` directory is ~17% TypeScript (13 files) and ~83% JavaScript/JSX (63 files). The goal is full TypeScript coverage with strict mode, zero `any` types, and clearly defined shared type definitions.
+**STATUS: ALL PHASES COMPLETE as of 2026-03-17**
+
+The `client/` directory has 100% TypeScript coverage. All `.jsx`/`.js` files have been migrated. Zero `@ts-ignore` comments remain in the codebase.
 
 **Migration strategy:** Bottom-up — shared types first, then utilities/hooks, then components (leaf → page level).
 
 ---
 
-## Current State
+## Current State (as of 2026-03-17)
 
 | Category | TS/TSX | JS/JSX |
 |---|---|---|
 | Routes | 13 | 0 |
-| Components | 3 (`Header`, `Footer`, `ThemeToggle`) | ~50 |
-| Hooks | 0 | 9 |
-| Utils | 1 (`lib/utils.ts`) | 5 |
-| **Total** | **~17** | **~59** |
+| Components | 38 | 0 |
+| Hooks | 10 | 0 |
+| Utils | 5 + lib/utils.ts | 0 |
+| **Total** | **~67** | **0** |
 
 TypeScript config (`tsconfig.json`) already uses `strict: true`, `noUnusedLocals`, `noUnusedParameters` — no changes needed there.
 
@@ -212,75 +214,81 @@ const formik = useFormik<LoginValues>({ ... })
 
 ---
 
-## File Checklist
+## File Checklist ✅ ALL COMPLETE
+
+Note: Folder structure was also reorganized. Final paths use lowercase folders and no `Shared/` wrapper.
 
 ```
-Phase 0 — Types
-[ ] src/types/auth.ts
-[ ] src/types/tmdb.ts
-[ ] src/types/film.ts
-[ ] src/types/api.ts
-[ ] src/types/map.ts
-[ ] src/types/shims.d.ts   (if needed for untyped libs)
+Phase 0 — Types ✅
+[x] src/types/auth.ts
+[x] src/types/tmdb.ts
+[x] src/types/film.ts
+[x] src/types/api.ts
+[x] src/types/map.ts
 
-Phase 1 — Utils
-[ ] src/Utils/authContext.jsx     → .tsx
-[ ] src/Utils/apiCalls.jsx        → .ts
-[ ] src/Utils/helperFunctions.jsx → .ts
-[ ] src/Utils/localStorage.jsx    → .ts
-[ ] src/Utils/mapConstants.js     → .ts
+Phase 1 — Utils ✅
+[x] src/utils/authContext.tsx
+[x] src/utils/apiCalls.ts
+[x] src/utils/helperFunctions.ts
+[x] src/utils/localStorage.ts
+[x] src/utils/mapConstants.ts
 
-Phase 2 — Hooks
-[ ] src/Hooks/usePersistedState.js    → .ts
-[ ] src/Hooks/useCommandKey.js        → .ts
-[ ] src/Hooks/useClickOutside.js      → .ts
-[ ] src/Hooks/useBottomSheet.js       → .ts
-[ ] src/Hooks/useDiscoverFilms.js     → .ts
-[ ] src/Hooks/useUserFilms.js         → .ts
-[ ] src/Hooks/useMapFilmData.js       → .ts
-[ ] src/Hooks/useMapInteraction.js    → .ts
-[ ] src/Hooks/scrollToAnchor.js       → .ts
+Phase 2 — Hooks ✅
+[x] src/hooks/usePersistedState.ts
+[x] src/hooks/useCommandKey.ts
+[x] src/hooks/useClickOutside.ts
+[x] src/hooks/useBottomSheet.ts
+[x] src/hooks/useDiscoverFilms.ts
+[x] src/hooks/useUserFilms.ts
+[x] src/hooks/useMapFilmData.ts
+[x] src/hooks/useMapInteraction.ts
+[x] src/hooks/scrollToAnchor.ts
 
-Phase 3 — Shared Components
-[ ] src/Components/Shared/Films/FilmTMDB_Card.jsx         → .tsx
-[ ] src/Components/Shared/Films/FilmTMDB_Gallery.jsx      → .tsx
-[ ] src/Components/Shared/Films/FilmUser_Card.jsx         → .tsx
-[ ] src/Components/Shared/Films/FilmUser_Gallery.jsx      → .tsx
-[ ] src/Components/Shared/Directors/DirectorTMDB_Gallery.jsx → .tsx
-[ ] src/Components/Shared/Directors/DirectorUser_Gallery.jsx → .tsx
-[ ] src/Components/Shared/Buttons/InteractionConsole.jsx         → .tsx
-[ ] src/Components/Shared/Buttons/LaptopInteractionConsole.jsx   → .tsx
-[ ] src/Components/Shared/Buttons/TripleStarRating.jsx           → .tsx
-[ ] src/Components/Shared/Buttons/Toggle_Two.jsx                 → .tsx
-[ ] src/Components/Shared/Buttons/Toggle_Three.jsx               → .tsx
-[ ] src/Components/Shared/Buttons/Toggle_Four.jsx                → .tsx
-[ ] src/Components/Shared/Buttons/CustomSlider.jsx               → .tsx
-[ ] src/Components/Shared/Navigation-Search/NavBar.jsx           → .tsx
-[ ] src/Components/Shared/Navigation-Search/SearchBar.jsx        → .tsx
-[ ] src/Components/Shared/Navigation-Search/QuickSearchModal.jsx → .tsx
-[ ] src/Components/Shared/Navigation-Search/LoadingPage.jsx      → .tsx
-[ ] src/Components/Shared/Navigation-Search/AuthBg.jsx           → .tsx
-[ ] src/Components/Shared/Navigation-Search/Footer.jsx           → .tsx
-[ ] src/Components/Shared/LandingPage/PersonList.jsx             → .tsx
-[ ] src/Components/Shared/LandingPage/TrailerModal.jsx           → .tsx
+Phase 3 — Shared Components ✅
+[x] src/components/films/TmdbFilmCard.tsx
+[x] src/components/films/TmdbFilmGallery.tsx
+[x] src/components/films/UserFilmCard.tsx
+[x] src/components/films/UserFilmGallery.tsx
+[x] src/components/films/Subtitles.tsx
+[x] src/components/films/Torrents.tsx
+[x] src/components/films/PersonList.tsx
+[x] src/components/films/TrailerModal.tsx
+[x] src/components/directors/TmdbDirectorGallery.tsx
+[x] src/components/directors/UserDirectorGallery.tsx
+[x] src/components/film-interaction/InteractionConsole.tsx
+[x] src/components/film-interaction/LaptopInteractionConsole.tsx
+[x] src/components/film-interaction/TripleStarRating.tsx
+[x] src/components/ui-controls/Toggle.tsx
+[x] src/components/ui-controls/CustomSlider.tsx
+[x] src/components/layout/NavBar.tsx
+[x] src/components/layout/SearchBar.tsx
+[x] src/components/layout/QuickSearchModal.tsx
+[x] src/components/layout/LoadingPage.tsx
+[x] src/components/layout/AuthBg.tsx
+[x] src/components/layout/Footer.tsx
 
-Phase 4 — Page Components
-[ ] src/Components/Films.jsx        → .tsx
-[ ] src/Components/FilmLanding.jsx  → .tsx
-[ ] src/Components/Directors.jsx    → .tsx
-[ ] src/Components/MapPage.jsx      → .tsx
-[ ] src/Components/PersonLanding.jsx → .tsx
-[ ] src/Components/LogIn.jsx        → .tsx
-[ ] src/Components/Register.jsx     → .tsx
-[ ] src/Components/Map/DiscoverControls.jsx  → .tsx
-[ ] src/Components/Map/MapCountriesLayer.jsx → .tsx
-[ ] src/Components/Map/MyFilmsControls.jsx   → .tsx
-[ ] src/Components/About.jsx    → .tsx
-[ ] src/Components/Contact.jsx  → .tsx
-[ ] src/Components/Docs.jsx     → .tsx
-[ ] src/Components/Privacy.jsx  → .tsx
-[ ] src/Components/Terms.jsx    → .tsx
+Phase 4 — Page Components ✅
+[x] src/components/Films.tsx
+[x] src/components/FilmLanding.tsx
+[x] src/components/Directors.tsx
+[x] src/components/MapPage.tsx
+[x] src/components/PersonLanding.tsx
+[x] src/components/LogIn.tsx
+[x] src/components/Register.tsx
+[x] src/components/map/DiscoverControls.tsx
+[x] src/components/map/MapCountriesLayer.tsx
+[x] src/components/map/MyFilmsControls.tsx
+[x] src/components/About.tsx
+[x] src/components/Contact.tsx
+[x] src/components/Docs.tsx
+[x] src/components/Privacy.tsx
+[x] src/components/Terms.tsx
 
-Phase 5 — Routes Cleanup
-[ ] Remove all // @ts-ignore comments from routes/
+Phase 5 — Routes Cleanup ✅
+[x] All // @ts-ignore comments removed from routes/
 ```
+
+### Remaining known issues (not blocking)
+- Toggle_Two/Three/Four variants were consolidated into a single `Toggle.tsx` — old multi-variant pattern gone
+- `LaptopInteractionConsole.tsx` still exists as a separate file (absorption into `InteractionConsole` is still a future task)
+- TMDB API key still in client bundle — deferred until SSR loaders are implemented

@@ -16,11 +16,11 @@
 4. `MyFilmsControls` — the My Films filter panel: Filter toggle + Sort By/Order toggles + Rating toggle (receives queryString, sortBy, sortDirection, numStars and their setters as props)
 5. `BelowMapPanel` — the entire draggable sheet below the map (receives all sheet state + content props), OR keep the sheet wrapper in MapPage and only extract the controls
 
-### Where each should live
-- Hooks: `client/src/Hooks/`
-- MapControls, MapPopup: `client/src/Components/Map/` (new subfolder)
-- DiscoverControls, MyFilmsControls: `client/src/Components/Map/`
-- BelowMapPanel: `client/src/Components/Map/`
+### Where each should live (paths updated 2026-03-17 after folder restructure)
+- Hooks: `client/src/hooks/` (lowercase)
+- MapControls, MapPopup: `client/src/components/map/`
+- DiscoverControls, MyFilmsControls: `client/src/components/map/` (already exist)
+- BelowMapPanel: `client/src/components/map/`
 
 ## Anti-patterns noted
 - MAPTILER_API_KEY hardcoded inline in MapPage (also duplicated in the style URL string)

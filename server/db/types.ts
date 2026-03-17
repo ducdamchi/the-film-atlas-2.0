@@ -2,9 +2,25 @@ export interface DB {
   Users: {
     id: string // UUID
     username: string
-    password: string
+    password: string // legacy — kept during Phase 1, dropped in Phase 2
     createdAt: Date
     updatedAt: Date
+    // Added in migration 002
+    email: string | null
+    email_verified: boolean
+    password_hash: string | null
+    reset_token: string | null
+    reset_token_expires: Date | null
+    account_status: string // 'active' | 'suspended' | 'deleted'
+    password_changed_at: Date | null
+    last_login_at: Date | null
+    login_count: number
+    location_country: string | null // ISO 3166-1 alpha-2
+    location_city: string | null
+    location_lat: number | null
+    location_lng: number | null
+    location_source: string | null // 'ip' | 'manual'
+    location_updated_at: Date | null
   }
   Films: {
     id: number // TMDB id
