@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import axios from "axios"
-import NavBar from "@/components/layout/NavBar"
+import NavBar from "@/components/layout/navbar/NavBar"
 import AuthBg from "@/components/layout/AuthBg"
 
 export const Route = createFileRoute("/reset-password")({

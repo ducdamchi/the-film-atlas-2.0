@@ -33,7 +33,7 @@ interface DirectorSearchResult {
 }
 
 /* Components */
-import NavBar from "./layout/NavBar"
+import NavBar from "./layout/navbar/NavBar"
 import SearchBar from "./layout/SearchBar"
 import TmdbDirectorGallery from "./directors/TmdbDirectorGallery"
 import UserDirectorGallery from "./directors/UserDirectorGallery"

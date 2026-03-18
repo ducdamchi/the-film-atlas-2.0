@@ -19,7 +19,7 @@ import { useDiscoverFilms } from "../hooks/useDiscoverFilms"
 import { useUserFilms } from "../hooks/useUserFilms"
 import { useBottomSheet } from "../hooks/useBottomSheet"
 
-import NavBar from "./layout/NavBar"
+import NavBar from "./layout/navbar/NavBar"
 import QuickSearchModal from "./layout/QuickSearchModal"
 import UserFilmGallery from "./films/UserFilmGallery"
 import TmdbFilmGallery from "./films/TmdbFilmGallery"

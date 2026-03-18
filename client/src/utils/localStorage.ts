@@ -15,3 +15,40 @@ export function getItem<T>(key: string): T | null {
     return null
   }
 }
+
+export const PERSISTED_STATE_KEYS = [
+  "accessToken",
+  "films-searchInput",
+  "films-isSearching",
+  "films-sortBy",
+  "films-sortDirection",
+  "films-numStars",
+  "films-queryString",
+  "films-scrollPosition",
+  "map-popupInfo",
+  "map-suggestedFilmList",
+  "map-sortBy",
+  "map-sortDirection",
+  "map-queryString",
+  "map-numStars",
+  "map-discoverBy",
+  "map-scrollPosition",
+  "map-ratingRange",
+  "map-tempRating",
+  "map-voteCountRange",
+  "map-tempVoteCount",
+  "directors-searchInput",
+  "directors-isSearching",
+  "directors-numStars",
+  "directors-sortBy",
+  "directors-sortDirection",
+  "directors-queryString",
+  "directors-scrollPosition",
+  "directorLanding-scrollPosition",
+  "navbar-menuOpened",
+  "navbar-settingsOpened",
+] as const;
+
+export function clearAllPersistedState(): void {
+  PERSISTED_STATE_KEYS.forEach((key) => localStorage.removeItem(key));
+}

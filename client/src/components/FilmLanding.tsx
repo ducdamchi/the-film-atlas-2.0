@@ -24,7 +24,7 @@ import type { TMDBFilm, TMDBCrewMember } from "@/types/tmdb"
 import type { OmdbResponse, WikidataAwardsResponse } from "@/types/api"
 
 /* Components */
-import NavBar from "./layout/NavBar"
+import NavBar from "./layout/navbar/NavBar"
 import LoadingPage from "./layout/LoadingPage"
 import QuickSearchModal from "./layout/QuickSearchModal"
 import InteractionConsole from "./film-interaction/InteractionConsole"
@@ -176,6 +176,8 @@ export default function FilmLanding() {
       const dateB = new Date(b.published_at)
       return dateB.getTime() - dateA.getTime()
     })
+
+    console.log("sortedTrailerLinks:", sortedTrailerLinks)
 
     setDirectors(directorsList)
     setCrew(listOfUniqueCrewMembers)
@@ -386,6 +388,7 @@ export default function FilmLanding() {
                 <div className="absolute w-full h-full border-0 border-red-500 top-0 left-0 flex items-center justify-center">
                   <button
                     onClick={() => {
+                      console.log("openTrailer:", openTrailer)
                       setOpenTrailer(true)
                     }}
                     className="flex items-center z-40 rounded-full p-3 pt-2 pb-2 drop-shadow-lg bg-white text-[var(--backdropColor)] hover:text-white hover:bg-[var(--backdropColor)] transition-all duration-300 ease-out"

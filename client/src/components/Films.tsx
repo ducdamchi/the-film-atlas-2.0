@@ -13,7 +13,7 @@ import type { TMDBFilmSummary } from "@/types/tmdb"
 import type { UserFilm } from "@/types/film"
 
 /* Components */
-import NavBar from "./layout/NavBar"
+import NavBar from "./layout/navbar/NavBar"
 import SearchBar from "./layout/SearchBar"
 import UserFilmGallery from "./films/UserFilmGallery"
 import TmdbFilmGallery from "./films/TmdbFilmGallery"

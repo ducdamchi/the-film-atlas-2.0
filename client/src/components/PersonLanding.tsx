@@ -13,7 +13,7 @@ import { usePersistedState } from "../hooks/usePersistedState"
 import type { TMDBPerson, TMDBFilmSummary } from "@/types/tmdb"
 
 /* Components */
-import NavBar from "./layout/NavBar"
+import NavBar from "./layout/navbar/NavBar"
 import LoadingPage from "./layout/LoadingPage"
 import QuickSearchModal from "./layout/QuickSearchModal"
 import TmdbFilmGallery from "./films/TmdbFilmGallery"

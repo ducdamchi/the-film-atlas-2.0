@@ -4,12 +4,12 @@ import axios from "axios"
 import "../styles.css"
 
 import { AuthContext } from "../utils/authContext"
-import NavBar from "../components/layout/NavBar"
+import NavBar from "../components/layout/navbar/NavBar"
 import Footer from "../components/layout/Footer"
 import LoadingPage from "../components/layout/LoadingPage"
 import ScrollToAnchor from "../hooks/scrollToAnchor"
-import { LocationBanner } from "../components/LocationBanner"
-import { CompleteProfileModal } from "../components/CompleteProfileModal"
+import { LocationBanner } from "../components/settings/LocationBanner"
+import { CompleteProfileModal } from "../components/settings/CompleteProfileModal"
 
 export const Route = createRootRoute({
   component: RootComponent,

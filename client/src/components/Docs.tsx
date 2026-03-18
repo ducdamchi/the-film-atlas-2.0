@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Link } from "@tanstack/react-router"
-import NavBar from "./layout/NavBar"
+import NavBar from "./layout/navbar/NavBar"
 import QuickSearchModal from "./layout/QuickSearchModal"
 import { GoSquareFill } from "react-icons/go"
 import { useAuth } from "../utils/authContext"
