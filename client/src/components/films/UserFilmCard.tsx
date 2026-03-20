@@ -35,6 +35,7 @@ export default function UserFilmCard({
 
   const hasFetchedRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isPosterHovered, setIsPosterHovered] = useState(false);
 
   const titleSpanRef = useMarquee(filmObject.title);
   const countrySpanRef = useMarquee(filmObject.origin_country);
@@ -46,10 +47,13 @@ export default function UserFilmCard({
 
   // Desktop: fetch film data on first hover (150ms debounce)
   const handlePosterHoverEnter = () => {
+    setIsPosterHovered(true);
     if (hasFetchedRef.current || window.innerWidth < 768) return;
+    console.log(`[UserFilmCard] hover enter — scheduling fetch for "${filmObject.title}" (1000ms debounce)`);
     debounceRef.current = setTimeout(async () => {
       if (hasFetchedRef.current) return;
       hasFetchedRef.current = true;
+      console.log(`[UserFilmCard] debounce elapsed — fetching TMDB data for id:${filmObject.id}`);
       try {
         setIsLoading(true);
         const result = await fetchFilmFromTMDB(filmObject.id);
@@ -58,18 +62,24 @@ export default function UserFilmCard({
         );
         setMovieDetails(result);
         setDirectors(directorsList);
+        const key = result.videos?.results.find(
+          (v) => v.site === "YouTube" && v.type === "Trailer",
+        )?.key ?? null;
+        console.log(`[UserFilmCard] fetch complete — trailerKey: ${key ?? "none (no trailer found)"}`);
       } catch (err) {
         console.error("Error loading film data: ", err);
       } finally {
         setIsLoading(false);
       }
-    }, 150);
+    }, 1000);
   };
 
   const handlePosterHoverLeave = () => {
+    setIsPosterHovered(false);
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
+      console.log(`[UserFilmCard] debounce cancelled — left before 150ms`);
     }
   };
 
@@ -165,6 +175,7 @@ export default function UserFilmCard({
           <PosterTrailerHover
             backdropPath={filmObject.backdrop_path}
             trailerKey={trailerKey}
+            startOnMount={isPosterHovered}
             onClick={() => navigate({ to: `/films/${filmObject.id}` })}
           />
         ) : (

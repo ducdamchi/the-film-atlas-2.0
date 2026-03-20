@@ -120,4 +120,72 @@ No change. The feature is desktop-only (≥768px). Mobile layout and data fetchi
 ## Decisions
 
 - **Audio**: Muted only. No unmute button for now.
-- **Hover debounce**: 150ms intent delay before triggering the fetch + dim sequence. If the user leaves before 150ms, nothing fires.
+- **Hover debounce**: 1000ms intent delay in `PosterTrailerHover` before dimming + playback starts. `UserFilmCard` fetch trigger also has 1000ms debounce (fires once).
+
+---
+
+## Phase 2: CardHoverOverlay Slide-Down
+
+### Goal
+
+On desktop hover, `CardHoverOverlay` slides down **below** the film card (below the poster + text section), covering adjacent lower cards if needed. The poster trailer and the slide-down overlay are triggered by the same hover event.
+
+### Affected Files
+
+- `client/src/components/films/UserFilmCard.tsx` — re-introduce overlay props, add `group` + `hover:z-50`
+- `client/src/components/film-interaction/CardHoverOverlay.tsx` — repositioned from `inset-0` to `top-full`, new animation, remove `hoverId` dependency
+- `client/src/styles.css` — add `overflow: visible` to `.filmGallery-grid` if needed
+
+### Visual Behavior
+
+1. User hovers the film card (any part: poster or text)
+2. The overlay immediately begins sliding in below the card (no debounce — it's just info)
+3. The trailer still waits its 1000ms debounce independently
+4. On hover-out: overlay slides back up and fades out
+
+The overlay does **not** cover the poster — it is a separate panel that extends below the card's bottom edge.
+
+### Layout & Z-index
+
+The gallery grid is `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`. By default CSS grid items share a flat stacking context. To make the hovered card's overlay appear on top of cards in the row below:
+
+- `UserFilmCard` wrapper: add `group` and `hover:z-50` — CSS grid respects `z-index` on items that have `position: relative` (already set)
+- The overlay: `absolute top-full left-0 w-full z-50` — positioned just below the card's bottom edge
+- `.filmGallery-grid`: confirm or add `overflow: visible` so the overlay isn't clipped
+
+### Animation
+
+| State | Classes |
+|---|---|
+| Default (hidden) | `opacity-0 -translate-y-2 pointer-events-none` |
+| Hovered (visible) | `opacity-100 translate-y-0 pointer-events-auto` |
+
+Transitions: `transition-all duration-200 ease-out` — fast enough to feel snappy, slow enough to read as intentional.
+
+Triggered via Tailwind `group` / `group-hover:` — no JS state needed for the overlay itself.
+
+### `CardHoverOverlay` Refactor
+
+**Old behaviour**: `absolute inset-0` — covered the poster with `bg-black/70`, visible only when `hoverId === filmObject.id`.
+
+**New behaviour**:
+- Positioned `absolute top-full left-0 w-full` — lives below the card
+- Background: dark panel (TBD — `bg-control` or a dedicated token, matching the card's design language)
+- Always rendered in the DOM; CSS `group-hover` controls visibility
+- `hoverId` prop removed — visibility is purely CSS-driven
+- Content unchanged: overview text + `InteractionConsole`
+
+### Data Flow
+
+`directors`, `movieDetails`, and `isLoading` are already fetched in `UserFilmCard` (same fetch as the trailer trigger). They are passed as props to `CardHoverOverlay` — same as before. On first hover, data may not be ready yet; the overlay shows a loading state or empty content gracefully.
+
+### What is NOT changing
+
+- `PosterTrailerHover` — untouched
+- Mobile layout — overlay is `hidden md:block`
+- The fetch trigger logic in `UserFilmCard`
+
+### Decisions
+
+- **Overlay background**: `bg-dark` for now — a distinct dark panel. UI redesign later.
+- **Overlay dimensions**: fixed, identical to the film card (`filmCard-width aspect-16/10`). Same width and height as the poster.
