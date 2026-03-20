@@ -271,7 +271,7 @@ export default function Directors() {
 
         {/* If user is searching, show list of search results */}
         {isSearching && (
-          <div className="mt-10 md:mt-20 flex flex-col items-center border-red-500 w-full relative">
+          <div className="mt-10 md:mt-20 flex flex-col items-center w-full relative">
             <div className="page-subtitle flex items-center justify-center">
               Search Results:
             </div>

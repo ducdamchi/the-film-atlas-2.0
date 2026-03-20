@@ -43,7 +43,7 @@ export default function FooterWithSocialLinks() {
   const navigate = useNavigate()
 
   return (
-    <footer className="relative w-full bg-black text-stone-200 p-10 font-primary z-100">
+    <footer className="relative w-full bg-void text-light p-10 font-primary z-100">
       <div className="mx-auto w-full max-w-7xl px-8">
         <div className="grid grid-cols-1 justify-between gap-4 md:grid-cols-2">
           <div className="mb-6 flex flex-col items-start">
@@ -61,7 +61,7 @@ export default function FooterWithSocialLinks() {
                   <li key={link.name}>
                     <div
                       onClick={() => navigate({ to: link.link })}
-                      className="py-1.5 font-normal transition-colors hover:text-blue-gray-900 cursor-pointer hover:underline">
+                      className="py-1.5 font-normal transition-colors hover:text-dark cursor-pointer hover:underline">
                       {link.name}
                     </div>
                   </li>
@@ -70,13 +70,13 @@ export default function FooterWithSocialLinks() {
             ))}
           </div>
         </div>
-        <div className="mt-12 flex w-full flex-col items-center justify-center border-t border-blue-gray-50 py-4 md:flex-row md:justify-between">
+        <div className="mt-12 flex w-full flex-col items-center justify-center border-t border-light/20 py-4 md:flex-row md:justify-between">
           <div
-            className="mb-4 text-center font-normal text-blue-gray-900 md:mb-0">
+            className="mb-4 text-center font-normal text-light md:mb-0">
             &copy; {currentYear}{" "}
             <a href="https://material-tailwind.com/">The Film Atlas</a>
           </div>
-          <div className="flex gap-4 text-blue-gray-900 sm:justify-center">
+          <div className="flex gap-4 text-light sm:justify-center">
             <a
               href="https://github.com/ducdamchi/the-film-atlas"
               target="_blank"

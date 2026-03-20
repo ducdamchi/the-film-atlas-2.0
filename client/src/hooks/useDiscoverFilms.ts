@@ -115,7 +115,10 @@ export function useDiscoverFilms({
             setPage((prevPage) => ({ ...prevPage, loadMore: false }))
           }
         }),
-      { threshold: 1 },
+      // rootMargin pre-fires 400px before the sentinel enters the viewport so
+      // the next page loads before the user visually reaches the bottom.
+      // threshold: 0 fires as soon as any part of the element crosses the margin.
+      { threshold: 0, rootMargin: "0px 0px 400px 0px" },
     )
     if (loadMoreTrigger.current) {
       observer.observe(loadMoreTrigger.current)

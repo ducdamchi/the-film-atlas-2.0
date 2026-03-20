@@ -1,22 +1,27 @@
-import { getItem, setItem } from "../utils/localStorage"
+import { setItem } from "../utils/localStorage"
 import { useEffect, useState } from "react"
 
 /**
  * A localStorage-backed useState that survives page refreshes.
  *
- * The generic parameter T describes the shape of the stored value.
- * Using getItem<T> and setItem<T> (both already typed in localStorage.ts)
- * means the compiler tracks the type through the full read/write cycle,
- * preventing silent JSON round-trip mismatches (e.g., storing a string key
- * and reading it back as a number).
+ * Reads directly from localStorage (not via getItem) so that a stored JSON
+ * `null` is correctly restored as `null` rather than being treated as "no
+ * stored value" and falling back to initialValue. getItem returns `null` for
+ * both cases (key absent AND key stored as JSON null), so it cannot
+ * distinguish between them.
  */
 export function usePersistedState<T>(
   key: string,
   initialValue: T,
 ): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [value, setValue] = useState<T>(() => {
-    const item = getItem<T>(key)
-    return item !== null ? item : initialValue
+    try {
+      const raw = window.localStorage.getItem(key)
+      if (raw === null) return initialValue   // key never stored
+      return JSON.parse(raw) as T             // includes null, false, 0, []
+    } catch {
+      return initialValue
+    }
   })
 
   useEffect(() => {

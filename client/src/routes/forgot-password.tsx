@@ -33,13 +33,13 @@ function ForgotPassword() {
       <div className="auth-formContainer">
         <div className="p-4 w-full">
           {submitted ? (
-            <div className="auth-form text-stone-300 text-sm text-center">
+            <div className="auth-form text-muted-dark text-sm text-center">
               <p>If that email is registered, a reset link is on its way.</p>
-              <p className="mt-2 text-stone-500">Check your inbox and spam folder.</p>
+              <p className="mt-2 text-muted-light">Check your inbox and spam folder.</p>
             </div>
           ) : (
             <form className="auth-form" onSubmit={handleSubmit}>
-              <p className="text-stone-400 text-sm mb-2">
+              <p className="text-muted-light text-sm mb-2">
                 Enter your email and we'll send you a reset link.
               </p>
               <input

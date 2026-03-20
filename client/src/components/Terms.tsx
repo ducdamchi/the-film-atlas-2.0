@@ -26,7 +26,7 @@ export default function Terms() {
 
         <div className="md:p-10 max-w-[40rem] md:text-lg md:max-w-[45rem] flex flex-col gap-0">
           <section className="p-5">
-            <div className="text-sm text-gray-500 mb-4">
+            <div className="text-sm text-muted-light mb-4">
               Last Updated: January 14, 2026
             </div>
             <div className="">
@@ -187,7 +187,7 @@ export default function Terms() {
                 Your privacy is important to us. Please review our separate{" "}
                 <span
                   onClick={() => navigate({ to: "/privacy" })}
-                  className="text-blue-800 cursor-pointer">
+                  className="text-hover-dark cursor-pointer">
                   Privacy Policy
                 </span>{" "}
                 for details on how we handle information. In short:
@@ -262,7 +262,7 @@ export default function Terms() {
                 via{" "}
                 <span
                   onClick={() => navigate({ to: "/contact" })}
-                  className="text-blue-800 cursor-pointer">
+                  className="text-hover-dark cursor-pointer">
                   this form
                 </span>
                 .

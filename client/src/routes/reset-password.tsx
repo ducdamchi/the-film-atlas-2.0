@@ -73,7 +73,7 @@ function ResetPassword() {
               onChange={(e) => setConfirm(e.target.value)}
               required
             />
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {error && <p className="text-error text-sm">{error}</p>}
             <button
               type="submit"
               disabled={loading || !password || !confirm}

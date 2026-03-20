@@ -43,8 +43,8 @@ export default function DiscoverControls({
       />
       <div className="toggleButton-whole">
         <div className="toggleButton-label">Filter</div>
-        <div className="flex flex-col items-center justify-center gap-6 p-6 rounded-3xl bg-gray-200 filterButton-container">
-          <div className="w-full flex flex-col items-center justify-center gap-2 uppercase font-semibold text-gray-600">
+        <div className="flex flex-col items-center justify-center gap-6 p-6 rounded-3xl bg-control filterButton-container">
+          <div className="w-full flex flex-col items-center justify-center gap-2 uppercase font-semibold text-label">
             <div>Average Rating &#x2265; {`${tempRatingRange[1]}`}</div>
             <CustomSlider
               width="15rem"
@@ -60,7 +60,7 @@ export default function DiscoverControls({
               rangeSlideDisabled={true}
             />
           </div>
-          <div className="w-full flex flex-col items-center justify-center gap-2 uppercase font-semibold text-gray-600">
+          <div className="w-full flex flex-col items-center justify-center gap-2 uppercase font-semibold text-label">
             <div>Vote Count &#x2265; {`${tempVoteCountRange[1]}`}</div>
             <CustomSlider
               width="15rem"

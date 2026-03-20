@@ -40,25 +40,25 @@ function LocationChangeModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/70">
-      <div className="bg-neutral-900 border border-neutral-700 rounded-xl p-6 w-full max-w-sm shadow-xl font-primary">
-        <h3 className="text-base font-semibold text-stone-200 mb-4">Change your region</h3>
+    <div className="fixed inset-0 z-[600] flex items-center justify-center bg-overlay/70">
+      <div className="bg-surface border border-control rounded-xl p-6 w-full max-w-sm shadow-xl font-primary">
+        <h3 className="text-base font-semibold text-body mb-4">Change your region</h3>
         <LocationPicker
           country={country}
           city={city}
           onCountryChange={setCountry}
           onCityChange={setCity}
         />
-        {error && <p className="text-red-400 text-sm mt-3">{error}</p>}
+        {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
         <div className="flex gap-2 mt-5">
           <button
-            className="flex-1 bg-stone-200 text-black rounded-lg py-2 text-sm font-medium disabled:opacity-40 cursor-pointer"
+            className="flex-1 bg-body text-on-dark rounded-lg py-2 text-sm font-medium disabled:opacity-40 cursor-pointer"
             onClick={handleSave}
             disabled={!country || !city || loading}>
             {loading ? "Saving..." : "Save"}
           </button>
           <button
-            className="flex-1 border border-stone-600 text-stone-300 rounded-lg py-2 text-sm cursor-pointer"
+            className="flex-1 border border-control text-subtle rounded-lg py-2 text-sm cursor-pointer"
             onClick={onClose}>
             Cancel
           </button>
@@ -88,17 +88,17 @@ export function LocationBanner() {
 
   return (
     <>
-      <div className="bg-neutral-900 border-b border-neutral-700 px-4 py-2 flex items-center gap-3 text-sm font-primary text-stone-300">
+      <div className="bg-surface border-b border-control px-4 py-2 flex items-center gap-3 text-sm font-primary text-subtle">
         <span>
-          Showing content from <strong className="text-stone-100">{countryName}</strong>. Not
+          Showing content from <strong className="text-body">{countryName}</strong>. Not
           right?
         </span>
         <button
           onClick={() => setPickerOpen(true)}
-          className="underline text-stone-200 cursor-pointer">
+          className="underline text-body cursor-pointer">
           Change region
         </button>
-        <button onClick={dismiss} className="ml-auto text-stone-500 cursor-pointer">
+        <button onClick={dismiss} className="ml-auto text-subtle cursor-pointer">
           ✕
         </button>
       </div>

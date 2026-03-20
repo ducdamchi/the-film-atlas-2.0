@@ -14,7 +14,10 @@ export function NavBarDesktopSection() {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (infoDropdownRef.current && !infoDropdownRef.current.contains(e.target as Node)) {
+      if (
+        infoDropdownRef.current &&
+        !infoDropdownRef.current.contains(e.target as Node)
+      ) {
         setInfoDropdownOpen(false);
       }
     };
@@ -57,7 +60,7 @@ export function NavBarDesktopSection() {
               />
             </button>
             <div
-              className={`absolute top-full left-0 mt-2 bg-black border border-stone-600 flex flex-col min-w-[8rem] z-500 overflow-hidden transition-all duration-200 ease-out ${infoDropdownOpen ? "max-h-40 opacity-100 p-3 gap-2" : "max-h-0 opacity-0 p-0 gap-0"}`}
+              className={`absolute top-full left-0 mt-2 bg-void border border-light/30 flex flex-col min-w-[8rem] z-500 overflow-hidden transition-all duration-200 ease-out ${infoDropdownOpen ? "max-h-40 opacity-100 p-3 gap-2" : "max-h-0 opacity-0 p-0 gap-0"}`}
             >
               {INFO_LINKS.map(({ to, label }) => (
                 <CustomLink
@@ -73,7 +76,7 @@ export function NavBarDesktopSection() {
           </div>
         </ul>
         <button
-          className="flex items-center justify-center gap-1 border-0 p-1 pl-2 pr-2 rounded-full bg-stone-200 text-gray-600 cursor-pointer"
+          className="flex items-center justify-center gap-1 border-0 p-1 px-2 rounded-full bg-elevated hover:bg-elevated/90 text-dark transition-all duration-200 ease-out"
           onClick={() => setSearchModalOpen(true)}
         >
           <BiSearchAlt2 />

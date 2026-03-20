@@ -53,16 +53,16 @@ export default function TmdbDirectorGallery({
                       navigate({ to: `/person/director/${directorObject.id}` })
                     }}
                   />
-                  <div className="border-red-500 absolute bottom-0 left-0 h-[10rem] md:h-[15rem] w-full bg-gradient-to-t from-black/90 to-transparent"></div>
-                  <div className=" border-green-500 absolute bottom-0 left-0 h-[10rem] md:h-[15rem] w-full flex flex-col items-center justify-end md:p-6 p-3 pb-4 md:pb-6 md:gap-1 gap-0 transition-all duration-200 ease-out group">
+                  <div className="absolute bottom-0 left-0 h-[10rem] md:h-[15rem] w-full bg-gradient-to-t from-black/90 to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 h-[10rem] md:h-[15rem] w-full flex flex-col items-center justify-end md:p-6 p-3 pb-4 md:pb-6 md:gap-1 gap-0 transition-all duration-200 ease-out group">
                     {directorObject.name.split(" ").map((word, key) => (
                       <div
                         key={key}
-                        className="w-full font-extrabold text-white uppercase text-xl md:text-3xl group/hover:text-blue-800">
+                        className="w-full font-extrabold text-light uppercase text-xl md:text-3xl group/hover:text-hover-light">
                         {word}
                       </div>
                     ))}
-                    <div className="w-full border-white text-white text-[11px] md:text-sm italic mt-1 text-left font-thin">
+                    <div className="w-full border-white text-light text-[11px] md:text-sm italic mt-1 text-left font-thin">
                       {directorObject.known_for.map((filmObject, key) => (
                         <span key={key}>
                           <span className="">

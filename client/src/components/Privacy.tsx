@@ -298,7 +298,7 @@ export default function Privacy() {
                     onClick={() => {
                       navigate({ to: "/contact" })
                     }}
-                    className="text-blue-800 cursor-pointer">
+                    className="text-hover-dark cursor-pointer">
                     this
                   </span>{" "}
                   form.

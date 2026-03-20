@@ -15,7 +15,7 @@ export default function TrailerModal({ trailerLink, closeModal }: TrailerModalPr
       <div className="fixed top-0 left-0 w-screen h-screen bg-black/60 flex items-center justify-center z-50">
         <div className="w-[90%] aspect-16/9 max-w-[30rem] md:max-w-[40rem] lg:max-w-[50rem] xl:lg:max-w-[60rem] 2xl:max-w-[70rem] flex flex-col items-center justify-center gap-2">
           <div
-            className="w-full flex justify-end text-white"
+            className="w-full flex justify-end text-light"
             onClick={closeModal}>
             <MdClose className="text-xl md:text-3xl xl:text-5xl" />
           </div>

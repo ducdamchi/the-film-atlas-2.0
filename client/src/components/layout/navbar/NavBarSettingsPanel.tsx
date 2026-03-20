@@ -44,33 +44,32 @@ export function NavBarSettingsPanel({
         <>
           <div>
             <div className="h-full flex items-center justify-center">
-              <span className="p-1 flex items-center justify-center font-light">
+              <span className="p-1 flex items-center justify-center font-extrabold text-sm lg:text-base">
                 {authState.username}
               </span>
             </div>
 
             {/* Settings slide panel */}
             <div
-              className="hidden absolute z-20 right-0 bg-black border-atlas-blue pl-5 pb-5 pt-2 transition-all ease-out duration-200 font-light justify-end items-center"
+              className="hidden absolute z-20 right-0 bg-void border-atlas-blue pl-5 pb-5 pt-2 transition-all ease-out duration-200 font-light justify-end items-center"
               style={{
                 top: `${navbarHeight}rem`,
                 width: settingsPanelWidth,
               }}
               ref={settingsRef}
             >
-              <ul className="flex flex-col text-right mr-5 md:mr-10 gap-0 uppercase w-full">
-                <div>
-                  <div className="border-b-1 p-3 flex flex-col items-end justify-center gap-1.5">
-                    <button className="uppercase" onClick={logOut}>
-                      log out
-                    </button>
-                  </div>
-                  <div className="p-3 flex flex-col items-end justify-center gap-1.5">
-                    <CustomLink to="/settings" onClick={() => setSettingsOpened(CLOSED)}>
-                      settings
-                    </CustomLink>
-                  </div>
-                </div>
+              <ul className="flex flex-col items-end justify-center text-sm lg:text-base mr-5 md:mr-10 gap-2 w-full">
+                <button className="" onClick={logOut}>
+                  Log Out
+                </button>
+
+                <CustomLink
+                  className=""
+                  to="/settings"
+                  onClick={() => setSettingsOpened(CLOSED)}
+                >
+                  Settings
+                </CustomLink>
               </ul>
             </div>
 
@@ -121,15 +120,15 @@ export function NavBarSettingsPanel({
         </>
       ) : (
         <>
-          <div className="h-full flex items-center justify-center">
-            <button className="border-primary-foreground border-1 text-primary-foreground p-2 rounded-none w-[5rem] hover:bg-primary/70 transition-all duration-200 ease-out">
+          {/* <div className="h-full flex items-center justify-center">
+            <button className="border-on-dark border-1 text-on-dark p-2 rounded-none w-[5rem] hover:bg-body/70 transition-all duration-200 ease-out">
               <CustomLink to="/register" highlight={false}>
                 Register
               </CustomLink>
             </button>
-          </div>
+          </div> */}
           <div className="h-full flex items-center justify-center">
-            <button className="bg-primary-foreground hover:bg-primary-foreground/90 transition-all duration-200 ease-out text-primary p-2 rounded-none w-[5rem]">
+            <button className="text-dark bg-elevated hover:bg-elevated/90 transition-all duration-200 ease-out text-body p-2 px-3 rounded-full w-[5rem]">
               <CustomLink to="/login" highlight={false}>
                 Login
               </CustomLink>

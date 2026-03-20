@@ -240,7 +240,7 @@ export default function Films() {
                   {
                     value: 3,
                     label: (
-                      <span className="text-2xl text-pink-600">
+                      <span className="text-2xl text-star">
                         &#10048;&#10048;&#10048;
                       </span>
                     ),
@@ -248,7 +248,7 @@ export default function Films() {
                   {
                     value: 2,
                     label: (
-                      <span className="text-2xl text-pink-600">
+                      <span className="text-2xl text-star">
                         &#10048;&#10048;
                       </span>
                     ),
@@ -256,7 +256,7 @@ export default function Films() {
                   {
                     value: 1,
                     label: (
-                      <span className="text-2xl text-pink-600">&#10048;</span>
+                      <span className="text-2xl text-star">&#10048;</span>
                     ),
                   },
                 ]}
@@ -286,7 +286,7 @@ export default function Films() {
 
         {/* If user is searching, show list of search results */}
         {isSearching && (
-          <div className="mt-10 md:mt-20 flex flex-col items-center border-red-500 w-full relative">
+          <div className="mt-10 md:mt-20 flex flex-col items-center w-full relative">
             <div className="page-subtitle flex items-center justify-center">
               Search Results:
             </div>

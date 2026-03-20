@@ -260,7 +260,7 @@ export default function PersonLanding() {
             background: `linear-gradient(to top, rgb(0, 0,0), transparent)`,
           }}></div>
         {job === "director" && (
-          <div className="absolute bottom-0 w-full flex items-center justify-center gap-2 text-stone-200 text-[12px] mb-4 xl:text-[16px] xl:mb-6">
+          <div className="absolute bottom-0 w-full flex items-center justify-center gap-2 text-light text-[12px] mb-4 xl:text-[16px] xl:mb-6">
             <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Watched: ${numWatched}`}</div>
             <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Starred: ${numStarred}`}</div>
             <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Avg. Stars: ${avgRating}`}</div>
@@ -270,7 +270,7 @@ export default function PersonLanding() {
       </div>
 
       {/* Text below backdrop */}
-      <div className="flex text-stone-900 bg-stone-100 landing-belowBackdropPadding">
+      <div className="flex text-dark bg-page landing-belowBackdropPadding">
         {person.biography && (
           <div className="flex flex-col items-start justify-start p-4 pt-2">
             <div className="landing-sectionTitle mb-1 ">Biography</div>
@@ -280,7 +280,7 @@ export default function PersonLanding() {
       </div>
 
       {/* Filmography */}
-      <div className=" w-screen flex flex-col items-center justify-start bg-stone-100">
+      <div className=" w-screen flex flex-col items-center justify-start bg-page">
         <div className="landing-sectionTitle self-start ml-4 md:ml-8 lg:ml-12 2xl:ml-20 pl-4">
           filmography
         </div>

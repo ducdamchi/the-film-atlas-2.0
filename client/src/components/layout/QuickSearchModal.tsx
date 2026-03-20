@@ -52,7 +52,7 @@ interface SearchResultItemProps {
 function SearchResultItem({ to, imageSrc, label, sublabel, linkText }: SearchResultItemProps) {
   return (
     <Link
-      className="search-result w-full h-[4rem] md:h-[5rem] flex justify-start items-center md:gap-1 gap-0 md:p-2 p-1 focus:bg-blue-600/80 hover:bg-stone-200/20 focus:outline-0 rounded-md"
+      className="search-result w-full h-[4rem] md:h-[5rem] flex justify-start items-center md:gap-1 gap-0 md:p-2 p-1 focus:bg-blue-600/80 hover:bg-light/20 focus:outline-0 rounded-md"
       to={to}>
       <div className="group/thumbnail relative max-h-[5rem] max-w-[8rem] aspect-16/10 h-full">
         <img
@@ -204,15 +204,15 @@ export default function QuickSearchModal({
   return (
     <div className="font-primary fixed top-[20%] left-0 w-screen h-auto z-500 flex justify-center">
       <div
-        className="relative w-[60%] h-auto min-w-[20rem] max-w-[32rem] bg-stone-900/80 text-stone-200 backdrop-blur-sm border-1 border-stone-500/80 rounded-md"
+        className="relative w-[60%] h-auto min-w-[20rem] max-w-[32rem] bg-void/80 text-light backdrop-blur-sm border-1 border-dark/50 rounded-md"
         ref={modalRef}>
         {/* Search bar */}
-        <div className="relative flex justify-start h-auto border-stone-500/80">
+        <div className="relative flex justify-start h-auto border-dark/50">
           <div className="relative w-full min-w-[10rem] h-[2.5rem] md:h-[3rem] xl:h-[3.5rem] p-2 flex items-center gap-3">
-            <BiSearchAlt2 className="border-white ml-1 text-lg md:text-xl" />
+            <BiSearchAlt2 className="border-light ml-1 text-lg md:text-xl" />
             <input
               ref={searchModalRef}
-              className="h-[4rem] w-full border-white focus:outline-0 input:bg-none text-base lg:text-lg"
+              className="h-[4rem] w-full border-light focus:outline-0 input:bg-none text-base lg:text-lg"
               type="text"
               name="search-bar"
               autoComplete="off"
@@ -235,7 +235,7 @@ export default function QuickSearchModal({
 
         {/* Results */}
         {isSearching && (
-          <div className="w-full text-white p-2 max-h-[60vh] overflow-y-auto" ref={resultsRef}>
+          <div className="w-full text-light p-2 max-h-[60vh] overflow-y-auto" ref={resultsRef}>
             {sectionOrder.map((section) => {
               if (section === "Films") return (
                 <SearchSection<TMDBFilmSummary>

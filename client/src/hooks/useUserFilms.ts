@@ -67,7 +67,7 @@ export function useUserFilms({
     }
 
     fetchFilmsByCountry()
-  }, [popupInfo, sortBy, sortDirection, numStars, queryString, authState.status])
+  }, [popupInfo, sortBy, sortDirection, numStars, queryString, authState.status, isDiscoverMode])
 
   return { userFilmList, isLoading }
 }

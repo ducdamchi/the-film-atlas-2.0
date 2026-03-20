@@ -4,62 +4,28 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-
   --color-atlas-blue: var(--color-atlas-blue);
   --color-atlas-green: var(--color-atlas-green);
   --color-atlas-pink: var(--color-atlas-pink);
   --color-liked: var(--color-liked);
   --color-saved: var(--color-saved);
   --color-star: var(--color-star);
-  --color-hover-accent: var(--color-hover-accent);
-  --color-hover-link: var(--color-hover-link);
+  --color-hover-light: var(--color-hover-light);
+  --color-hover-dark: var(--color-hover-dark);
 
-  --color-body: var(--color-text-dark);
-  --color-subtle: var(--color-text-muted);
-  --color-on-dark: var(--color-text-light);
-  --color-page: var(--color-bg-page);
-  --color-surface: var(--color-bg-elevated);
-  --color-control: var(--color-bg-control);
-  --color-overlay: var(--color-bg-dark);
+  --color-dark: var(--color-text-dark); /* text-dark, border-dark */
+  --color-muted: var(--color-text-muted); /* text-muted */
+  --color-light: var(--color-text-light); /* text-light */
+  --color-page: var(--color-bg-page); /* bg-page */
+  --color-elevated: var(--color-bg-elevated); /* bg-elevated */
+  --color-control: var(--color-bg-control); /* bg-control, border-control */
+  --color-void: var(--color-bg-dark); /* bg-void */
+
+  --color-muted-light: var(--color-text-muted-light); /* text-muted-light */
+  --color-muted-dark: var(--color-text-muted-dark); /* text-muted-dark */
+  --color-label: var(--color-text-control); /* text-label */
+  --color-error: var(--color-status-error); /* text-error, bg-error */
+  --color-success: var(--color-status-success); /* text-success, bg-success */
 }
 
 :root {
@@ -83,61 +49,37 @@
   --color-liked: oklch(44% 0.177 27);
   --color-saved: oklch(45% 0.119 151);
   --color-star: oklch(65% 0.241 354);
-  --color-hover-accent: oklch(71% 0.165 255);
-  --color-hover-link: oklch(39% 0.195 269);
+  --color-hover-light: oklch(71% 0.165 255);
+  --color-hover-dark: oklch(39% 0.195 269);
 
-  /* --- Text scale (3 stops) --- */
+  /* --- Text scale --- */
   --color-text-dark: oklch(18% 0.005 56);
-  --color-text-light: oklch(93% 0.003 49);
-  --color-text-muted: oklch(52% 0.006 56);
+  --color-text-light: oklch(93% 0.003 48);
+  /* --color-text-muted: oklch(52% 0.006 56); */
+  --color-text-muted-light: oklch(55.2% 0.016 285.938)
+  --color-text-muted-dark: oklch(70.5% 0.015 286.067)/* zinc-400 equivalent, over dark */
+  --color-text-control: oklch(
+    44.6% 0.03 256.802
+  ); /* gray-600 equivalent, controls/labels */
+
+  /* --- Status colors --- */
+  --color-status-error: oklch(55% 0.22 29); /* red-600 equivalent */
+  --color-status-success: oklch(55% 0.15 145); /* green-600 equivalent */
+
+  /* --- Rating service brand colors --- */
+  --color-rating-imdb: #f5c518;
+  --color-rating-rt: #fa320a;
+  --color-rating-mc: #1a4575;
+  --color-rating-awards: oklch(87% 0.2 132); /* lime-400 equivalent */
 
   /* --- Surface scale (4 stops: page < surface < control < void) --- */
   --color-bg-page: oklch(96% 0.003 48);
   --color-bg-elevated: oklch(100% 0 0);
-  --color-bg-control: oklch(90% 0 0);
+  --color-bg-control: oklch(92.8% 0.006 264.531);
   --color-bg-dark: oklch(0% 0 0);
 
   /* --- Slider component border (single-use structural token) --- */
   --slider-border: oklch(86% 0.007 269);
-
-  /* --- shadcn/ui semantic tokens ---
-     Wired directly to the brand surface and text scale above.
-     --secondary, --muted, and --accent were all identical (oklch 0.967) in the
-     original; they now share --color-bg-page via a single resolved value.
-     --card, --popover, and --background were all oklch(1 0 0); they now share
-     --color-bg-elevated. --sidebar-* tokens mirror the base tokens — no sidebar
-     component exists in this app so there's no benefit in diverging them. */
-  --background: var(--color-bg-elevated);
-  --foreground: var(--color-text-dark);
-  --card: var(--color-bg-elevated);
-  --card-foreground: var(--color-text-dark);
-  --popover: var(--color-bg-elevated);
-  --popover-foreground: var(--color-text-dark);
-  --primary: var(--color-text-dark);
-  --primary-foreground: var(--color-text-light);
-  --secondary: var(--color-bg-page);
-  --secondary-foreground: var(--color-text-dark);
-  --muted: var(--color-bg-page);
-  --muted-foreground: var(--color-text-muted);
-  --accent: var(--color-bg-page);
-  --accent-foreground: var(--color-text-dark);
-  --destructive: oklch(55% 0.245 27);
-  --border: var(--color-bg-control);
-  --input: var(--color-bg-control);
-  --ring: oklch(70% 0.015 286);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: var(--color-bg-elevated);
-  --sidebar-foreground: var(--color-text-dark);
-  --sidebar-primary: var(--color-text-dark);
-  --sidebar-primary-foreground: var(--color-text-light);
-  --sidebar-accent: var(--color-bg-page);
-  --sidebar-accent-foreground: var(--color-text-dark);
-  --sidebar-border: var(--color-bg-control);
-  --sidebar-ring: var(--ring);
 }
 
 .dark {
@@ -151,20 +93,14 @@
   --color-bg-page: oklch(14% 0.003 56);
   --color-bg-elevated: oklch(19% 0.003 56);
   --color-bg-control: oklch(27% 0.004 56);
-
-  /* --- shadcn/ui tokens inherit from above --- no values need repeating --- */
-  --destructive: oklch(70% 0.191 22);
-  --border: oklch(100% 0 0 / 10%);
-  --input: oklch(100% 0 0 / 15%);
-  --ring: oklch(55% 0.016 286);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-control;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-elevated text-dark;
   }
 }
 
@@ -204,7 +140,7 @@
   }
 
   .toggleButton-buttonsContainer {
-    @apply relative bg-gray-200 rounded-full w-[20rem] h-[2.5rem] text-sm lg:text-base lg:w-[25rem];
+    @apply relative bg-control rounded-full w-[20rem] h-[2.5rem] text-sm lg:text-base lg:w-[25rem];
   }
 
   .filterButton-container {
@@ -212,23 +148,23 @@
   }
 
   .toggleButton-bg {
-    @apply absolute h-full bg-white rounded-full shadow-md transition-all duration-400 ease-in-out;
+    @apply absolute h-full bg-elevated rounded-full shadow-md transition-all duration-400 ease-in-out;
   }
 
   .toggleButton-button {
-    @apply flex-1 text-center py-2 rounded-full transition-colors duration-300 z-10 flex items-center justify-center text-gray-600;
+    @apply flex-1 text-center py-2 rounded-full transition-colors duration-300 z-10 flex items-center justify-center text-label;
   }
 
   .toggleButton-buttonActive {
-    @apply text-gray-950 font-semibold;
+    @apply text-dark font-semibold;
   }
 
   .auth-whole {
-    @apply flex flex-col items-center w-screen h-screen overflow-hidden bg-black;
+    @apply flex flex-col items-center w-screen h-screen overflow-hidden bg-void;
   }
 
   .auth-svgContainer {
-    @apply fixed z-0 top-0 h-screen bg-black overflow-hidden flex flex-row gap-0 scale-200;
+    @apply fixed z-0 top-0 h-screen bg-void overflow-hidden flex flex-row gap-0 scale-200;
   }
 
   .auth-svg {
@@ -236,7 +172,7 @@
   }
 
   .auth-formContainer {
-    @apply mt-35 z-100 bg-white text-gray-900 border-atlas-blue border-5 w-auto min-w-[20rem] relative md:p-5 rounded-md;
+    @apply mt-35 z-100 bg-elevated text-dark border-atlas-blue border-5 w-auto min-w-[20rem] relative md:p-5 rounded-none;
   }
 
   .auth-form {
@@ -244,15 +180,15 @@
   }
 
   .auth-formField {
-    @apply border-1 p-2 pl-3 w-[18rem] border-gray-300 rounded-md;
+    @apply border-1 p-2 pl-3 w-[18rem] border-control rounded-none;
   }
 
   .auth-formSubmitButton {
-    @apply w-[18rem] p-2 text-stone-900 font-light border-1 border-black hover:text-white hover:bg-black transition-all ease-out duration-300 rounded-md;
+    @apply w-[18rem] p-2 text-stone-900 font-light border-1 border-dark hover:text-light hover:bg-void transition-all ease-out duration-300 rounded-none;
   }
 
   .auth-formErrorMessage {
-    @apply text-red-500 self-start ml-2;
+    @apply text-error self-start ml-2;
   }
 
   .console-button {
@@ -260,7 +196,7 @@
   }
 
   .landing-main-img-container {
-    @apply overflow-hidden relative text-stone-200;
+    @apply overflow-hidden relative text-light;
   }
 
   .landing-main-img {
@@ -304,7 +240,7 @@
   }
 
   .landing-sectionTitle {
-    @apply uppercase font-extralight text-[12px] text-stone-900 lg:text-base;
+    @apply uppercase font-extralight text-[12px] text-dark lg:text-base;
   }
 
   .landing-sectionContent {
@@ -312,7 +248,7 @@
   }
 
   .landing-ratingsTitle {
-    @apply text-base lg:text-lg uppercase text-stone-900 font-semibold;
+    @apply text-base lg:text-lg uppercase text-dark font-semibold;
   }
 
   .filmGallery-grid {
@@ -344,11 +280,11 @@
   }
 
   .docs-menu-heading {
-    @apply hover:text-hover-link uppercase font-extralight text-sm md:text-base;
+    @apply hover:text-hover-dark uppercase font-extralight text-sm md:text-base;
   }
 
   .docs-menu-content {
-    @apply flex flex-col pl-4 justify-center items-start gap-1 border-l-1 border-stone-900/30;
+    @apply flex flex-col pl-4 justify-center items-start gap-1 border-l-1 border-dark/30;
   }
 
   .console-card,
@@ -360,7 +296,7 @@
   }
 
   .console-card {
-    --console-text: black;
+    --console-text: var(--color-text-dark);
     --console-font-size: 13px;
     --console-like-size: 1.1rem;
     --console-save-size: 1.5rem;
@@ -375,7 +311,7 @@
   }
 
   .console-overlay-sm {
-    --console-text: white;
+    --console-text: var(--color-text-light);
     --console-font-size: 12px;
     --console-like-size: 1rem;
     --console-save-size: 1.4rem;
@@ -386,11 +322,11 @@
     --console-padding-tb: 6px;
     --console-padding-lr: 10px;
     --console-button-height: 1.7rem;
-    --console-hover-text: var(--color-hover-accent);
+    --console-hover-text: var(--color-hover-light);
   }
 
   .console-overlay-lg {
-    --console-text: white;
+    --console-text: var(--color-text-light);
     --console-font-size: 14px;
     --console-like-size: 1rem;
     --console-save-size: 1.4rem;
@@ -401,7 +337,7 @@
     --console-padding-tb: 16px;
     --console-padding-lr: 16px;
     --console-button-height: 2.2rem;
-    --console-hover-text: var(--color-hover-accent);
+    --console-hover-text: var(--color-hover-light);
   }
 
   .console-landing-sm {
@@ -416,7 +352,7 @@
     --console-padding-tb: 0;
     --console-padding-lr: 10px;
     --console-button-height: 2.5rem;
-    --console-hover-text: var(--color-hover-accent);
+    --console-hover-text: var(--color-hover-light);
   }
 
   .console-landing-lg {
@@ -431,7 +367,7 @@
     --console-padding-tb: 10px;
     --console-padding-lr: 15px;
     --console-button-height: 3rem;
-    --console-hover-text: var(--color-hover-accent);
+    --console-hover-text: var(--color-hover-light);
   }
 }
 
@@ -482,7 +418,7 @@
   width: 1.5rem;
   height: 1.5rem;
   border: 1px solid var(--slider-border);
-  background: rgb(255, 255, 255);
+  background: var(--color-bg-elevated);
   filter: drop-shadow(-1px 3px 3px rgba(0, 0, 0, 0.3));
 }
 
@@ -497,13 +433,13 @@
 }
 
 .swal2-html-container {
-  color: black;
+  color: var(--color-text-dark);
   font-size: clamp(0.8rem, calc(1.5vw + 0.4rem), 1rem);
   text-align: left;
 }
 
 .swal2-title {
-  color: black;
+  color: var(--color-text-dark);
   font-size: clamp(1.3rem, calc(1.5vw + 0.4rem), 1.4rem);
   text-align: left;
 }
@@ -524,14 +460,14 @@
   transition: 200ms ease-in-out;
   border: 1px solid black !important;
   border-radius: 0;
-  background-color: white;
+  background-color: var(--color-bg-elevated);
   padding: 0.4rem;
   width: 5rem;
-  color: black;
+  color: var(--color-text-dark);
   font-size: clamp(0.8rem, calc(1.5vw + 0.4rem), 1rem);
 }
 
 .swal2-confirm:hover {
-  background-color: black;
-  color: white;
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-light);
 }

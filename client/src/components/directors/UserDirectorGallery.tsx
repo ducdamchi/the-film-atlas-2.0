@@ -73,7 +73,7 @@ export default function UserDirectorGallery({
             targetKey = String(hs)
             if (hs === 3) {
               groupName = (
-                <div className=" text-3xl text-pink-600 flex flex-col items-center justify-center">
+                <div className=" text-3xl text-star flex flex-col items-center justify-center">
                   <div className="">&#10048;</div>
                   <div className="flex gap-2">
                     <div>&#10048;</div>
@@ -83,14 +83,14 @@ export default function UserDirectorGallery({
               )
             } else if (hs === 2) {
               groupName = (
-                <div className=" text-3xl text-pink-600">&#10048;&#10048;</div>
+                <div className=" text-3xl text-star">&#10048;&#10048;</div>
               )
             } else if (hs === 1) {
               groupName = (
-                <div className=" text-3xl text-pink-600">&#10048;</div>
+                <div className=" text-3xl text-star">&#10048;</div>
               )
             } else {
-              groupName = <div className=" text-3xl text-black">&#10048;</div>
+              groupName = <div className=" text-3xl text-dark">&#10048;</div>
             }
             break
           }
@@ -183,7 +183,7 @@ export default function UserDirectorGallery({
                         }
                       />
                       {hoverId === key && (
-                        <div className="absolute w-full text-[12px] w-full h-full bg-black/60 text-white p-1 flex flex-col justify-center items-center md:gap-2">
+                        <div className="absolute w-full text-[12px] w-full h-full bg-black/60 text-light p-1 flex flex-col justify-center items-center md:gap-2">
                           <span>
                             {`Watched: ${groupObject.WatchedDirectors.num_watched_films}`}
                           </span>

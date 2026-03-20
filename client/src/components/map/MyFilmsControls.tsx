@@ -79,7 +79,7 @@ export default function MyFilmsControls({
             {
               value: 3,
               label: (
-                <span className="text-2xl text-pink-600">
+                <span className="text-2xl text-star">
                   &#10048;&#10048;&#10048;
                 </span>
               ),
@@ -87,13 +87,13 @@ export default function MyFilmsControls({
             {
               value: 2,
               label: (
-                <span className="text-2xl text-pink-600">&#10048;&#10048;</span>
+                <span className="text-2xl text-star">&#10048;&#10048;</span>
               ),
             },
             {
               value: 1,
               label: (
-                <span className="text-2xl text-pink-600">&#10048;</span>
+                <span className="text-2xl text-star">&#10048;</span>
               ),
             },
           ]}

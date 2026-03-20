@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import {
   Map,
   Popup,
@@ -49,8 +49,21 @@ type SortDirection = "asc" | "desc"
 
 type BrowseMode = "discover" | "my_films"
 
+function checkWebGLSupport(): boolean {
+  try {
+    const canvas = document.createElement("canvas")
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+    )
+  } catch {
+    return false
+  }
+}
+
 export default function MapPage() {
   const { authState, searchModalOpen, setSearchModalOpen } = useAuth()
+  const [webglSupported] = useState(() => checkWebGLSupport())
 
   useCommandKey(() => setSearchModalOpen((s) => !s), "k")
 
@@ -59,10 +72,12 @@ export default function MapPage() {
     "map-queryString",
     "discover",
   )
-  const [isDiscoverMode, setIsDiscoverMode] = usePersistedState<boolean>(
-    "map-isDiscoverMode",
-    false,
-  )
+  const [lastMyFilmsQueryString, setLastMyFilmsQueryString] =
+    usePersistedState<MapFilmQueryString>(
+      "map-lastMyFilmsQueryString",
+      "watched/by_country",
+    )
+  const isDiscoverMode = queryString === "discover"
   const [sortBy, setSortBy] = usePersistedState<SortBy>(
     "map-sortBy",
     "added_date",
@@ -80,10 +95,10 @@ export default function MapPage() {
     0,
   )
 
-  /* Switch discover mode on/off based on queryString */
+  /* Side-effects when queryString changes */
   useEffect(() => {
-    setIsDiscoverMode(queryString === "discover")
     if (queryString !== "watched/rated/by_country") setNumStars(null)
+    if (queryString !== "discover") setLastMyFilmsQueryString(queryString)
   }, [queryString])
 
   /* Hooks */
@@ -190,56 +205,87 @@ export default function MapPage() {
       <div
         ref={mapContainerRef}
         className="w-screen h-[40rem] xl:h-[55rem] max-h-[90vh] relative border-[0.3rem] border-[#b8d5e5]">
-        <Map
-          ref={mapRef as React.Ref<unknown> as React.RefObject<null>}
-          onLoad={onMapLoad as unknown as (event: { target: unknown }) => void}
-          onClick={onMapClick as unknown as (event: unknown) => void}
-          mapboxAccessToken={MAPTILER_API_KEY}
-          initialViewState={{ latitude: 25, longitude: 150, zoom: 1.2 }}
-          mapStyle={MAPTILER_STYLE_URL}>
-          <NavigationControl
-            position="top-right"
-            showCompass={false}
-            showZoom={true}
-            visualizePitch={true}
-          />
-          <MapCountriesLayer firstSymbolId={firstSymbolId ?? undefined} />
-          {popupInfo && (
-            <Popup
-              longitude={popupInfo.longitude}
-              latitude={popupInfo.latitude}
-              anchor="bottom"
-              closeOnClick={false}
-              onClose={() => setPopupInfo(null)}>
-              <div className="flex flex-col items-center justify-center hover:text-hover-link cursor-pointer">
-                {popupInfo.custom_name !== undefined && (
-                  <span className="font-bold">{popupInfo.custom_name}</span>
-                )}
-                {popupInfo.custom_name === undefined && (
-                  <span className="font-bold">{popupInfo.country_name}</span>
-                )}
-                <span>
-                  <span className="font-bold">
-                    {`${popupInfo.num_watched_films}`}&nbsp;
+        {webglSupported ? (
+          <Map
+            ref={mapRef as React.Ref<unknown> as React.RefObject<null>}
+            onLoad={onMapLoad as unknown as (event: { target: unknown }) => void}
+            onClick={onMapClick as unknown as (event: unknown) => void}
+            mapboxAccessToken={MAPTILER_API_KEY}
+            initialViewState={{ latitude: 25, longitude: 150, zoom: 1.2 }}
+            mapStyle={MAPTILER_STYLE_URL}>
+            <NavigationControl
+              position="top-right"
+              showCompass={false}
+              showZoom={true}
+              visualizePitch={true}
+            />
+            <MapCountriesLayer firstSymbolId={firstSymbolId ?? undefined} />
+            {popupInfo && (
+              <Popup
+                longitude={popupInfo.longitude}
+                latitude={popupInfo.latitude}
+                anchor="bottom"
+                closeOnClick={false}
+                onClose={() => setPopupInfo(null)}>
+                <div className="flex flex-col items-center justify-center hover:text-hover-link cursor-pointer">
+                  {popupInfo.custom_name !== undefined && (
+                    <span className="font-bold">{popupInfo.custom_name}</span>
+                  )}
+                  {popupInfo.custom_name === undefined && (
+                    <span className="font-bold">{popupInfo.country_name}</span>
+                  )}
+                  <span>
+                    <span className="font-bold">
+                      {`${popupInfo.num_watched_films}`}&nbsp;
+                    </span>
+                    <span>watched films</span>
                   </span>
-                  <span>watched films</span>
-                </span>
-              </div>
-            </Popup>
-          )}
-        </Map>
+                </div>
+              </Popup>
+            )}
+          </Map>
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-[#e8f1f7] px-6 text-center">
+            <div className="text-4xl">🗺️</div>
+            <p className="text-lg font-semibold text-[#2c4a5e]">
+              Map unavailable — graphics acceleration is disabled
+            </p>
+            <p className="text-sm text-[#4a6a80] max-w-md">
+              The interactive map requires WebGL, which needs hardware
+              acceleration to be enabled in your browser.
+            </p>
+            <div className="text-sm text-[#4a6a80] max-w-md text-left bg-white/60 rounded-xl p-4 space-y-2">
+              <p className="font-semibold text-[#2c4a5e]">How to enable it:</p>
+              <p>
+                <span className="font-medium">Chrome / Edge:</span> Settings →
+                System → turn on{" "}
+                <em>Use graphics acceleration when available</em>, then relaunch
+                the browser.
+              </p>
+              <p>
+                <span className="font-medium">Firefox:</span> Settings →
+                General → Performance → check{" "}
+                <em>Use hardware acceleration when available</em>, then relaunch.
+              </p>
+              <p>
+                <span className="font-medium">Safari:</span> Develop menu →
+                Experimental Features → ensure WebGL is enabled.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Below map panel */}
       <div
-        className="relative flex flex-col items-center w-full bg-white z-90 min-h-[40rem] xl:min-h-[55rem] rounded-t-4xl shadow-[25px_-8px_30px_rgba(0,0,0,0.15)] [clip-path:inset(-100%_-100%_0_-100%)]"
+        className="relative flex flex-col items-center w-full bg-elevated z-90 min-h-[40rem] xl:min-h-[55rem] rounded-t-4xl shadow-[25px_-8px_30px_rgba(0,0,0,0.15)] [clip-path:inset(-100%_-100%_0_-100%)]"
         ref={belowMapRef}>
         {/* Drag handle */}
         <div
-          className="w-full flex flex-col items-center cursor-ns-resize touch-none select-none rounded-t-4xl hover:bg-gray-100 transition-colors ease-out duration-200 py-2 mb-2"
+          className="w-full flex flex-col items-center cursor-ns-resize touch-none select-none rounded-t-4xl hover:bg-control/70 transition-colors ease-out duration-200 py-2 mb-2"
           onClick={handleDragAreaClick}
           onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}>
-          <FaGripLines className="text-2xl text-gray-300" />
+          <FaGripLines className="text-2xl text-light/40" />
         </div>
 
         {popupInfo &&
@@ -265,7 +311,7 @@ export default function MapPage() {
             value={isDiscoverMode ? "discover" : "my_films"}
             onChange={(val) => {
               if (val === "discover") setQueryString("discover")
-              else setQueryString("watched/by_country")
+              else setQueryString(lastMyFilmsQueryString)
             }}
             options={[
               { value: "discover", label: "Discover" },
@@ -314,20 +360,26 @@ export default function MapPage() {
             Log in and like a film to start!
           </div>
         )}
-        {isDiscoverMode && suggestedFilmList && (
+        {/* Discover gallery — only rendered when there are results */}
+        {isDiscoverMode && suggestedFilmList.length > 0 && (
           <TmdbFilmGallery
             listOfFilmObjects={suggestedFilmList}
             setPage={setPage}
           />
         )}
 
-        {isDiscoverMode && page.hasMore && (
-          <div
-            ref={loadMoreTrigger}
-            className="w-full h-[10rem] flex items-center justify-center mb-0 mt-[10rem]"
-          />
+        {/* No results message — mutually exclusive with the gallery and end message */}
+        {isDiscoverMode && !isLoading && suggestedFilmList.length === 0 && (
+          <div className="mt-10 mb-20 text-sm md:text-base">No films found.</div>
         )}
-        {isDiscoverMode && !page.hasMore && (
+
+        {/* Load-more sentinel — 1px tall; rootMargin in the observer pre-fires 400px early */}
+        {isDiscoverMode && suggestedFilmList.length > 0 && page.hasMore && (
+          <div ref={loadMoreTrigger} className="w-full h-px mt-20" />
+        )}
+
+        {/* End-of-results message — only shown when there were films to display */}
+        {isDiscoverMode && suggestedFilmList.length > 0 && !page.hasMore && (
           <div className="w-full flex items-center justify-center m-10 text-base text-black">
             You've reached the end!
           </div>

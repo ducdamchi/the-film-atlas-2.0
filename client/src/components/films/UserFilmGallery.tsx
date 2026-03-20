@@ -116,10 +116,10 @@ export default function UserFilmGallery({
                   {groupObject.groupName}
                 </div>
                 <div className="filmGallery-grid">
-                  {groupObject.films.map((filmObject, filmKey) => (
+                  {groupObject.films.map((filmObject) => (
                     /* Each film item */
                     <UserFilmCard
-                      key={filmKey}
+                      key={filmObject.id}
                       filmObject={filmObject}
                       queryString={queryString}
                     />

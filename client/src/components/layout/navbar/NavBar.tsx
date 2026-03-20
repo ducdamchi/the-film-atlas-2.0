@@ -75,7 +75,7 @@ export default function NavBar() {
 
   return (
     <div
-      className="fixed top-0 left-0 font-primary flex items-center justify-between w-screen p-0 md:p-3 md:pl-[2rem] md:pr-[2rem] bg-black text-stone-200 border-atlas-blue z-400"
+      className="fixed top-0 left-0 font-primary flex items-center justify-between w-screen p-0 md:p-3 md:pl-[2rem] md:pr-[2rem] bg-void text-light border-atlas-blue z-400"
       style={{ height: `${navbarHeight}rem` }}
     >
       {/* LEFT SIDE */}

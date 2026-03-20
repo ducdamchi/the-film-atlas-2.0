@@ -32,7 +32,7 @@ export default function PersonList({ title, listOfPeople, type }: PersonListProp
           return (
             <div
               key={key}
-              className="relative w-[6.4rem] lg:w-[8rem] 2xl:w-[10rem] aspect-2/3 flex flex-col mb-1 bg-white rounded-none">
+              className="relative w-[6.4rem] lg:w-[8rem] 2xl:w-[10rem] aspect-2/3 flex flex-col mb-1 bg-elevated rounded-none">
               <div className="w-full h-[70%] aspect-square overflow-hidden z-10">
                 <img
                   className="object-cover grayscale w-full transform hover:scale-[1.05] transition-all duration-300 ease-out drop-shadow-2xl rounded-t-none transform -translate-y-2"
@@ -43,7 +43,7 @@ export default function PersonList({ title, listOfPeople, type }: PersonListProp
                   }
                 />
               </div>
-              <div className="font-bold h-auto w-full flex flex-col items-start justify-start text-sm lg:text-base text-center text-left text-stone-900 p-2 z-20 inline-block wrap-anywhere">
+              <div className="font-bold h-auto w-full flex flex-col items-start justify-start text-sm lg:text-base text-center text-left text-dark p-2 z-20 inline-block wrap-anywhere">
                 {person.jobs?.includes("Director") && (
                   <div
                     className="uppercase w-full hover:text-hover-link"

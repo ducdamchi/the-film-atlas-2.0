@@ -41,21 +41,21 @@ export function CompleteProfileModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 font-primary">
-      <div className="bg-neutral-900 border border-neutral-700 rounded-2xl p-8 w-full max-w-md shadow-xl">
-        <h2 className="text-xl font-semibold text-stone-100 mb-2">One quick update</h2>
-        <p className="text-stone-400 text-sm mb-6">
+    <div className="fixed inset-0 z-[500] flex items-center justify-center bg-overlay/80 font-primary">
+      <div className="bg-surface border border-control rounded-2xl p-8 w-full max-w-md shadow-xl">
+        <h2 className="text-xl font-semibold text-body mb-2">One quick update</h2>
+        <p className="text-subtle text-sm mb-6">
           We've upgraded Film Atlas. Please add your email and region to keep your account secure
           and see content from your part of the world.
         </p>
 
         <div className="flex flex-col gap-1 mb-4">
-          <label className="text-sm font-medium text-stone-300">
-            Email <span className="text-red-400">*</span>
+          <label className="text-sm font-medium text-subtle">
+            Email <span className="text-red-600">*</span>
           </label>
           <input
             type="email"
-            className="auth-formField bg-white"
+            className="auth-formField bg-surface"
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -69,10 +69,10 @@ export function CompleteProfileModal() {
           onCityChange={setCity}
         />
 
-        {error && <p className="text-red-400 text-sm mt-3">{error}</p>}
+        {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
 
         <button
-          className="mt-6 w-full bg-stone-200 text-black rounded-lg py-2.5 text-sm font-medium disabled:opacity-40 cursor-pointer"
+          className="mt-6 w-full bg-body text-on-dark rounded-lg py-2.5 text-sm font-medium disabled:opacity-40 cursor-pointer"
           onClick={handleSubmit}
           disabled={!email || !country || !city || loading}>
           {loading ? "Saving..." : "Save and continue"}

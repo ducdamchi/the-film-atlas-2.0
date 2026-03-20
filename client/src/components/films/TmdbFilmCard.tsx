@@ -53,11 +53,12 @@ export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps
   return (
     <div
       id={`film-card-${filmObject.id}`}
-      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center md:items-start gap-0 bg-gray-200 text-black relative"
+      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center md:items-start gap-0 bg-control text-dark relative"
       onMouseEnter={() => setHoverId(filmObject.id)}
       onMouseLeave={() => setHoverId(null)}>
       {/* Poster */}
-      <div className="group/thumbnail overflow-hidden relative">
+      <div
+        className="group/thumbnail overflow-hidden relative">
         <img
           id={`thumbnail-${filmObject.id}`}
           className="filmCard-width aspect-16/10 object-cover transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03]"
@@ -90,7 +91,7 @@ export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps
 
       {/* FIRST LINE: TITLE, YEAR, RATING, VOTE COUNT */}
       <div
-        className={`md:absolute md:bottom-0 md:left-0 md:z-0 w-full p-2 pb-0 flex justify-between gap-2 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-stone-100 text-base lg:pb-4 lg:text-lg 2xl:text-xl 2xl:pb-5 md:transition-opacity md:duration-200 ${hoverId ? "md:opacity-0 md:pointer-events-none" : ""}`}>
+        className={`md:absolute md:bottom-0 md:left-0 md:z-0 w-full p-2 pb-0 flex justify-between gap-2 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-light text-base lg:pb-4 lg:text-lg 2xl:text-xl 2xl:pb-5 md:transition-opacity md:duration-200 ${hoverId ? "md:opacity-0 md:pointer-events-none" : ""}`}>
         {/* Left side - Title, year */}
         <div className="flex flex-row items-center gap-1 ml-1 min-w-0">
           <div className="overflow-hidden min-w-0 flex-1">
@@ -129,7 +130,7 @@ export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps
       {/* SECOND LINE: OVERVIEW, CONSOLE */}
       <div className="md:hidden mt-1 pb-4 w-full">
         {/* OVERVIEW */}
-        <div className="p-0 pr-3 pl-3 mb-4 w-full text-[13px] italic truncate">
+        <div className="p-0 pr-3 pl-3 mb-4 w-full text-[13px] italic line-clamp-2">
           {filmObject.overview}
         </div>
 

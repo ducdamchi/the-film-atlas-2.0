@@ -32,7 +32,7 @@ export default function TripleStarRating({ officialRating, setRequestedRating }:
             onMouseLeave={() => setStarHover(0)}
             onClick={() => setRequestedRating(1)}>
             {starHover >= 1 || (officialRating ?? 0) >= 1 ? (
-              <span className="text-pink-600">&#10048;</span>
+              <span className="text-star">&#10048;</span>
             ) : (
               <span>&#10048;</span>
             )}
@@ -42,7 +42,7 @@ export default function TripleStarRating({ officialRating, setRequestedRating }:
             onMouseLeave={() => setStarHover(0)}
             onClick={() => setRequestedRating(2)}>
             {starHover >= 2 || (officialRating ?? 0) >= 2 ? (
-              <span className="text-pink-600">&#10048;</span>
+              <span className="text-star">&#10048;</span>
             ) : (
               <span>&#10048;</span>
             )}
@@ -52,7 +52,7 @@ export default function TripleStarRating({ officialRating, setRequestedRating }:
             onMouseLeave={() => setStarHover(0)}
             onClick={() => setRequestedRating(3)}>
             {starHover === 3 || (officialRating ?? 0) >= 3 ? (
-              <span className="text-pink-600">&#10048;</span>
+              <span className="text-star">&#10048;</span>
             ) : (
               <span>&#10048;</span>
             )}
@@ -64,7 +64,7 @@ export default function TripleStarRating({ officialRating, setRequestedRating }:
             officialRating !== null && (
               <button
                 onClick={() => setRequestedRating(0)}
-                className="hover:text-[var(--console-hover-text)] transition-all duration-200 ease-out text-pink-600"
+                className="hover:text-[var(--console-hover-text)] transition-all duration-200 ease-out text-star"
                 style={{ fontSize: "var(--console-font-size)" }}>
                 Unrate
               </button>
