@@ -31,7 +31,7 @@ import type { StarRating, FilmInteractionRequest, FilmRateRequest, DirectorRef }
  * The five variants that drive CSS custom property styling via .console-{variant}.
  * Adding the union here means passing an invalid string like "hover" is a compile error.
  */
-type ConsoleVariant = "card" | "overlay-sm" | "overlay-lg" | "landing-sm" | "landing-lg"
+type ConsoleVariant = "card" | "overlay-sm" | "overlay-lg" | "overlay-panel" | "overlay-panel-sm" | "landing-sm" | "landing-lg"
 
 export interface InteractionConsoleProps {
   tmdbId: number | null | undefined

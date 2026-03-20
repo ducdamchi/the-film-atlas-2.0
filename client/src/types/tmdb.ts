@@ -21,6 +21,12 @@
 // Shared primitives
 // ---------------------------------------------------------------------------
 
+export interface TMDBSpokenLanguage {
+  iso_639_1: string
+  english_name: string
+  name: string
+}
+
 /**
  * A single entry from the `videos.results` array appended when
  * `append_to_response=videos` is used.
@@ -89,9 +95,12 @@ export interface TMDBCredits {
 export interface TMDBFilm {
   id: number
   title: string
+  original_title: string
   overview: string
   release_date: string          // "YYYY-MM-DD"
   runtime: number | null
+  original_language: string     // ISO 639-1 code, e.g. "fr" | "ko"
+  spoken_languages: TMDBSpokenLanguage[]
   poster_path: string | null
   backdrop_path: string | null
   origin_country: string[]      // ISO 3166-1 alpha-2 codes, e.g. ["IR", "FR"]

@@ -192,7 +192,7 @@
   }
 
   .console-button {
-    @apply flex items-center gap-1 border-1 rounded-full max-h-[2.5rem] backdrop-blur-2xl;
+    @apply flex items-center gap-1 border-1 border-current rounded-full max-h-[2.5rem] backdrop-blur-2xl;
   }
 
   .landing-main-img-container {
@@ -290,6 +290,8 @@
   .console-card,
   .console-overlay-sm,
   .console-overlay-lg,
+  .console-overlay-panel,
+  .console-overlay-panel-sm,
   .console-landing-sm,
   .console-landing-lg {
     --console-hover-bg: none;
@@ -338,6 +340,38 @@
     --console-padding-lr: 16px;
     --console-button-height: 2.2rem;
     --console-hover-text: var(--color-hover-light);
+  }
+
+  /* Same sizing as overlay-sm but dark text/border — used in the slide-down panel at <1024px */
+  .console-overlay-panel-sm {
+    --console-text: var(--color-text-dark);
+    --console-font-size: 12px;
+    --console-like-size: 1rem;
+    --console-save-size: 1.4rem;
+    --console-star-size: 1.2rem;
+    --console-gap: 4px;
+    --console-height: 1.4rem;
+    --console-button-padding: 4px;
+    --console-padding-tb: 6px;
+    --console-padding-lr: 10px;
+    --console-button-height: 1.7rem;
+    --console-hover-text: var(--color-hover-dark);
+  }
+
+  /* Same sizing as overlay-lg but dark text/border — used in the slide-down panel */
+  .console-overlay-panel {
+    --console-text: var(--color-text-dark);
+    --console-font-size: 14px;
+    --console-like-size: 1rem;
+    --console-save-size: 1.4rem;
+    --console-star-size: 1.3rem;
+    --console-gap: 4px;
+    --console-height: 1.4rem;
+    --console-button-padding: 4px;
+    --console-padding-tb: 16px;
+    --console-padding-lr: 16px;
+    --console-button-height: 2.2rem;
+    --console-hover-text: var(--color-hover-dark);
   }
 
   .console-landing-sm {

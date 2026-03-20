@@ -10,6 +10,15 @@ export function getCountryName(code: string): string | undefined {
   return undefined
 }
 
+/* Converts ISO 639-1 language codes into full language name */
+export function getLanguageName(code: string): string | undefined {
+  if (Intl && Intl.DisplayNames) {
+    const languageNames = new Intl.DisplayNames(["en"], { type: "language" })
+    return languageNames.of(code)
+  }
+  return undefined
+}
+
 /* Converts full date of format yyyy-mm-dd to yyyy only */
 export function getReleaseYear(release_date: string): number | "N/A" {
   const date = new Date(release_date)

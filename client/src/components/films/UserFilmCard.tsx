@@ -11,6 +11,7 @@ import { fetchFilmFromTMDB } from "@/utils/apiCalls";
 import { useMarquee } from "@/hooks/useMarquee";
 
 import InteractionConsole from "../film-interaction/InteractionConsole";
+import CardHoverOverlay from "../film-interaction/CardHoverOverlay";
 import PosterTrailerHover from "./PosterTrailerHover";
 
 import type { UserFilm } from "@/types/film";
@@ -49,11 +50,15 @@ export default function UserFilmCard({
   const handlePosterHoverEnter = () => {
     setIsPosterHovered(true);
     if (hasFetchedRef.current || window.innerWidth < 768) return;
-    console.log(`[UserFilmCard] hover enter — scheduling fetch for "${filmObject.title}" (1000ms debounce)`);
+    console.log(
+      `[UserFilmCard] hover enter — scheduling fetch for "${filmObject.title}" (1000ms debounce)`,
+    );
     debounceRef.current = setTimeout(async () => {
       if (hasFetchedRef.current) return;
       hasFetchedRef.current = true;
-      console.log(`[UserFilmCard] debounce elapsed — fetching TMDB data for id:${filmObject.id}`);
+      console.log(
+        `[UserFilmCard] debounce elapsed — fetching TMDB data for id:${filmObject.id}`,
+      );
       try {
         setIsLoading(true);
         const result = await fetchFilmFromTMDB(filmObject.id);
@@ -62,10 +67,13 @@ export default function UserFilmCard({
         );
         setMovieDetails(result);
         setDirectors(directorsList);
-        const key = result.videos?.results.find(
-          (v) => v.site === "YouTube" && v.type === "Trailer",
-        )?.key ?? null;
-        console.log(`[UserFilmCard] fetch complete — trailerKey: ${key ?? "none (no trailer found)"}`);
+        const key =
+          result.videos?.results.find(
+            (v) => v.site === "YouTube" && v.type === "Trailer",
+          )?.key ?? null;
+        console.log(
+          `[UserFilmCard] fetch complete — trailerKey: ${key ?? "none (no trailer found)"}`,
+        );
       } catch (err) {
         console.error("Error loading film data: ", err);
       } finally {
@@ -152,7 +160,7 @@ export default function UserFilmCard({
         const clampedC = Math.min(C, 0.14);
 
         if (filmCard) {
-          filmCard.style.backgroundColor = `oklch(${clampedL} ${clampedC} ${H} / 0.55)`;
+          filmCard.style.borderColor = `oklch(${clampedL} ${clampedC} ${H} / 0.55)`;
         }
       } catch (err) {
         console.log(err);
@@ -163,7 +171,7 @@ export default function UserFilmCard({
   return (
     <div
       id={`film-card-${filmObject.id}`}
-      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center gap-0 bg-control text-dark rounded-none pt-0 relative"
+      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center gap-0 text-dark rounded-none pt-0 relative group hover:z-50 transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-2xl border-1 md:border-0"
     >
       {/* Poster — desktop: trailer hover when available, else plain img */}
       <div
@@ -192,6 +200,18 @@ export default function UserFilmCard({
           />
         )}
       </div>
+
+      {/* Slide-down overlay — desktop only, appears below the card on hover */}
+      <CardHoverOverlay
+        hoverId={null}
+        filmObject={filmObject}
+        directors={directors}
+        movieDetails={movieDetails}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+        showOverview={true}
+        slideDown={true}
+      />
 
       {/* Text below poster */}
       <div className="md:absolute md:bottom-0 md:left-0 md:z-0 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-light w-full pt-1 pb-1 flex justify-between gap-2 p-2">

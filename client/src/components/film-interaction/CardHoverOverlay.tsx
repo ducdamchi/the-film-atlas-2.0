@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import InteractionConsole from "./InteractionConsole";
-import type { TMDBFilmSummary, TMDBFilm, TMDBCrewMember } from "@/types/tmdb";
+import type {
+  TMDBFilmSummary,
+  TMDBFilm,
+  TMDBCrewMember,
+  TMDBSpokenLanguage,
+} from "@/types/tmdb";
 import type { UserFilm } from "@/types/film";
 import type { DiscoverPageState } from "@/types/map";
+import { IoIosTimer, IoMdCalendar } from "react-icons/io";
+import { IoLanguageSharp } from "react-icons/io5";
 
 function useOverlayVariant(): "overlay-sm" | "overlay-lg" {
   const [isLg, setIsLg] = useState(
@@ -29,6 +36,9 @@ interface CardHoverOverlayProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   showOverview: boolean;
   setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>;
+  /** When true: renders as a slide-down panel below the card (Phase 2 behavior).
+   *  Visibility is CSS group-hover driven — hoverId is ignored. */
+  slideDown?: boolean;
 }
 
 export default function CardHoverOverlay({
@@ -40,6 +50,7 @@ export default function CardHoverOverlay({
   setIsLoading,
   showOverview,
   setPage,
+  slideDown = false,
 }: CardHoverOverlayProps) {
   const navigate = useNavigate();
   const isHovered = hoverId === filmObject.id;
@@ -51,6 +62,55 @@ export default function CardHoverOverlay({
     if (setPage) setPage((prevPage) => ({ ...prevPage, loadMore: false }));
   };
 
+  useEffect(() => {
+    console.log("TMDB details:", details);
+  }, [details]);
+
+  // Phase 2: slide-down panel below the card, CSS group-hover driven
+  if (slideDown) {
+    return (
+      <div className="hidden md:block absolute top-full left-0 filmCard-width bg-elevated text-dark z-50 opacity-0 -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 ease-out">
+        <div
+          className="w-full p-5 pt-4 flex flex-col items-start gap-2"
+          onClick={handleNavigate}
+        >
+          <div className="py-3">
+            <InteractionConsole
+              tmdbId={filmObject.id}
+              directors={directors}
+              movieDetails={movieDetails}
+              isLoading={isLoading}
+              setIsLoading={setIsLoading}
+              variant={overlayVariant === "overlay-lg" ? "overlay-panel" : "overlay-panel-sm"}
+              showOverview={false}
+            />
+          </div>
+          {details?.original_language !== "en" && (
+            <span className="text-sm font-bold">{details?.original_title}</span>
+          )}
+          <span className="text-sm font-light line-clamp-4">
+            {details?.overview || (filmObject as TMDBFilmSummary).overview}
+          </span>
+          <span className="flex items-center gap-3 w-full min-w-0 text-sm font-light">
+            <span className="flex items-center gap-1 shrink-0">
+              <IoIosTimer className="text-lg" />
+              <span>{details?.runtime} min</span>
+            </span>
+            <span className="flex items-center gap-1 min-w-0">
+              <IoLanguageSharp className="text-lg shrink-0" />
+              <span className="truncate">
+                {details?.spoken_languages
+                  ?.map((l: TMDBSpokenLanguage) => l.english_name)
+                  .join(", ")}
+              </span>
+            </span>
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Original behavior: inset overlay on top of the poster (used by TmdbFilmCard)
   return (
     <div
       className={`hidden md:flex absolute inset-0 items-center justify-center z-10 ${!isHovered ? "pointer-events-none" : ""}`}
