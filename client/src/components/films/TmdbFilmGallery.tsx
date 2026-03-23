@@ -18,10 +18,9 @@ export default function TmdbFilmGallery({ listOfFilmObjects, setPage }: FilmTMDB
       {listOfFilmObjects && listOfFilmObjects.length > 0 && (
         <div className="flex flex-col justify-center gap-0 mt-5 mb-20">
           <div className="filmGallery-grid">
-            {listOfFilmObjects.map((filmObject, key) => (
-              /* Each film item */
+            {listOfFilmObjects.map((filmObject) => (
               <TmdbFilmCard
-                key={key}
+                key={filmObject.id}
                 filmObject={filmObject}
                 setPage={setPage}
               />

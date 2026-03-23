@@ -1,3 +1,5 @@
+import { getColorSync } from "colorthief";
+
 /* Converts ISO_A2 country codes into full country name */
 export function getCountryName(code: string): string | undefined {
   // Check if the Intl.DisplayNames API is supported
@@ -167,6 +169,49 @@ export function darkenColorToOklch([r, g, b]: [number, number, number], maxL = 0
     return Math.round((c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055) * 255)
   }
   return [toSRGB(rLin), toSRGB(gLin), toSRGB(bLin)]
+}
+
+export async function extractBorderColor(backdropPath: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    const proxyUrl = `${import.meta.env.VITE_API_URL}/proxy/image?url=${encodeURIComponent(`https://image.tmdb.org/t/p/w500${backdropPath}`)}`;
+    img.src = proxyUrl;
+
+    img.onload = () => {
+      try {
+        const color = getColorSync(img);
+        if (!color) { resolve(null); return; }
+        const [r, g, b] = color.array();
+
+        const lin = (c: number) => {
+          const n = c / 255;
+          return n <= 0.04045 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4);
+        };
+        const rl = lin(r), gl = lin(g), bl = lin(b);
+        const X = 0.4124 * rl + 0.3576 * gl + 0.1805 * bl;
+        const Y = 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
+        const Z = 0.0193 * rl + 0.1192 * gl + 0.9505 * bl;
+        const lms_l = Math.cbrt(0.8189330101 * X + 0.3618667424 * Y - 0.1288597137 * Z);
+        const lms_m = Math.cbrt(-0.0329845436 * X + 0.9293118715 * Y + 0.0361456387 * Z);
+        const lms_s = Math.cbrt(0.0482003018 * X + 0.2643662691 * Y + 0.633851707 * Z);
+        const L = 0.2104542553 * lms_l + 0.793617785 * lms_m - 0.0040720468 * lms_s;
+        const a = 1.9779984951 * lms_l - 2.428592205 * lms_m + 0.4505937099 * lms_s;
+        const bLab = 0.0259040371 * lms_l + 0.4072969751 * lms_m - 0.4332046721 * lms_s;
+        const C = Math.sqrt(a * a + bLab * bLab);
+        const H = Math.atan2(bLab, a) * (180 / Math.PI);
+
+        const clampedL = Math.max(0.52, Math.min(0.68, L));
+        const clampedC = Math.min(C, 0.14);
+
+        resolve(`oklch(${clampedL} ${clampedC} ${H} / 0.55)`);
+      } catch {
+        resolve(null);
+      }
+    };
+
+    img.onerror = () => resolve(null);
+  });
 }
 
 // Convert RGB to relative luminance

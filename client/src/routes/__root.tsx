@@ -76,11 +76,8 @@ function RootComponent() {
       <ScrollToAnchor />
       <NavBar />
       <LocationBanner />
-      {authState.status && !authState.email ? (
-        <CompleteProfileModal />
-      ) : (
-        <Outlet />
-      )}
+      <Outlet />
+      {authState.status && !authState.email && <CompleteProfileModal />}
       <Footer />
     </AuthContext.Provider>
   )

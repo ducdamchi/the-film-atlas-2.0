@@ -31,6 +31,9 @@
 :root {
   --radius: 0.625rem;
 
+  --skeleton-base: oklch(88% 0 0);
+  --skeleton-peak: oklch(94% 0 0);
+
   --font-primary: "Outfit", "Optima", "Helvetica", sans-serif;
   --font-logo: "Rammetto One", "Optima", "Helvetica", sans-serif;
 
@@ -46,43 +49,44 @@
   /* --- Interaction state colors ---
      Semantic, not decorative. Each has one job. --color-star is the canonical
      value; components must reference the token rather than the raw oklch literal. */
-  --color-liked: oklch(44% 0.177 27);
-  --color-saved: oklch(45% 0.119 151);
-  --color-star: oklch(65% 0.241 354);
-  --color-hover-light: oklch(71% 0.165 255);
-  --color-hover-dark: oklch(39% 0.195 269);
+  --color-liked: oklch(44% 0.177 27); /* *-liked */
+  --color-saved: oklch(45% 0.119 151); /* *-saved */
+  --color-star: oklch(65% 0.241 354); /* *-star */
+  --color-hover-light: oklch(71% 0.165 255); /* *-hover-light */
+  --color-hover-dark: oklch(39% 0.195 269); /* *-hover-dark */
 
   /* --- Text scale --- */
-  --color-text-dark: oklch(18% 0.005 56);
-  --color-text-light: oklch(93% 0.003 48);
+  --color-text-dark: oklch(18% 0.005 56); /* *-dark */
+  --color-text-light: oklch(93% 0.003 48); /* *-light */
   /* --color-text-muted: oklch(52% 0.006 56); */
-  --color-text-muted-light: oklch(55.2% 0.016 285.938)
-  --color-text-muted-dark: oklch(70.5% 0.015 286.067)/* zinc-400 equivalent, over dark */
-  --color-text-control: oklch(
-    44.6% 0.03 256.802
-  ); /* gray-600 equivalent, controls/labels */
+  --color-text-muted-light: oklch(55.2% 0.016 285.938) /* *-muted-light */
+    --color-text-muted-dark: oklch(70.5% 0.015 286.067) /* *-muted-dark */
+    --color-text-control: oklch(44.6% 0.03 256.802); /* *-label */
 
   /* --- Status colors --- */
-  --color-status-error: oklch(55% 0.22 29); /* red-600 equivalent */
-  --color-status-success: oklch(55% 0.15 145); /* green-600 equivalent */
+  --color-status-error: oklch(55% 0.22 29); /* *-error */
+  --color-status-success: oklch(55% 0.15 145); /* *-success */
 
-  /* --- Rating service brand colors --- */
-  --color-rating-imdb: #f5c518;
-  --color-rating-rt: #fa320a;
-  --color-rating-mc: #1a4575;
-  --color-rating-awards: oklch(87% 0.2 132); /* lime-400 equivalent */
+  /* --- Rating service brand colors (not Tailwind tokens — use var()) --- */
+  --color-rating-imdb: #f5c518; /* var(--color-rating-imdb) */
+  --color-rating-rt: #fa320a; /* var(--color-rating-rt) */
+  --color-rating-mc: #1a4575; /* var(--color-rating-mc) */
+  --color-rating-awards: oklch(87% 0.2 132); /* var(--color-rating-awards) */
 
   /* --- Surface scale (4 stops: page < surface < control < void) --- */
-  --color-bg-page: oklch(96% 0.003 48);
-  --color-bg-elevated: oklch(100% 0 0);
-  --color-bg-control: oklch(92.8% 0.006 264.531);
-  --color-bg-dark: oklch(0% 0 0);
+  --color-bg-page: oklch(96% 0.003 48); /* *-page */
+  --color-bg-elevated: oklch(100% 0 0); /* *-elevated */
+  --color-bg-control: oklch(92.8% 0.006 264.531); /* *-control */
+  --color-bg-dark: oklch(0% 0 0); /* *-void */
 
-  /* --- Slider component border (single-use structural token) --- */
-  --slider-border: oklch(86% 0.007 269);
+  /* --- Slider component border (not a Tailwind token — use var()) --- */
+  --slider-border: oklch(86% 0.007 269); /* var(--slider-border) */
 }
 
 .dark {
+  --skeleton-base: oklch(25% 0 0);
+  --skeleton-peak: oklch(33% 0 0);
+
   /* --- Dark mode surface scale ---
      Warm-neutral dark (hue 56) keeps the cinematic feel rather than the cold
      blue-grey that shadcn defaults ship with. Three stops give enough hierarchy
@@ -309,7 +313,7 @@
     --console-padding-tb: 0;
     --console-padding-lr: 10px;
     --console-button-height: 2rem;
-    --console-hover-text: transparent;
+    --console-hover-text: var(--color-hover-dark);
   }
 
   .console-overlay-sm {
@@ -402,6 +406,15 @@
     --console-padding-lr: 15px;
     --console-button-height: 3rem;
     --console-hover-text: var(--color-hover-light);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
   }
 }
 

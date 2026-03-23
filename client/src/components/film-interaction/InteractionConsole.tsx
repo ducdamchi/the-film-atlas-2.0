@@ -61,6 +61,7 @@ export default function InteractionConsole({
   const [isSaved, setIsSaved] = useState(false)
   const [officialRating, setOfficialRating] = useState<StarRating | null>(null) //0 for liked but unrated; 1, 2, 3 for corresponding stars; null when film unliked
   const [requestedRating, setRequestedRating] = useState<StarRating | -1>(-1) //-1 when neutral (no requests), 0 for unrated; 1, 2, 3 for stars.
+  const [isStatusLoading, setIsStatusLoading] = useState(false)
 
   const { authState, loading } = useAuth()
   const navigate = useNavigate()
@@ -224,7 +225,7 @@ export default function InteractionConsole({
   useEffect(() => {
     const fetchPageData = async () => {
       if (authState.status && tmdbId) {
-        setIsLoading(true)
+        setIsStatusLoading(true)
         try {
           const likeResult = await checkLikeStatus(tmdbId)
           const saveResult = await checkSaveStatus(tmdbId)
@@ -244,7 +245,7 @@ export default function InteractionConsole({
         } catch (err) {
           console.error("Error loading film data: ", err)
         } finally {
-          setIsLoading(false)
+          setIsStatusLoading(false)
         }
       }
     }
@@ -252,10 +253,11 @@ export default function InteractionConsole({
   }, [tmdbId])
 
   const details = movieDetails as TMDBFilm
+  const showText = variant !== "card"
 
   return (
     <>
-      {!isLoading && (
+      {!isStatusLoading && (
         <div
           className={`console-${variant} flex flex-col z-30 items-center justify-center gap-0`}
           style={{ color: "var(--console-text)" }}>
@@ -287,13 +289,15 @@ export default function InteractionConsole({
               onClick={handleLike}>
               {isLiked ? (
                 <div
-                  className="console-button"
+                  className={showText ? "console-button" : "console-button aspect-square rounded-full justify-center"}
                   style={{
                     backgroundColor: "var(--color-liked)",
                     borderColor: "var(--color-liked)",
-                    padding:
-                      "var(--console-padding-tb) var(--console-padding-lr)",
+                    padding: showText
+                      ? "var(--console-padding-tb) var(--console-padding-lr)"
+                      : undefined,
                     height: "var(--console-button-height)",
+                    width: showText ? undefined : "var(--console-button-height)",
                   }}>
                   <BiSolidHeart
                     style={{
@@ -301,26 +305,32 @@ export default function InteractionConsole({
                       fontSize: "var(--console-like-size)",
                     }}
                   />
-                  <span
-                    style={{
-                      color: "white",
-                      fontSize: "var(--console-font-size)",
-                    }}>
-                    Watched
-                  </span>
+                  {showText && (
+                    <span
+                      style={{
+                        color: "white",
+                        fontSize: "var(--console-font-size)",
+                      }}>
+                      Watched
+                    </span>
+                  )}
                 </div>
               ) : (
                 <div
-                  className="console-button"
+                  className={showText ? "console-button" : "console-button aspect-square rounded-full justify-center"}
                   style={{
-                    padding:
-                      "var(--console-padding-tb) var(--console-padding-lr)",
+                    padding: showText
+                      ? "var(--console-padding-tb) var(--console-padding-lr)"
+                      : undefined,
                     height: "var(--console-button-height)",
+                    width: showText ? undefined : "var(--console-button-height)",
                   }}>
                   <BiHeart style={{ fontSize: "var(--console-like-size)" }} />
-                  <span style={{ fontSize: "var(--console-font-size)" }}>
-                    Watched
-                  </span>
+                  {showText && (
+                    <span style={{ fontSize: "var(--console-font-size)" }}>
+                      Watched
+                    </span>
+                  )}
                 </div>
               )}
             </button>
@@ -334,42 +344,50 @@ export default function InteractionConsole({
               onClick={handleSave}>
               {isSaved ? (
                 <div
-                  className="console-button"
+                  className={showText ? "console-button" : "console-button aspect-square rounded-full justify-center"}
                   style={{
                     backgroundColor: "var(--color-saved)",
                     borderColor: "var(--color-saved)",
-                    padding:
-                      "var(--console-padding-tb) var(--console-padding-lr)",
+                    padding: showText
+                      ? "var(--console-padding-tb) var(--console-padding-lr)"
+                      : undefined,
                     height: "var(--console-button-height)",
+                    width: showText ? undefined : "var(--console-button-height)",
                   }}>
                   <BiListCheck
                     style={{
                       color: "white",
-                      fontSize: "var(--console-save-size)",
+                      fontSize: showText ? "var(--console-save-size)" : "var(--console-like-size)",
                     }}
                   />
-                  <span
-                    style={{
-                      color: "white",
-                      fontSize: "var(--console-font-size)",
-                    }}>
-                    Watchlist
-                  </span>
+                  {showText && (
+                    <span
+                      style={{
+                        color: "white",
+                        fontSize: "var(--console-font-size)",
+                      }}>
+                      Watchlist
+                    </span>
+                  )}
                 </div>
               ) : (
                 <div
-                  className="console-button"
+                  className={showText ? "console-button" : "console-button aspect-square rounded-full justify-center"}
                   style={{
-                    padding:
-                      "var(--console-padding-tb) var(--console-padding-lr)",
+                    padding: showText
+                      ? "var(--console-padding-tb) var(--console-padding-lr)"
+                      : undefined,
                     height: "var(--console-button-height)",
+                    width: showText ? undefined : "var(--console-button-height)",
                   }}>
                   <BiListPlus
-                    style={{ fontSize: "var(--console-save-size)" }}
+                    style={{ fontSize: showText ? "var(--console-save-size)" : "var(--console-like-size)" }}
                   />
-                  <span style={{ fontSize: "var(--console-font-size)" }}>
-                    Watchlist
-                  </span>
+                  {showText && (
+                    <span style={{ fontSize: "var(--console-font-size)" }}>
+                      Watchlist
+                    </span>
+                  )}
                 </div>
               )}
             </button>
@@ -377,6 +395,7 @@ export default function InteractionConsole({
             <TripleStarRating
               officialRating={officialRating}
               setRequestedRating={setRequestedRating}
+              showText={showText}
             />
           </div>
         </div>

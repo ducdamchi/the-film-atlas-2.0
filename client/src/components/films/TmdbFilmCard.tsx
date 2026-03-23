@@ -1,109 +1,109 @@
-import { useEffect, useState } from "react"
-import { useNavigate } from "@tanstack/react-router"
+import { useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
-import { getReleaseYear } from "@/utils/helperFunctions"
-import { fetchFilmFromTMDB } from "@/utils/apiCalls"
-import { useMarquee } from "@/hooks/useMarquee"
+import { getReleaseYear, extractBorderColor } from "@/utils/helperFunctions";
+import { useMarquee } from "@/hooks/useMarquee";
+import { useFilmCardFetch } from "@/hooks/useFilmCardFetch";
 
-import InteractionConsole from "../film-interaction/InteractionConsole"
-import CardHoverOverlay from "../film-interaction/CardHoverOverlay"
-import { MdStars } from "react-icons/md"
-import { MdPeople } from "react-icons/md"
+import InteractionConsole from "../film-interaction/InteractionConsole";
+import CardHoverOverlay from "../film-interaction/CardHoverOverlay";
+import FilmCardPoster from "./FilmCardPoster";
+import { MdStars, MdPeople } from "react-icons/md";
 
-import type { TMDBFilmSummary, TMDBFilm, TMDBCrewMember } from "@/types/tmdb"
-import type { DiscoverPageState } from "@/types/map"
+import type { TMDBFilmSummary, TMDBFilm } from "@/types/tmdb";
+import type { DiscoverPageState } from "@/types/map";
 
 interface FilmTMDB_CardProps {
-  filmObject: TMDBFilmSummary
+  filmObject: TMDBFilmSummary;
   /** Optional — only needed on pages that use pagination (MapPage). */
-  setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>
+  setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>;
 }
 
 export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps) {
-  const imgBaseUrl = "https://image.tmdb.org/t/p/original"
-  const navigate = useNavigate()
-  const [hoverId, setHoverId] = useState<number | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [movieDetails, setMovieDetails] = useState<TMDBFilm | Record<string, never>>({})
-  const [directors, setDirectors] = useState<TMDBCrewMember[]>([])
+  const navigate = useNavigate();
 
-  const titleSpanRef = useMarquee(filmObject.title)
+  const {
+    isLoading,
+    setIsLoading,
+    fetchError,
+    movieDetails,
+    directors,
+    isPosterHovered,
+    setIsPosterHovered,
+    handleCardHoverEnter,
+    handleCardHoverLeave,
+  } = useFilmCardFetch(filmObject.id);
 
-  /* Fetch TMDB details for each film card that shows up on screen */
+  const titleSpanRef = useMarquee(filmObject.title);
+
+  const trailerKey =
+    (movieDetails as TMDBFilm).videos?.results.find(
+      (v) => v.site === "YouTube" && v.type === "Trailer",
+    )?.key ?? null;
+
+  // Mobile: dynamic border color from backdrop
   useEffect(() => {
-    const fetchPageData = async () => {
-      try {
-        setIsLoading(true)
-        const result = await fetchFilmFromTMDB(filmObject.id)
-        const directorsList = result.credits.crew.filter(
-          (crewMember) => crewMember.job === "Director",
-        )
-        setMovieDetails(result)
-        setDirectors(directorsList)
-      } catch (err) {
-        console.error("Error loading film data: ", err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+    if (window.innerWidth >= 768) return;
+    if (!filmObject.backdrop_path) return;
 
-    fetchPageData()
-  }, [])
+    const filmCard = document.getElementById(`film-card-${filmObject.id}`);
+    extractBorderColor(filmObject.backdrop_path).then((color) => {
+      if (color && filmCard) {
+        filmCard.style.borderColor = color;
+      }
+    });
+  }, []);
 
   return (
     <div
       id={`film-card-${filmObject.id}`}
-      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center md:items-start gap-0 bg-control text-dark relative"
-      onMouseEnter={() => setHoverId(filmObject.id)}
-      onMouseLeave={() => setHoverId(null)}>
+      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center gap-0 text-dark rounded-none pt-0 relative group hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-2xl border-1 md:border-0"
+      onMouseEnter={handleCardHoverEnter}
+      onMouseLeave={handleCardHoverLeave}
+    >
       {/* Poster */}
-      <div
-        className="group/thumbnail overflow-hidden relative">
-        <img
-          id={`thumbnail-${filmObject.id}`}
-          className="filmCard-width aspect-16/10 object-cover transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03]"
-          src={
-            filmObject.backdrop_path !== null
-              ? `${imgBaseUrl}${filmObject.backdrop_path}`
-              : `backdropnotfound.jpg`
-          }
-          alt=""
-          onClick={() => {
-            navigate({ to: `/films/${filmObject.id}` })
-            setPage?.((prevPage) => ({ ...prevPage, loadMore: false }))
-          }}
-        />
-      </div>
+      <FilmCardPoster
+        backdropPath={filmObject.backdrop_path}
+        filmId={filmObject.id}
+        trailerKey={trailerKey}
+        isPosterHovered={isPosterHovered}
+        onPosterHoverEnter={() => setIsPosterHovered(true)}
+        onPosterHoverLeave={() => setIsPosterHovered(false)}
+        onNavigate={() => {
+          navigate({ to: `/films/${filmObject.id}` });
+          setPage?.((prevPage) => ({ ...prevPage, loadMore: false }));
+        }}
+      />
 
-      {/* Card hover overlay - covers full card on hover (desktop only) */}
+      {/* Slide-down overlay — desktop only, appears below the card on hover */}
       <CardHoverOverlay
-        hoverId={hoverId}
+        hoverId={null}
         filmObject={filmObject}
         directors={directors}
         movieDetails={movieDetails}
         isLoading={isLoading}
         setIsLoading={setIsLoading}
+        fetchError={fetchError}
         showOverview={true}
+        slideDown={true}
         setPage={setPage}
       />
 
       {/* Text below poster */}
-
-      {/* FIRST LINE: TITLE, YEAR, RATING, VOTE COUNT */}
-      <div
-        className={`md:absolute md:bottom-0 md:left-0 md:z-0 w-full p-2 pb-0 flex justify-between gap-2 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-light text-base lg:pb-4 lg:text-lg 2xl:text-xl 2xl:pb-5 md:transition-opacity md:duration-200 ${hoverId ? "md:opacity-0 md:pointer-events-none" : ""}`}>
+      <div className="md:absolute md:bottom-0 md:left-0 md:z-0 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-light w-full pt-1 pb-1 flex justify-between gap-2 p-2">
         {/* Left side - Title, year */}
         <div className="flex flex-row items-center gap-1 ml-1 min-w-0">
           <div className="overflow-hidden min-w-0 flex-1">
             <span
               ref={titleSpanRef as React.RefObject<HTMLSpanElement>}
               onClick={() => {
-                navigate({ to: `/films/${filmObject.id}` })
-                setPage?.((prevPage) => ({ ...prevPage, loadMore: false }))
+                navigate({ to: `/films/${filmObject.id}` });
+                setPage?.((prevPage) => ({ ...prevPage, loadMore: false }));
               }}
               className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-hover-accent cursor-pointer"
               title={filmObject.title}
-              style={{ paddingRight: "0.1rem" }}>
+              style={{ paddingRight: "0.1rem" }}
+            >
               {filmObject.title}
             </span>
           </div>
@@ -127,14 +127,11 @@ export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps
         </div>
       </div>
 
-      {/* SECOND LINE: OVERVIEW, CONSOLE */}
+      {/* Mobile <768px: overview + interaction console */}
       <div className="md:hidden mt-1 pb-4 w-full">
-        {/* OVERVIEW */}
         <div className="p-0 pr-3 pl-3 mb-4 w-full text-[13px] italic line-clamp-2">
           {filmObject.overview}
         </div>
-
-        {/* CONSOLE */}
         <InteractionConsole
           tmdbId={filmObject.id}
           directors={directors}
@@ -146,5 +143,5 @@ export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps
         />
       </div>
     </div>
-  )
+  );
 }

@@ -24,10 +24,8 @@ export default function PosterTrailerHover({
 
   useEffect(() => {
     if (startOnMount) {
-      console.log("[TrailerHover] mounted while already hovered — starting DIMMING immediately");
       setPhase("dimming");
       dimTimerRef.current = setTimeout(() => {
-        console.log("[TrailerHover] 300ms elapsed → PLAYING (iframe visible)");
         setPhase("playing");
       }, 300);
     }
@@ -39,39 +37,30 @@ export default function PosterTrailerHover({
   }, []);
 
   const handleMouseEnter = () => {
-    console.log("[TrailerHover] mouseenter — waiting 1000ms before DIMMING");
     if (fadeTimerRef.current) {
       clearTimeout(fadeTimerRef.current);
       fadeTimerRef.current = null;
-      console.log("[TrailerHover] fade-out timer cancelled (fast re-enter)");
     }
     intentTimerRef.current = setTimeout(() => {
-      console.log("[TrailerHover] 1000ms elapsed → DIMMING");
       setPhase("dimming");
       dimTimerRef.current = setTimeout(() => {
-        console.log("[TrailerHover] 300ms elapsed → PLAYING (iframe visible)");
         setPhase("playing");
       }, 300);
     }, 1000);
   };
 
   const handleMouseLeave = () => {
-    console.log("[TrailerHover] mouseleave — current phase:", phase);
     if (intentTimerRef.current) {
       clearTimeout(intentTimerRef.current);
       intentTimerRef.current = null;
-      console.log("[TrailerHover] intent timer cancelled (left before 1000ms)");
     }
     if (dimTimerRef.current) {
       clearTimeout(dimTimerRef.current);
       dimTimerRef.current = null;
-      console.log("[TrailerHover] dim timer cancelled (left before trailer started)");
     }
     if (phase !== "idle") {
-      console.log("[TrailerHover] → FADING-OUT (iframe fading, poster returning)");
       setPhase("fading-out");
       fadeTimerRef.current = setTimeout(() => {
-        console.log("[TrailerHover] 200ms elapsed → IDLE (iframe unmounted)");
         setPhase("idle");
       }, 200);
     }

@@ -107,13 +107,15 @@ router.post("/", validateToken, async (req, res) => {
     const jwtUserId = req.user.id
     const reqData = req.body
 
-    // Upsert Film
+    // Upsert Film (update genres/overview if newly available)
     await pool.query(
       `INSERT INTO "Films"
          (id, title, runtime, directors, "directorNamesForSorting",
-          poster_path, backdrop_path, origin_country, release_date)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       ON CONFLICT (id) DO NOTHING`,
+          poster_path, backdrop_path, origin_country, release_date, genres, overview)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+       ON CONFLICT (id) DO UPDATE SET
+         genres = COALESCE(EXCLUDED.genres, "Films".genres),
+         overview = COALESCE(EXCLUDED.overview, "Films".overview)`,
       [
         reqData.tmdbId,
         reqData.title,
@@ -124,6 +126,8 @@ router.post("/", validateToken, async (req, res) => {
         reqData.backdrop_path,
         JSON.stringify(reqData.origin_country),
         reqData.release_date,
+        reqData.genres ? JSON.stringify(reqData.genres) : null,
+        reqData.overview || null,
       ]
     )
 
@@ -133,6 +137,29 @@ router.post("/", validateToken, async (req, res) => {
        VALUES ($1, $2)
        ON CONFLICT DO NOTHING`,
       [reqData.tmdbId, jwtUserId]
+    )
+
+    // Upsert UserFilmProfile — mark watchlisted (preserve watched status)
+    await pool.query(
+      `INSERT INTO "UserFilmProfile"
+         ("userId", "filmId", is_watched, stars, is_watchlisted, collection_ids,
+          genres, origin_country, release_date, runtime, "updatedAt")
+       VALUES ($1,$2,false,0,true,'[]'::jsonb,$3,$4,$5,$6,now())
+       ON CONFLICT ("userId", "filmId") DO UPDATE SET
+         is_watchlisted = true,
+         genres = COALESCE(EXCLUDED.genres, "UserFilmProfile".genres),
+         origin_country = COALESCE(EXCLUDED.origin_country, "UserFilmProfile".origin_country),
+         release_date = COALESCE(EXCLUDED.release_date, "UserFilmProfile".release_date),
+         runtime = COALESCE(EXCLUDED.runtime, "UserFilmProfile".runtime),
+         "updatedAt" = now()`,
+      [
+        jwtUserId,
+        reqData.tmdbId,
+        reqData.genres ? JSON.stringify(reqData.genres) : null,
+        JSON.stringify(reqData.origin_country),
+        reqData.release_date,
+        reqData.runtime,
+      ]
     )
 
     // If film was in WatchedFilms, remove it and clean up director stats
@@ -225,6 +252,13 @@ router.post("/", validateToken, async (req, res) => {
         `DELETE FROM "WatchedFilms" WHERE "filmId" = $1 AND "userId" = $2`,
         [reqData.tmdbId, jwtUserId]
       )
+
+      // Update UserFilmProfile — clear watched status since watchlist overrides it
+      await pool.query(
+        `UPDATE "UserFilmProfile" SET is_watched = false, stars = 0, "updatedAt" = now()
+         WHERE "userId" = $1 AND "filmId" = $2`,
+        [jwtUserId, reqData.tmdbId]
+      )
     }
 
     return res.status(200).json({ saved: true })
@@ -248,6 +282,21 @@ router.delete("/", validateToken, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Film Not Found in Watchlist" })
     }
+
+    // Update UserFilmProfile — mark unwatchlisted
+    await pool.query(
+      `UPDATE "UserFilmProfile" SET is_watchlisted = false, "updatedAt" = now()
+       WHERE "userId" = $1 AND "filmId" = $2`,
+      [jwtUserId, tmdbId]
+    )
+    // Delete row if no interactions remain
+    await pool.query(
+      `DELETE FROM "UserFilmProfile"
+       WHERE "userId" = $1 AND "filmId" = $2
+         AND is_watched = false AND is_watchlisted = false
+         AND collection_ids = '[]'::jsonb`,
+      [jwtUserId, tmdbId]
+    )
 
     return res.status(200).json({ saved: false })
   } catch (err) {

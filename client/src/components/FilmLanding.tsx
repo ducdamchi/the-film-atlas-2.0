@@ -183,7 +183,7 @@ export default function FilmLanding() {
       return dateB.getTime() - dateA.getTime();
     });
 
-    console.log("sortedTrailerLinks:", sortedTrailerLinks);
+    // console.log("sortedTrailerLinks:", sortedTrailerLinks);
 
     setDirectors(directorsList);
     setCrew(listOfUniqueCrewMembers);
@@ -398,7 +398,7 @@ export default function FilmLanding() {
                 <div className="absolute w-full h-full border-0 top-0 left-0 flex items-center justify-center">
                   <button
                     onClick={() => {
-                      console.log("openTrailer:", openTrailer);
+                      // console.log("openTrailer:", openTrailer);
                       setOpenTrailer(true);
                     }}
                     className="flex items-center z-40 rounded-full p-3 pt-2 pb-2 drop-shadow-lg bg-elevated text-[var(--backdropColor)] hover:text-light hover:bg-[var(--backdropColor)] transition-all duration-300 ease-out"

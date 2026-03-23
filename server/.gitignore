@@ -4,3 +4,6 @@ node_modules
 .env.production
 
 config/config.json
+
+.env.test
+tests/.tokens.json
