@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/utils/authContext";
 import { CustomLink } from "./CustomLink";
 import { INFO_LINKS, type MenuState } from "./navTypes";
+import { IoIosMenu, IoIosCloseCircle } from "react-icons/io";
 
 interface NavBarMobileSectionProps {
   menuOpened: MenuState;
@@ -49,11 +50,18 @@ export function NavBarMobileSection({
     if (!panel) return;
 
     const ro = new ResizeObserver(() => {
-      if (!menuRef.current || !menuBorderBottom.current || !menuBorderRight.current) return;
+      if (
+        !menuRef.current ||
+        !menuBorderBottom.current ||
+        !menuBorderRight.current
+      )
+        return;
       if (menuRef.current.style.display === "none") return;
 
       const panelHeightPx = menuRef.current.offsetHeight;
-      const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const rootFontSize = parseFloat(
+        getComputedStyle(document.documentElement).fontSize,
+      );
       const navbarHeightPx = navbarHeight * rootFontSize;
 
       menuBorderBottom.current.style.top = `${navbarHeightPx + panelHeightPx}px`;
@@ -77,14 +85,14 @@ export function NavBarMobileSection({
             })
           }
         >
-          <MdMenu
+          <IoIosMenu
             className={`text-xl absolute inset-0 transition-all duration-300 ease-in-out ${
               menuOpened.isOpened
                 ? "opacity-0 rotate-90 scale-50"
                 : "opacity-100 rotate-0 scale-100"
             }`}
           />
-          <MdClose
+          <IoIosCloseCircle
             className={`text-xl absolute inset-0 transition-all duration-300 ease-in-out ${
               menuOpened.isOpened
                 ? "opacity-100 rotate-0 scale-100"

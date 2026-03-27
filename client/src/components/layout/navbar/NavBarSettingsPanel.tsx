@@ -5,6 +5,7 @@ import { useAuth } from "@/utils/authContext";
 import { clearAllPersistedState } from "@/utils/localStorage";
 import { CustomLink } from "./CustomLink";
 import type { MenuState } from "./navTypes";
+import { IoIosSettings, IoIosCloseCircle } from "react-icons/io";
 
 interface NavBarSettingsPanelProps {
   settingsOpened: MenuState;
@@ -102,14 +103,14 @@ export function NavBarSettingsPanel({
               })
             }
           >
-            <MdOutlineSettings
+            <IoIosSettings
               className={`text-xl absolute inset-0 transition-all duration-300 ease-in-out ${
                 settingsOpened.isOpened
                   ? "opacity-0 rotate-90 scale-50"
                   : "opacity-100 rotate-0 scale-100"
               }`}
             />
-            <MdClose
+            <IoIosCloseCircle
               className={`text-xl absolute inset-0 transition-all duration-300 ease-in-out ${
                 settingsOpened.isOpened
                   ? "opacity-100 rotate-0 scale-100"

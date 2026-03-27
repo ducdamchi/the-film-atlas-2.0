@@ -57,7 +57,7 @@ export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps
   return (
     <div
       id={`film-card-${filmObject.id}`}
-      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center gap-0 text-dark rounded-none pt-0 relative group hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-2xl border-1 md:border-0"
+      className="filmCard-width md:aspect-16/10 flex flex-col justify-center items-center gap-0 text-dark rounded-none pt-0 relative group hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-2xl border-1 md:border-0"
       onMouseEnter={handleCardHoverEnter}
       onMouseLeave={handleCardHoverLeave}
     >
@@ -90,7 +90,7 @@ export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps
       />
 
       {/* Text below poster */}
-      <div className="md:absolute md:bottom-0 md:left-0 md:z-0 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-light w-full pt-1 pb-1 flex justify-between gap-2 p-2">
+      <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-light w-full flex justify-between gap-2">
         {/* Left side - Title, year */}
         <div className="flex flex-row items-center gap-1 ml-1 min-w-0">
           <div className="overflow-hidden min-w-0 flex-1">

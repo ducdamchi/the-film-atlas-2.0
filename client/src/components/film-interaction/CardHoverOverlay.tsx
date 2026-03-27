@@ -12,6 +12,7 @@ import type { UserFilm } from "@/types/film";
 import type { DiscoverPageState } from "@/types/map";
 import { IoIosTimer } from "react-icons/io";
 import { IoLanguageSharp, IoWarning } from "react-icons/io5";
+import { BiPlus } from "react-icons/bi";
 
 function useOverlayVariant(): "overlay-sm" | "overlay-lg" {
   const [isLg, setIsLg] = useState(
@@ -68,23 +69,30 @@ export default function CardHoverOverlay({
   // Phase 2: slide-down panel below the card, CSS group-hover driven
   if (slideDown) {
     return (
-      <div className="hidden md:block absolute top-full left-0 filmCard-width bg-elevated text-dark z-50 opacity-0 -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 ease-out">
+      <div className="w-full md:w-auto md:absolute md:top-full md:left-0 md:right-0 bg-elevated text-dark z-50 md:opacity-0 md:-translate-y-2 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto md:transition-[opacity,transform] md:duration-200 md:ease-out">
         <div
           className="w-full p-5 pt-4 flex flex-col items-center justify-start gap-2"
           onClick={handleNavigate}
         >
-          <div className="lg:py-3">
-            <InteractionConsole
-              tmdbId={filmObject.id}
-              directors={directors}
-              movieDetails={movieDetails}
-              isLoading={isLoading}
-              setIsLoading={setIsLoading}
-              variant={
-                overlayVariant === "overlay-lg" ? "overlay-panel" : "card"
-              }
-              showOverview={false}
-            />
+          <div className="lg:py-3 flex justify-between items-center w-full">
+            <div>
+              <InteractionConsole
+                tmdbId={filmObject.id}
+                directors={directors}
+                movieDetails={movieDetails}
+                isLoading={isLoading}
+                setIsLoading={setIsLoading}
+                variant={
+                  overlayVariant === "overlay-lg" ? "overlay-panel" : "card"
+                }
+                showOverview={false}
+              />
+            </div>
+            <div>
+              <button>
+                <BiPlus className="border-1 aspect-square w-[1.5rem]" />
+              </button>
+            </div>
           </div>
           {isLoading ? (
             <div className="w-full flex flex-col gap-2">

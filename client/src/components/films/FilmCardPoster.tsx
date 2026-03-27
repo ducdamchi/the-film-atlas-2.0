@@ -23,7 +23,7 @@ export default function FilmCardPoster({
 }: FilmCardPosterProps) {
   return (
     <div
-      className="overflow-hidden relative"
+      className="w-full overflow-hidden relative"
       onMouseEnter={onPosterHoverEnter}
       onMouseLeave={onPosterHoverLeave}
     >
@@ -37,7 +37,7 @@ export default function FilmCardPoster({
       ) : (
         <img
           id={`thumbnail-${filmId}`}
-          className="filmCard-width aspect-16/10 object-cover transition-all duration-300 ease-out hover:scale-[1.03]"
+          className="w-full aspect-16/10 object-cover"
           src={
             backdropPath !== null
               ? `${imgBaseUrl}${backdropPath}`

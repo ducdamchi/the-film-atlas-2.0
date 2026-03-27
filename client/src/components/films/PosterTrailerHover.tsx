@@ -79,7 +79,7 @@ export default function PosterTrailerHover({
 
   return (
     <div
-      className="filmCard-width aspect-16/10 relative overflow-hidden cursor-pointer"
+      className="w-full aspect-16/10 relative overflow-hidden cursor-pointer"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}

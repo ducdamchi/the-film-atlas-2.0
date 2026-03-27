@@ -74,7 +74,7 @@ export function CompleteProfileModal() {
         {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
 
         <button
-          className="mt-6 w-full bg-dark text-light py-2.5 text-sm font-medium disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed hover:bg-atlas-green transition-colors duration-200 ease-out"
+          className="mt-6 w-full bg-dark text-light py-2.5 text-sm font-medium disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed hover:enabled:bg-atlas-green disabled:transition-none transition-colors duration-200 ease-out"
           onClick={handleSubmit}
           disabled={!email || !country || !city || loading}
         >

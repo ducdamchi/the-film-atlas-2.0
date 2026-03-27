@@ -51,9 +51,8 @@ export default function UserFilmCard({
       (v) => v.site === "YouTube" && v.type === "Trailer",
     )?.key ?? null;
 
-  // Mobile: dynamic border color from backdrop
+  // Dynamic border color from backdrop (used on mobile always, on desktop on hover)
   useEffect(() => {
-    if (window.innerWidth >= 768) return;
     if (!filmObject.backdrop_path) return;
 
     const filmCard = document.getElementById(`film-card-${filmObject.id}`);
@@ -67,37 +66,23 @@ export default function UserFilmCard({
   return (
     <div
       id={`film-card-${filmObject.id}`}
-      className="filmCard-width aspect-16/10 flex flex-col justify-center items-center gap-0 text-dark rounded-none pt-0 relative group hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-2xl border-1 md:border-0"
+      className="filmCard-width md:aspect-16/10 flex flex-col justify-center items-center gap-0 text-dark rounded-none pt-0 relative group hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-[0_10px_15px_rgba(0,0,0,0.55)] border-1 md:border-0"
       onMouseEnter={handleCardHoverEnter}
       onMouseLeave={handleCardHoverLeave}
     >
-      {/* Poster — desktop: trailer hover when available, else plain img */}
-      <FilmCardPoster
-        backdropPath={filmObject.backdrop_path}
-        filmId={filmObject.id}
-        trailerKey={trailerKey}
-        isPosterHovered={isPosterHovered}
-        onPosterHoverEnter={() => setIsPosterHovered(true)}
-        onPosterHoverLeave={() => setIsPosterHovered(false)}
-        onNavigate={() => navigate({ to: `/films/${filmObject.id}` })}
-      />
-
-      {/* Slide-down overlay — desktop only, appears below the card on hover */}
-      <CardHoverOverlay
-        hoverId={null}
-        filmObject={filmObject}
-        directors={directors}
-        movieDetails={movieDetails}
-        isLoading={isLoading}
-        setIsLoading={setIsLoading}
-        fetchError={fetchError}
-        showOverview={true}
-        slideDown={true}
-      />
-
-      <div className="bg-elevated w-full">
-        {/* Text below poster */}
-        <div className="md:absolute md:bottom-0 md:left-0 md:z-0 md:p-3 md:bg-gradient-to-t md:from-black/80 md:to-transparent md:text-light w-full pt-1 pb-1 flex justify-between gap-2 p-2">
+      {/* Poster + title overlay — relative wrapper keeps bottom-0 anchored to poster */}
+      <div className="relative w-full">
+        <FilmCardPoster
+          backdropPath={filmObject.backdrop_path}
+          filmId={filmObject.id}
+          trailerKey={trailerKey}
+          isPosterHovered={isPosterHovered}
+          onPosterHoverEnter={() => setIsPosterHovered(true)}
+          onPosterHoverLeave={() => setIsPosterHovered(false)}
+          onNavigate={() => navigate({ to: `/films/${filmObject.id}` })}
+        />
+        {/* Title overlay — anchored to bottom of poster */}
+        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-light w-full flex justify-between gap-2">
           {/* Left side - Title, year, country */}
           <div className="flex flex-col items-start justify-center gap-0 ml-2 min-w-0 overflow-hidden">
             <div className="overflow-hidden w-full text-base">
@@ -168,35 +153,20 @@ export default function UserFilmCard({
             )}
           </div>
         </div>
-
-        {/* Mobile <768px: overview + interaction console */}
-        <div className="md:hidden mt-1 pb-4 w-full">
-          <div className="p-0 pr-3 pl-3 mb-4 w-full text-[13px]">
-            {isLoading ? (
-              <div className="flex flex-col gap-1.5">
-                <SkeletonBlock className="h-2.5 w-full" />
-                <SkeletonBlock className="h-2.5 w-[85%]" />
-                <SkeletonBlock className="h-2.5 w-[60%]" />
-              </div>
-            ) : fetchError ? (
-              <span className="font-light text-muted">Details unavailable</span>
-            ) : (
-              <span className="italic line-clamp-2">
-                {(movieDetails as TMDBFilm).overview}
-              </span>
-            )}
-          </div>
-          <InteractionConsole
-            tmdbId={filmObject.id}
-            directors={directors}
-            movieDetails={movieDetails}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-            variant="card"
-            showOverview={false}
-          />
-        </div>
       </div>
+
+      {/* Slide-down overlay — mobile: always visible, desktop: appears below card on hover */}
+      <CardHoverOverlay
+        hoverId={null}
+        filmObject={filmObject}
+        directors={directors}
+        movieDetails={movieDetails}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+        fetchError={fetchError}
+        showOverview={true}
+        slideDown={true}
+      />
     </div>
   );
 }

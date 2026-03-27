@@ -12,26 +12,37 @@ export function useFilmCardFetch(filmId: number) {
   const hasFetchedRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Mobile: fetch on mount
+  const fetchData = async () => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+    try {
+      setIsLoading(true);
+      const result = await fetchFilmFromTMDB(filmId);
+      const directorsList = result.credits.crew.filter(
+        (crewMember: TMDBCrewMember) => crewMember.job === "Director",
+      );
+      setMovieDetails(result);
+      setDirectors(directorsList);
+    } catch (err) {
+      console.error("Error loading film data: ", err);
+      setFetchError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch on mount if already mobile
   useEffect(() => {
-    if (window.innerWidth >= 768) return;
-    const fetchMobileData = async () => {
-      try {
-        setIsLoading(true);
-        const result = await fetchFilmFromTMDB(filmId);
-        const directorsList = result.credits.crew.filter(
-          (crewMember: TMDBCrewMember) => crewMember.job === "Director",
-        );
-        setMovieDetails(result);
-        setDirectors(directorsList);
-      } catch (err) {
-        console.error("Error loading film data: ", err);
-        setFetchError(true);
-      } finally {
-        setIsLoading(false);
-      }
+    if (window.innerWidth < 768) fetchData();
+  }, []);
+
+  // Fetch when resizing into mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) fetchData();
     };
-    fetchMobileData();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleCardHoverEnter = () => {
