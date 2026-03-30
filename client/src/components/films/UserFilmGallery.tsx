@@ -1,16 +1,13 @@
-import { useEffect, useState } from "react"
-import {
-  getReleaseYear,
-  getNiceMonthYear,
-} from "@/utils/helperFunctions"
+import { useEffect, useState } from "react";
+import { getReleaseYear, getNiceMonthYear } from "@/utils/helperFunctions";
 
-import UserFilmCard from "./UserFilmCard"
-import type { UserFilm } from "@/types/film"
+import UserFilmCard from "./UserFilmCard";
+import type { UserFilm } from "@/types/film";
 
 /** A group bucket produced by the reduce() grouping logic. */
 interface FilmGroup {
-  films: UserFilm[]
-  groupName: string
+  films: UserFilm[];
+  groupName: string;
 }
 
 /* @props:
@@ -20,10 +17,10 @@ interface FilmGroup {
 - sortBy: "recently_added" or "released_date", help listOfFilmObjects.reduce() to handle which keys to use for each group (e.g. "This month", "last month" for recently_added; "2025", "2020", ... for released_date */
 
 interface FilmUser_GalleryProps {
-  listOfFilmObjects: UserFilm[]
-  queryString: string
-  sortDirection: "asc" | "desc"
-  sortBy: "added_date" | "released_date"
+  listOfFilmObjects: UserFilm[];
+  queryString: string;
+  sortDirection: "asc" | "desc";
+  sortBy: "added_date" | "released_date";
 }
 
 export default function UserFilmGallery({
@@ -33,73 +30,78 @@ export default function UserFilmGallery({
   sortBy,
 }: FilmUser_GalleryProps) {
   // Grouped films stored as sorted [key, group] tuple pairs
-  const [groupedFilms, setGroupedFilms] = useState<[string, FilmGroup][]>([])
+  const [groupedFilms, setGroupedFilms] = useState<[string, FilmGroup][]>([]);
 
   useEffect(() => {
     if (listOfFilmObjects && !("error" in listOfFilmObjects)) {
-      const filmGroups = listOfFilmObjects.reduce<Record<string, FilmGroup>>((groups, film) => {
-        let targetKey: string //the key to be used for each Group Object
-        let groupName: string //the name to be displayed for each Group Object in HTML
+      const filmGroups = listOfFilmObjects.reduce<Record<string, FilmGroup>>(
+        (groups, film) => {
+          let targetKey: string; //the key to be used for each Group Object
+          let groupName: string; //the name to be displayed for each Group Object in HTML
 
-        switch (queryString) {
-          case "watched":
-          case "watchlisted":
-          case "watched/rated":
-            switch (sortBy) {
-              case "added_date": {
-                const timestamp = film.added_date
-                if (!timestamp) return groups
-                targetKey = timestamp.slice(0, 7)
-                groupName = getNiceMonthYear(targetKey)
-                break
+          switch (queryString) {
+            case "watched":
+            case "watchlisted":
+            case "watched/rated":
+              switch (sortBy) {
+                case "added_date": {
+                  const timestamp = film.added_date;
+                  if (!timestamp) return groups;
+                  targetKey = timestamp.slice(0, 7);
+                  groupName = getNiceMonthYear(targetKey);
+                  break;
+                }
+                case "released_date":
+                  targetKey = String(getReleaseYear(film.release_date));
+                  groupName = targetKey;
+                  break;
+                default:
+                  return groups;
               }
-              case "released_date":
-                targetKey = String(getReleaseYear(film.release_date))
-                groupName = targetKey
-                break
-              default:
-                return groups
-            }
-            break
-          default:
-            console.log("No queryString found.")
-            return groups
-        }
+              break;
+            default:
+              console.log("No queryString found.");
+              return groups;
+          }
 
-        if (!groups[targetKey]) {
-          groups[targetKey] = { films: [], groupName: "" }
-        }
-        groups[targetKey].films.push(film)
-        groups[targetKey].groupName = groupName
-        return groups
-      }, {})
+          if (!groups[targetKey]) {
+            groups[targetKey] = { films: [], groupName: "" };
+          }
+          groups[targetKey].films.push(film);
+          groups[targetKey].groupName = groupName;
+          return groups;
+        },
+        {},
+      );
 
       /* Convert grouped list to array and sort based on sortDirection */
-      let sortedFilmGroups: [string, FilmGroup][]
+      let sortedFilmGroups: [string, FilmGroup][];
       if (filmGroups) {
         switch (sortBy) {
           case "added_date": //converts "yyyy-mm" string to numerical value (yyyymm, 202507, 202410, etc..) before sorting
             sortedFilmGroups = Object.entries(filmGroups).sort(([a], [b]) => {
-              const dateA = parseInt(a.replace("-", ""))
-              const dateB = parseInt(b.replace("-", ""))
-              return sortDirection === "desc" ? dateB - dateA : dateA - dateB
-            })
-            break
+              const dateA = parseInt(a.replace("-", ""));
+              const dateB = parseInt(b.replace("-", ""));
+              return sortDirection === "desc" ? dateB - dateA : dateA - dateB;
+            });
+            break;
           case "released_date": //only dealing with year here
             sortedFilmGroups = Object.entries(filmGroups).sort(([a], [b]) => {
-              return sortDirection === "desc" ? Number(b) - Number(a) : Number(a) - Number(b)
-            })
-            break
+              return sortDirection === "desc"
+                ? Number(b) - Number(a)
+                : Number(a) - Number(b);
+            });
+            break;
           default:
-            sortedFilmGroups = Object.entries(filmGroups)
+            sortedFilmGroups = Object.entries(filmGroups);
         }
       } else {
-        sortedFilmGroups = []
+        sortedFilmGroups = [];
       }
 
-      setGroupedFilms(sortedFilmGroups)
+      setGroupedFilms(sortedFilmGroups);
     }
-  }, [listOfFilmObjects, queryString, sortBy, sortDirection])
+  }, [listOfFilmObjects, queryString, sortBy, sortDirection]);
 
   return (
     <div>
@@ -126,10 +128,10 @@ export default function UserFilmGallery({
                   ))}
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       )}
     </div>
-  )
+  );
 }

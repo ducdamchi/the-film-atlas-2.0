@@ -1,14 +1,14 @@
-import { FaGithub } from "react-icons/fa"
-import { useNavigate } from "@tanstack/react-router"
+import { FaGithub } from "react-icons/fa";
+import { useNavigate } from "@tanstack/react-router";
 
 interface FooterLink {
-  name: string
-  link: string
+  name: string;
+  link: string;
 }
 
 interface FooterSection {
-  title: string
-  items: FooterLink[]
+  title: string;
+  items: FooterLink[];
 }
 
 const LINKS: FooterSection[] = [
@@ -35,12 +35,12 @@ const LINKS: FooterSection[] = [
       { name: "Terms & Conditions", link: "/terms" },
     ],
   },
-]
+];
 
-const currentYear = new Date().getFullYear()
+const currentYear = new Date().getFullYear();
 
 export default function FooterWithSocialLinks() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <footer className="relative w-full bg-void text-light p-10 font-primary z-100">
@@ -53,15 +53,13 @@ export default function FooterWithSocialLinks() {
           <div className="grid grid-cols-3 justify-between gap-4">
             {LINKS.map(({ title, items }) => (
               <ul key={title}>
-                <div
-                  className="mb-3 font-medium opacity-50">
-                  {title}
-                </div>
+                <div className="mb-3 font-medium opacity-50">{title}</div>
                 {items.map((link) => (
                   <li key={link.name}>
                     <div
                       onClick={() => navigate({ to: link.link })}
-                      className="py-1.5 font-normal transition-colors hover:text-dark cursor-pointer hover:underline">
+                      className="py-1.5 font-normal transition-colors hover:text-hover-light cursor-pointer"
+                    >
                       {link.name}
                     </div>
                   </li>
@@ -71,8 +69,7 @@ export default function FooterWithSocialLinks() {
           </div>
         </div>
         <div className="mt-12 flex w-full flex-col items-center justify-center border-t border-light/20 py-4 md:flex-row md:justify-between">
-          <div
-            className="mb-4 text-center font-normal text-light md:mb-0">
+          <div className="mb-4 text-center font-normal text-light md:mb-0">
             &copy; {currentYear}{" "}
             <a href="https://material-tailwind.com/">The Film Atlas</a>
           </div>
@@ -81,12 +78,13 @@ export default function FooterWithSocialLinks() {
               href="https://github.com/ducdamchi/the-film-atlas"
               target="_blank"
               rel="noopener noreferrer"
-              className="opacity-80 transition-opacity hover:opacity-100">
+              className="opacity-80 transition-opacity hover:opacity-100"
+            >
               <FaGithub className="text-2xl" />
             </a>
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }

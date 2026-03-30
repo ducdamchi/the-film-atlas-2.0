@@ -1,14 +1,17 @@
-import TmdbFilmCard from "./TmdbFilmCard"
-import type { TMDBFilmSummary } from "@/types/tmdb"
-import type { DiscoverPageState } from "@/types/map"
+import TmdbFilmCard from "./TmdbFilmCard";
+import type { TMDBFilmSummary } from "@/types/tmdb";
+import type { DiscoverPageState } from "@/types/map";
 
 interface FilmTMDB_GalleryProps {
-  listOfFilmObjects: TMDBFilmSummary[]
+  listOfFilmObjects: TMDBFilmSummary[];
   /** Optional — only needed on pages that have pagination (MapPage). */
-  setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>
+  setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>;
 }
 
-export default function TmdbFilmGallery({ listOfFilmObjects, setPage }: FilmTMDB_GalleryProps) {
+export default function TmdbFilmGallery({
+  listOfFilmObjects,
+  setPage,
+}: FilmTMDB_GalleryProps) {
   return (
     <div>
       {listOfFilmObjects && listOfFilmObjects.length === 0 && (
@@ -29,5 +32,5 @@ export default function TmdbFilmGallery({ listOfFilmObjects, setPage }: FilmTMDB
         </div>
       )}
     </div>
-  )
+  );
 }

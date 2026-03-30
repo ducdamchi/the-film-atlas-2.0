@@ -88,11 +88,11 @@ export default function CardHoverOverlay({
                 showOverview={false}
               />
             </div>
-            <div>
+            {/* <div>
               <button>
                 <BiPlus className="border-1 aspect-square w-[1.5rem]" />
               </button>
-            </div>
+            </div> */}
           </div>
           {isLoading ? (
             <div className="w-full flex flex-col gap-2">

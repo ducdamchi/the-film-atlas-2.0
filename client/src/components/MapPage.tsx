@@ -1,35 +1,31 @@
-import { useEffect, useState } from "react"
-import {
-  Map,
-  Popup,
-  NavigationControl,
-} from "react-map-gl/maplibre"
+import { useEffect, useState } from "react";
+import { Map, Popup, NavigationControl } from "react-map-gl/maplibre";
 
-import "@maptiler/sdk/dist/maptiler-sdk.css"
-import "react-range-slider-input/dist/style.css"
+import "@maptiler/sdk/dist/maptiler-sdk.css";
+import "react-range-slider-input/dist/style.css";
 
-import { useAuth } from "../utils/authContext"
-import { getCountryName } from "../utils/helperFunctions"
-import { MAPTILER_API_KEY, MAPTILER_STYLE_URL } from "../utils/mapConstants"
-import useCommandKey from "../hooks/useCommandKey"
-import { usePersistedState } from "../hooks/usePersistedState"
-import { useMapFilmData } from "../hooks/useMapFilmData"
-import { useMapInteraction } from "../hooks/useMapInteraction"
-import { useDiscoverFilms } from "../hooks/useDiscoverFilms"
-import { useUserFilms } from "../hooks/useUserFilms"
-import { useBottomSheet } from "../hooks/useBottomSheet"
+import { useAuth } from "../utils/authContext";
+import { getCountryName } from "../utils/helperFunctions";
+import { MAPTILER_API_KEY, MAPTILER_STYLE_URL } from "../utils/mapConstants";
+import useCommandKey from "../hooks/useCommandKey";
+import { usePersistedState } from "../hooks/usePersistedState";
+import { useMapFilmData } from "../hooks/useMapFilmData";
+import { useMapInteraction } from "../hooks/useMapInteraction";
+import { useDiscoverFilms } from "../hooks/useDiscoverFilms";
+import { useUserFilms } from "../hooks/useUserFilms";
+import { useBottomSheet } from "../hooks/useBottomSheet";
 
-import NavBar from "./layout/navbar/NavBar"
-import QuickSearchModal from "./layout/QuickSearchModal"
-import UserFilmGallery from "./films/UserFilmGallery"
-import TmdbFilmGallery from "./films/TmdbFilmGallery"
-import Toggle from "./ui-controls/Toggle"
-import LoadingPage from "./layout/LoadingPage"
-import MapCountriesLayer from "./map/MapCountriesLayer"
-import DiscoverControls from "./map/DiscoverControls"
-import MyFilmsControls from "./map/MyFilmsControls"
+import NavBar from "./layout/navbar/NavBar";
+import QuickSearchModal from "./layout/QuickSearchModal";
+import UserFilmGallery from "./films/UserFilmGallery";
+import TmdbFilmGallery from "./films/TmdbFilmGallery";
+import Toggle from "./ui-controls/Toggle";
+import LoadingPage from "./layout/LoadingPage";
+import MapCountriesLayer from "./map/MapCountriesLayer";
+import DiscoverControls from "./map/DiscoverControls";
+import MyFilmsControls from "./map/MyFilmsControls";
 
-import { FaGripLines } from "react-icons/fa"
+import { FaGripLines } from "react-icons/fa";
 
 /**
  * The full set of queryString values used by the map page.
@@ -40,69 +36,69 @@ type MapQueryString =
   | "discover"
   | "watched/by_country"
   | "watchlisted/by_country"
-  | "watched/rated/by_country"
+  | "watched/rated/by_country";
 
-type MapFilmQueryString = Exclude<MapQueryString, "discover">
+type MapFilmQueryString = Exclude<MapQueryString, "discover">;
 
-type SortBy = "added_date" | "released_date"
-type SortDirection = "asc" | "desc"
+type SortBy = "added_date" | "released_date";
+type SortDirection = "asc" | "desc";
 
-type BrowseMode = "discover" | "my_films"
+type BrowseMode = "discover" | "my_films";
 
 function checkWebGLSupport(): boolean {
   try {
-    const canvas = document.createElement("canvas")
+    const canvas = document.createElement("canvas");
     return !!(
       window.WebGLRenderingContext &&
       (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
-    )
+    );
   } catch {
-    return false
+    return false;
   }
 }
 
 export default function MapPage() {
-  const { authState, searchModalOpen, setSearchModalOpen } = useAuth()
-  const [webglSupported] = useState(() => checkWebGLSupport())
+  const { authState, searchModalOpen, setSearchModalOpen } = useAuth();
+  const [webglSupported] = useState(() => checkWebGLSupport());
 
-  useCommandKey(() => setSearchModalOpen((s) => !s), "k")
+  useCommandKey(() => setSearchModalOpen((s) => !s), "k");
 
   /* Browse mode state */
   const [queryString, setQueryString] = usePersistedState<MapQueryString>(
     "map-queryString",
     "discover",
-  )
+  );
   const [lastMyFilmsQueryString, setLastMyFilmsQueryString] =
     usePersistedState<MapFilmQueryString>(
       "map-lastMyFilmsQueryString",
       "watched/by_country",
-    )
-  const isDiscoverMode = queryString === "discover"
+    );
+  const isDiscoverMode = queryString === "discover";
   const [sortBy, setSortBy] = usePersistedState<SortBy>(
     "map-sortBy",
     "added_date",
-  )
+  );
   const [sortDirection, setSortDirection] = usePersistedState<SortDirection>(
     "map-sortDirection",
     "desc",
-  )
+  );
   const [numStars, setNumStars] = usePersistedState<number | null>(
     "map-numStars",
     0,
-  )
+  );
   const [scrollPosition, setScrollPosition] = usePersistedState<number>(
     "map-scrollPosition",
     0,
-  )
+  );
 
   /* Side-effects when queryString changes */
   useEffect(() => {
-    if (queryString !== "watched/rated/by_country") setNumStars(null)
-    if (queryString !== "discover") setLastMyFilmsQueryString(queryString)
-  }, [queryString])
+    if (queryString !== "watched/rated/by_country") setNumStars(null);
+    if (queryString !== "discover") setLastMyFilmsQueryString(queryString);
+  }, [queryString]);
 
   /* Hooks */
-  const { filmsPerCountryData } = useMapFilmData(authState)
+  const { filmsPerCountryData } = useMapFilmData(authState);
   const {
     mapRef,
     firstSymbolId,
@@ -110,7 +106,7 @@ export default function MapPage() {
     setPopupInfo,
     onMapLoad,
     onMapClick,
-  } = useMapInteraction(filmsPerCountryData)
+  } = useMapInteraction(filmsPerCountryData);
   const {
     suggestedFilmList,
     page,
@@ -127,7 +123,7 @@ export default function MapPage() {
     setTempVoteCountRange,
     isLoading: discoverLoading,
     loadMoreTrigger,
-  } = useDiscoverFilms({ isDiscoverMode, popupInfo })
+  } = useDiscoverFilms({ isDiscoverMode, popupInfo });
   const { userFilmList, isLoading: userFilmsLoading } = useUserFilms({
     authState,
     isDiscoverMode,
@@ -136,46 +132,46 @@ export default function MapPage() {
     sortBy,
     sortDirection,
     numStars,
-  })
+  });
   const {
     belowMapRef,
     mapContainerRef,
     setShowBelowMapContent,
     onDragHandlePointerDown,
     handleDragAreaClick,
-  } = useBottomSheet()
+  } = useBottomSheet();
 
-  const isLoading = discoverLoading || userFilmsLoading
+  const isLoading = discoverLoading || userFilmsLoading;
 
   /* Show/hide bottom sheet when a country is selected */
   useEffect(() => {
     if (popupInfo && popupInfo.iso_a2 != null) {
-      setShowBelowMapContent(true)
+      setShowBelowMapContent(true);
     } else {
-      setShowBelowMapContent(false)
+      setShowBelowMapContent(false);
     }
-  }, [popupInfo])
+  }, [popupInfo]);
 
   /* Scroll restoration */
   useEffect(() => {
     if (!isLoading) {
       if (scrollPosition) {
         setTimeout(() => {
-          window.scrollTo(0, parseInt(String(scrollPosition), 10))
-        }, 300)
+          window.scrollTo(0, parseInt(String(scrollPosition), 10));
+        }, 300);
       } else {
-        setTimeout(() => window.scrollTo(0, 0), 0)
+        setTimeout(() => window.scrollTo(0, 0), 0);
       }
-      const handleScroll = () => setScrollPosition(window.scrollY)
+      const handleScroll = () => setScrollPosition(window.scrollY);
       const scrollTimer = setTimeout(() => {
-        window.addEventListener("scroll", handleScroll)
-      }, 500)
+        window.addEventListener("scroll", handleScroll);
+      }, 500);
       return () => {
-        clearTimeout(scrollTimer)
-        window.removeEventListener("scroll", handleScroll)
-      }
+        clearTimeout(scrollTimer);
+        window.removeEventListener("scroll", handleScroll);
+      };
     }
-  }, [isLoading])
+  }, [isLoading]);
 
   /**
    * Derive the queryString to pass to FilmUser_Gallery.
@@ -187,10 +183,10 @@ export default function MapPage() {
       ? "watchlisted"
       : queryString === "watched/rated/by_country"
         ? "watched/rated"
-        : "watched"
+        : "watched";
 
   return (
-    <div className="font-primary flex flex-col justify-center w-[100vw] mt-[4.5rem] relative">
+    <div className="font-primary mt-[4.5rem] relative">
       {isLoading && <LoadingPage />}
 
       {searchModalOpen && (
@@ -204,15 +200,19 @@ export default function MapPage() {
       {/* Map */}
       <div
         ref={mapContainerRef}
-        className="w-screen h-[40rem] xl:h-[55rem] max-h-[90vh] relative border-[0.3rem] border-[#b8d5e5]">
+        className="w-screen h-[40rem] xl:h-[55rem] max-h-[90vh] relative border-[0.3rem] border-[#b8d5e5]"
+      >
         {webglSupported ? (
           <Map
             ref={mapRef as React.Ref<unknown> as React.RefObject<null>}
-            onLoad={onMapLoad as unknown as (event: { target: unknown }) => void}
+            onLoad={
+              onMapLoad as unknown as (event: { target: unknown }) => void
+            }
             onClick={onMapClick as unknown as (event: unknown) => void}
             mapboxAccessToken={MAPTILER_API_KEY}
             initialViewState={{ latitude: 25, longitude: 150, zoom: 1.2 }}
-            mapStyle={MAPTILER_STYLE_URL}>
+            mapStyle={MAPTILER_STYLE_URL}
+          >
             <NavigationControl
               position="top-right"
               showCompass={false}
@@ -226,7 +226,8 @@ export default function MapPage() {
                 latitude={popupInfo.latitude}
                 anchor="bottom"
                 closeOnClick={false}
-                onClose={() => setPopupInfo(null)}>
+                onClose={() => setPopupInfo(null)}
+              >
                 <div className="flex flex-col items-center justify-center hover:text-hover-link cursor-pointer">
                   {popupInfo.custom_name !== undefined && (
                     <span className="font-bold">{popupInfo.custom_name}</span>
@@ -263,9 +264,10 @@ export default function MapPage() {
                 the browser.
               </p>
               <p>
-                <span className="font-medium">Firefox:</span> Settings →
-                General → Performance → check{" "}
-                <em>Use hardware acceleration when available</em>, then relaunch.
+                <span className="font-medium">Firefox:</span> Settings → General
+                → Performance → check{" "}
+                <em>Use hardware acceleration when available</em>, then
+                relaunch.
               </p>
               <p>
                 <span className="font-medium">Safari:</span> Develop menu →
@@ -278,13 +280,15 @@ export default function MapPage() {
 
       {/* Below map panel */}
       <div
-        className="relative flex flex-col items-center w-full bg-elevated z-90 min-h-[40rem] xl:min-h-[55rem] rounded-t-4xl shadow-[25px_-8px_30px_rgba(0,0,0,0.15)] [clip-path:inset(-100%_-100%_0_-100%)]"
-        ref={belowMapRef}>
+        className="relative flex flex-col items-center w-full bg-elevated z-90 pb-10 rounded-t-4xl shadow-[25px_-8px_30px_rgba(0,0,0,0.15)] [clip-path:inset(-100%_-100%_-20rem_-100%)]"
+        ref={belowMapRef}
+      >
         {/* Drag handle */}
         <div
           className="w-full flex flex-col items-center cursor-ns-resize touch-none select-none rounded-t-4xl hover:bg-control/70 transition-colors ease-out duration-200 py-2 mb-2"
           onClick={handleDragAreaClick}
-          onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}>
+          onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}
+        >
           <FaGripLines className="text-2xl text-light/40" />
         </div>
 
@@ -310,8 +314,8 @@ export default function MapPage() {
             label="Browse"
             value={isDiscoverMode ? "discover" : "my_films"}
             onChange={(val) => {
-              if (val === "discover") setQueryString("discover")
-              else setQueryString(lastMyFilmsQueryString)
+              if (val === "discover") setQueryString("discover");
+              else setQueryString(lastMyFilmsQueryString);
             }}
             options={[
               { value: "discover", label: "Discover" },
@@ -335,7 +339,11 @@ export default function MapPage() {
           ) : (
             <MyFilmsControls
               queryString={queryString as MapFilmQueryString}
-              setQueryString={setQueryString as React.Dispatch<React.SetStateAction<MapFilmQueryString>>}
+              setQueryString={
+                setQueryString as React.Dispatch<
+                  React.SetStateAction<MapFilmQueryString>
+                >
+              }
               sortBy={sortBy}
               setSortBy={setSortBy}
               sortDirection={sortDirection}
@@ -346,45 +354,50 @@ export default function MapPage() {
           )}
         </div>
 
-        {/* Film galleries */}
-        {authState.status && !isDiscoverMode && (
-          <UserFilmGallery
-            listOfFilmObjects={userFilmList}
-            queryString={galleryQueryString}
-            sortDirection={sortDirection}
-            sortBy={sortBy}
-          />
-        )}
-        {!authState.status && !isDiscoverMode && (
-          <div className="mt-10 mb-20 text-sm md:text-base">
-            Log in and like a film to start!
-          </div>
-        )}
-        {/* Discover gallery — only rendered when there are results */}
-        {isDiscoverMode && suggestedFilmList.length > 0 && (
-          <TmdbFilmGallery
-            listOfFilmObjects={suggestedFilmList}
-            setPage={setPage}
-          />
-        )}
-
-        {/* No results message — mutually exclusive with the gallery and end message */}
-        {isDiscoverMode && !isLoading && suggestedFilmList.length === 0 && (
-          <div className="mt-10 mb-20 text-sm md:text-base">No films found.</div>
-        )}
-
-        {/* Load-more sentinel — 1px tall; rootMargin in the observer pre-fires 400px early */}
-        {isDiscoverMode && suggestedFilmList.length > 0 && page.hasMore && (
-          <div ref={loadMoreTrigger} className="w-full h-px mt-20" />
-        )}
-
-        {/* End-of-results message — only shown when there were films to display */}
-        {isDiscoverMode && suggestedFilmList.length > 0 && !page.hasMore && (
-          <div className="w-full flex items-center justify-center m-10 text-base text-black">
-            You've reached the end!
-          </div>
+        {/* Film gallery section — top-level split: Discover vs. My Films */}
+        {isDiscoverMode ? (
+          /* --- Discover mode --- */
+          suggestedFilmList.length > 0 ? (
+            <>
+              <TmdbFilmGallery
+                listOfFilmObjects={suggestedFilmList}
+                setPage={setPage}
+              />
+              {/* Pagination footer: sentinel triggers next page load, or show end message */}
+              {page.hasMore ? (
+                /* 1px sentinel; IntersectionObserver rootMargin pre-fires 400px early */
+                <div ref={loadMoreTrigger} className="w-full h-px mt-20" />
+              ) : (
+                <div className="w-full flex items-center justify-center m-10 text-base text-black">
+                  You've reached the end!
+                </div>
+              )}
+            </>
+          ) : (
+            /* No results — only shown after loading completes */
+            !isLoading && (
+              <div className="mt-10 mb-20 text-sm md:text-base">
+                No films found.
+              </div>
+            )
+          )
+        ) : (
+          /* --- My Films mode --- */
+          authState.status ? (
+            <UserFilmGallery
+              listOfFilmObjects={userFilmList}
+              queryString={galleryQueryString}
+              sortDirection={sortDirection}
+              sortBy={sortBy}
+            />
+          ) : (
+            /* Unauthenticated prompt */
+            <div className="mt-10 mb-20 text-sm md:text-base">
+              Log in and like a film to start!
+            </div>
+          )
         )}
       </div>
     </div>
-  )
+  );
 }

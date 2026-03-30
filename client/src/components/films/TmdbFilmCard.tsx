@@ -19,7 +19,10 @@ interface FilmTMDB_CardProps {
   setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>;
 }
 
-export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps) {
+export default function TmdbFilmCard({
+  filmObject,
+  setPage,
+}: FilmTMDB_CardProps) {
   const navigate = useNavigate();
 
   const {
@@ -61,19 +64,61 @@ export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps
       onMouseEnter={handleCardHoverEnter}
       onMouseLeave={handleCardHoverLeave}
     >
-      {/* Poster */}
-      <FilmCardPoster
-        backdropPath={filmObject.backdrop_path}
-        filmId={filmObject.id}
-        trailerKey={trailerKey}
-        isPosterHovered={isPosterHovered}
-        onPosterHoverEnter={() => setIsPosterHovered(true)}
-        onPosterHoverLeave={() => setIsPosterHovered(false)}
-        onNavigate={() => {
-          navigate({ to: `/films/${filmObject.id}` });
-          setPage?.((prevPage) => ({ ...prevPage, loadMore: false }));
-        }}
-      />
+      <div className="relative w-full">
+        {/* Poster */}
+        <FilmCardPoster
+          backdropPath={filmObject.backdrop_path}
+          filmId={filmObject.id}
+          trailerKey={trailerKey}
+          isPosterHovered={isPosterHovered}
+          onPosterHoverEnter={() => setIsPosterHovered(true)}
+          onPosterHoverLeave={() => setIsPosterHovered(false)}
+          onNavigate={() => {
+            navigate({ to: `/films/${filmObject.id}` });
+            setPage?.((prevPage) => ({ ...prevPage, loadMore: false }));
+          }}
+        />
+
+        {/* Text below poster */}
+        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-light w-full flex justify-between gap-2">
+          {/* Left side - Title, year */}
+          <div className="flex flex-row items-center gap-1 ml-1 min-w-0">
+            <div className="overflow-hidden min-w-0 flex-1">
+              <span
+                ref={titleSpanRef as React.RefObject<HTMLSpanElement>}
+                onClick={() => {
+                  navigate({ to: `/films/${filmObject.id}` });
+                  setPage?.((prevPage) => ({ ...prevPage, loadMore: false }));
+                }}
+                className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-hover-accent cursor-pointer"
+                title={filmObject.title}
+                style={{ paddingRight: "0.1rem" }}
+              >
+                {filmObject.title}
+              </span>
+            </div>
+            {filmObject.release_date && (
+              <span className="shrink-0 font-thin">
+                {getReleaseYear(filmObject.release_date)}
+              </span>
+            )}
+          </div>
+
+          {/* Right side - TMDB rating and vote count */}
+          <div className="flex items-center gap-2 md:gap-3 justify-center mr-1 shrink-0">
+            <div className="flex items-center justify-center gap-1">
+              <MdStars className="text-sm lg:text-xl 2xl:text-2xl" />
+              <div className="">
+                {Number(filmObject.vote_average).toFixed(1)}
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-1">
+              <MdPeople className="text-base lg:text-xl 2xl:text-3xl" />
+              <div className="">{filmObject.vote_count}</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Slide-down overlay — desktop only, appears below the card on hover */}
       <CardHoverOverlay
@@ -88,60 +133,6 @@ export default function TmdbFilmCard({ filmObject, setPage }: FilmTMDB_CardProps
         slideDown={true}
         setPage={setPage}
       />
-
-      {/* Text below poster */}
-      <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-light w-full flex justify-between gap-2">
-        {/* Left side - Title, year */}
-        <div className="flex flex-row items-center gap-1 ml-1 min-w-0">
-          <div className="overflow-hidden min-w-0 flex-1">
-            <span
-              ref={titleSpanRef as React.RefObject<HTMLSpanElement>}
-              onClick={() => {
-                navigate({ to: `/films/${filmObject.id}` });
-                setPage?.((prevPage) => ({ ...prevPage, loadMore: false }));
-              }}
-              className="whitespace-nowrap inline-block font-bold uppercase transition-all duration-200 ease-out hover:text-hover-accent cursor-pointer"
-              title={filmObject.title}
-              style={{ paddingRight: "0.1rem" }}
-            >
-              {filmObject.title}
-            </span>
-          </div>
-          {filmObject.release_date && (
-            <span className="shrink-0 font-thin">
-              {getReleaseYear(filmObject.release_date)}
-            </span>
-          )}
-        </div>
-
-        {/* Right side - TMDB rating and vote count */}
-        <div className="flex items-center gap-2 md:gap-3 justify-center mr-1 shrink-0">
-          <div className="flex items-center justify-center gap-1">
-            <MdStars className="text-sm lg:text-xl 2xl:text-2xl" />
-            <div className="">{Number(filmObject.vote_average).toFixed(1)}</div>
-          </div>
-          <div className="flex items-center justify-center gap-1">
-            <MdPeople className="text-base lg:text-xl 2xl:text-3xl" />
-            <div className="">{filmObject.vote_count}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile <768px: overview + interaction console */}
-      <div className="md:hidden mt-1 pb-4 w-full">
-        <div className="p-0 pr-3 pl-3 mb-4 w-full text-[13px] italic line-clamp-2">
-          {filmObject.overview}
-        </div>
-        <InteractionConsole
-          tmdbId={filmObject.id}
-          directors={directors}
-          movieDetails={movieDetails}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-          variant="card"
-          showOverview={false}
-        />
-      </div>
     </div>
   );
 }
