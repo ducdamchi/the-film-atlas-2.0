@@ -80,7 +80,7 @@ export default function TmdbFilmCard({
         />
 
         {/* Text below poster */}
-        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-light w-full flex justify-between gap-2">
+        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-light w-full flex justify-between gap-2 text-base @7xl:text-lg">
           {/* Left side - Title, year */}
           <div className="flex flex-row items-center gap-1 ml-1 min-w-0">
             <div className="overflow-hidden min-w-0 flex-1">
@@ -105,15 +105,15 @@ export default function TmdbFilmCard({
           </div>
 
           {/* Right side - TMDB rating and vote count */}
-          <div className="flex items-center gap-2 md:gap-3 justify-center mr-1 shrink-0">
+          <div className="flex items-center gap-2 @3xl:gap-3 justify-center mr-1 shrink-0">
             <div className="flex items-center justify-center gap-1">
-              <MdStars className="text-sm lg:text-xl 2xl:text-2xl" />
+              <MdStars className="text-base @5xl:text-xl @min-[96rem]:text-2xl" />
               <div className="">
                 {Number(filmObject.vote_average).toFixed(1)}
               </div>
             </div>
             <div className="flex items-center justify-center gap-1">
-              <MdPeople className="text-base lg:text-xl 2xl:text-3xl" />
+              <MdPeople className="text-base @5xl:text-xl @min-[96rem]:text-3xl" />
               <div className="">{filmObject.vote_count}</div>
             </div>
           </div>

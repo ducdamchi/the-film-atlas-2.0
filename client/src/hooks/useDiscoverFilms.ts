@@ -310,6 +310,7 @@ export function useDiscoverFilms({
             }
           } else {
             setSuggestedFilmList([])
+            lastFetchParamsRef.current = null
           }
         } catch (err) {
           console.log(err)

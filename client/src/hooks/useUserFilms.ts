@@ -46,7 +46,10 @@ export function useUserFilms({
 
   useEffect(() => {
     if (!authState.status || isDiscoverMode) return
-    if (!popupInfo || popupInfo.iso_a2 === undefined) return
+    if (!popupInfo || popupInfo.iso_a2 === undefined) {
+      setUserFilmList([])
+      return
+    }
 
     const fetchFilmsByCountry = async () => {
       try {

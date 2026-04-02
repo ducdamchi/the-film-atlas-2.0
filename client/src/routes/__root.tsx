@@ -1,22 +1,29 @@
-import { Outlet, createRootRoute } from "@tanstack/react-router"
-import { useState, useEffect } from "react"
-import axios from "axios"
-import "../styles.css"
+import {
+  Outlet,
+  createRootRoute,
+  useRouterState,
+} from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import "../styles.css";
 
-import { AuthContext } from "../utils/authContext"
-import NavBar from "../components/layout/navbar/NavBar"
-import Footer from "../components/layout/Footer"
-import LoadingPage from "../components/layout/LoadingPage"
-import ScrollToAnchor from "../hooks/scrollToAnchor"
-import { LocationBanner } from "../components/settings/LocationBanner"
-import { CompleteProfileModal } from "../components/settings/CompleteProfileModal"
+import { AuthContext } from "../utils/authContext";
+import NavBar from "../components/layout/navbar/NavBar";
+import Footer from "../components/layout/Footer";
+import LoadingPage from "../components/layout/LoadingPage";
+import ScrollToAnchor from "../hooks/scrollToAnchor";
+import { LocationBanner } from "../components/settings/LocationBanner";
+import { CompleteProfileModal } from "../components/settings/CompleteProfileModal";
 
 export const Route = createRootRoute({
   component: RootComponent,
-})
+});
 
 function RootComponent() {
-  const [loading, setLoading] = useState(true)
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isMapPage = pathname === "/map";
+  const isHomePage = pathname === "/";
+  const [loading, setLoading] = useState(true);
   const [authState, setAuthState] = useState({
     username: "",
     id: 0,
@@ -24,15 +31,15 @@ function RootComponent() {
     email: null as string | null,
     locationCountry: null as string | null,
     locationSource: null as string | null,
-  })
-  const [searchModalOpen, setSearchModalOpen] = useState(false)
+  });
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken")
+    const accessToken = localStorage.getItem("accessToken");
 
     if (!accessToken) {
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
 
     axios
@@ -48,19 +55,19 @@ function RootComponent() {
             email: response.data.email ?? null,
             locationCountry: response.data.location_country ?? null,
             locationSource: response.data.location_source ?? null,
-          })
+          });
         }
       })
       .catch((err) => {
-        console.error("Client: Authentication failed", err)
+        console.error("Client: Authentication failed", err);
       })
       .finally(() => {
-        setLoading(false)
-      })
-  }, [])
+        setLoading(false);
+      });
+  }, []);
 
   if (loading) {
-    return <LoadingPage />
+    return <LoadingPage />;
   }
 
   return (
@@ -72,13 +79,14 @@ function RootComponent() {
         setLoading,
         searchModalOpen,
         setSearchModalOpen,
-      }}>
+      }}
+    >
       <ScrollToAnchor />
       <NavBar />
-      <LocationBanner />
+      {/* {!isMapPage && <LocationBanner />} */}
       <Outlet />
       {authState.status && !authState.email && <CompleteProfileModal />}
-      <Footer />
+      {!isMapPage && !isHomePage && <Footer />}
     </AuthContext.Provider>
-  )
+  );
 }

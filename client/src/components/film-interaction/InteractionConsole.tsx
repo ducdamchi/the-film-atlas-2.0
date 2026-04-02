@@ -31,14 +31,7 @@ import type {
  * The five variants that drive CSS custom property styling via .console-{variant}.
  * Adding the union here means passing an invalid string like "hover" is a compile error.
  */
-type ConsoleVariant =
-  | "card"
-  | "overlay-sm"
-  | "overlay-lg"
-  | "overlay-panel"
-  | "overlay-panel-sm"
-  | "landing-sm"
-  | "landing-lg";
+type ConsoleVariant = "card" | "landing-sm" | "landing-lg";
 
 export interface InteractionConsoleProps {
   tmdbId: number | null | undefined;
@@ -48,7 +41,7 @@ export interface InteractionConsoleProps {
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   /**
-   * @param {"card"|"overlay-sm"|"overlay-lg"|"landing-sm"|"landing-lg"} variant
+   * @param {"card"|"landing-sm"|"landing-lg"} variant
    * Styling is driven by CSS custom properties set on .console-{variant} in styles.css
    */
   variant: ConsoleVariant;

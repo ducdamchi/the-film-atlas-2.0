@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Map, Popup, NavigationControl } from "react-map-gl/maplibre";
 
 import "@maptiler/sdk/dist/maptiler-sdk.css";
@@ -13,7 +13,7 @@ import { useMapFilmData } from "../hooks/useMapFilmData";
 import { useMapInteraction } from "../hooks/useMapInteraction";
 import { useDiscoverFilms } from "../hooks/useDiscoverFilms";
 import { useUserFilms } from "../hooks/useUserFilms";
-import { useBottomSheet } from "../hooks/useBottomSheet";
+import { useMapPanel } from "../hooks/useMapPanel";
 
 import NavBar from "./layout/navbar/NavBar";
 import QuickSearchModal from "./layout/QuickSearchModal";
@@ -25,7 +25,8 @@ import MapCountriesLayer from "./map/MapCountriesLayer";
 import DiscoverControls from "./map/DiscoverControls";
 import MyFilmsControls from "./map/MyFilmsControls";
 
-import { FaGripLines } from "react-icons/fa";
+import { FaGripLines } from "react-icons/fa6";
+import { GripVertical } from "lucide-react";
 
 /**
  * The full set of queryString values used by the map page.
@@ -134,41 +135,39 @@ export default function MapPage() {
     numStars,
   });
   const {
-    belowMapRef,
+    panelRef,
     mapContainerRef,
-    setShowBelowMapContent,
+    setShowPanel,
     onDragHandlePointerDown,
     handleDragAreaClick,
-  } = useBottomSheet();
+  } = useMapPanel();
+
+  const innerScrollRef = useRef<HTMLDivElement | null>(null);
 
   const isLoading = discoverLoading || userFilmsLoading;
 
-  /* Show/hide bottom sheet when a country is selected */
+  /* Show/hide panel when a country is selected */
   useEffect(() => {
     if (popupInfo && popupInfo.iso_a2 != null) {
-      setShowBelowMapContent(true);
+      setShowPanel(true);
     } else {
-      setShowBelowMapContent(false);
+      setShowPanel(false);
     }
   }, [popupInfo]);
 
-  /* Scroll restoration */
+  /* Scroll restoration — tracks scroll within the inner scroll container */
   useEffect(() => {
-    if (!isLoading) {
-      if (scrollPosition) {
-        setTimeout(() => {
-          window.scrollTo(0, parseInt(String(scrollPosition), 10));
-        }, 300);
-      } else {
-        setTimeout(() => window.scrollTo(0, 0), 0);
-      }
-      const handleScroll = () => setScrollPosition(window.scrollY);
-      const scrollTimer = setTimeout(() => {
-        window.addEventListener("scroll", handleScroll);
-      }, 500);
+    if (!isLoading && innerScrollRef.current) {
+      innerScrollRef.current.scrollTop = scrollPosition;
+      const el = innerScrollRef.current;
+      const handleScroll = () => setScrollPosition(el.scrollTop);
+      const scrollTimer = setTimeout(
+        () => el.addEventListener("scroll", handleScroll),
+        500,
+      );
       return () => {
         clearTimeout(scrollTimer);
-        window.removeEventListener("scroll", handleScroll);
+        el.removeEventListener("scroll", handleScroll);
       };
     }
   }, [isLoading]);
@@ -186,7 +185,7 @@ export default function MapPage() {
         : "watched";
 
   return (
-    <div className="font-primary mt-[4.5rem] relative">
+    <div className="font-primary fixed inset-0 overflow-hidden">
       {isLoading && <LoadingPage />}
 
       {searchModalOpen && (
@@ -197,11 +196,8 @@ export default function MapPage() {
       )}
       <NavBar />
 
-      {/* Map */}
-      <div
-        ref={mapContainerRef}
-        className="w-screen h-[40rem] xl:h-[55rem] max-h-[90vh] relative border-[0.3rem] border-[#b8d5e5]"
-      >
+      {/* Map — fills the full viewport */}
+      <div ref={mapContainerRef} className="absolute inset-0">
         {webglSupported ? (
           <Map
             ref={mapRef as React.Ref<unknown> as React.RefObject<null>}
@@ -233,7 +229,9 @@ export default function MapPage() {
                     <span className="font-bold">{popupInfo.custom_name}</span>
                   )}
                   {popupInfo.custom_name === undefined && (
-                    <span className="font-bold">{popupInfo.country_name}</span>
+                    <span className="font-bold">
+                      {popupInfo.country_name ?? "Invalid Region"}
+                    </span>
                   )}
                   <span>
                     <span className="font-bold">
@@ -278,125 +276,177 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* Below map panel */}
+      {/* Panel — mobile: bottom sheet; desktop: left sidebar */}
+      {/* Outer wrapper: owns positioning + dimensions, overflow-visible so the handle button can protrude */}
       <div
-        className="relative flex flex-col items-center w-full bg-elevated z-90 pb-10 rounded-t-4xl shadow-[25px_-8px_30px_rgba(0,0,0,0.15)] [clip-path:inset(-100%_-100%_-20rem_-100%)]"
-        ref={belowMapRef}
+        ref={panelRef}
+        className={[
+          "@container absolute z-50",
+          // Mobile: slides up from viewport bottom
+          "bottom-0 left-0 right-0",
+          // Desktop: left sidebar below navbar
+          "md:right-auto md:top-[4.5rem]",
+        ].join(" ")}
       >
-        {/* Drag handle */}
+        {/* Inner scroll container: visual appearance + scrolling */}
         <div
-          className="w-full flex flex-col items-center cursor-ns-resize touch-none select-none rounded-t-4xl hover:bg-control/70 transition-colors ease-out duration-200 py-2 mb-2"
+          ref={innerScrollRef}
+          className={[
+            "w-full h-full",
+            "bg-elevated overflow-y-auto flex flex-col items-center",
+            // Mobile visual
+
+            "shadow-[25px_-8px_30px_rgba(0,0,0,0.15)]",
+            "[clip-path:inset(-100%_-100%_-20rem_-100%)]",
+            // Desktop visual
+            "md:pt-10",
+            "md:shadow-[8px_0_30px_rgba(0,0,0,0.15)]",
+            "md:[clip-path:none]",
+          ].join(" ")}
+        >
+          {/* Mobile drag handle — sticky at top so it's always reachable while scrolling */}
+          <div
+            className="md:hidden sticky top-0 z-250 w-full flex flex-col items-center cursor-ns-resize touch-none select-none bg-none hover:bg-control/70 transition-colors ease-out duration-200 py-2 mb-2"
+            onClick={handleDragAreaClick}
+            onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}
+          >
+            <FaGripLines className="text-2xl text-muted-dark" />
+          </div>
+
+          {popupInfo &&
+            popupInfo.iso_a2 !== null &&
+            popupInfo.iso_a2 !== undefined && (
+              <div className="page-title-map font-heading">
+                {getCountryName(popupInfo.iso_a2)}
+              </div>
+            )}
+          {(!popupInfo ||
+            popupInfo.iso_a2 === null ||
+            popupInfo.iso_a2 === undefined) && (
+            <div className="flex flex-col items-center justify-center">
+              <div className="page-title-map font-heading">
+                select region on map
+              </div>
+              {/* <div>(click on a valid region on map to start)</div> */}
+            </div>
+          )}
+
+          <div className="flex flex-col items-center justify-center mt-5 w-[90%] min-w-[15rem] md:w-[90%]">
+            {/* Discover / My Films toggle */}
+            <Toggle<BrowseMode>
+              label="Browse"
+              value={isDiscoverMode ? "discover" : "my_films"}
+              onChange={(val) => {
+                if (val === "discover") setQueryString("discover");
+                else setQueryString(lastMyFilmsQueryString);
+              }}
+              options={[
+                { value: "discover", label: "Discover" },
+                { value: "my_films", label: "My Films" },
+              ]}
+            />
+
+            {isDiscoverMode ? (
+              <DiscoverControls
+                discoverBy={discoverBy}
+                setDiscoverBy={setDiscoverBy}
+                ratingRange={ratingRange}
+                setRatingRange={setRatingRange}
+                tempRatingRange={tempRatingRange}
+                setTempRatingRange={setTempRatingRange}
+                voteCountRange={voteCountRange}
+                setVoteCountRange={setVoteCountRange}
+                tempVoteCountRange={tempVoteCountRange}
+                setTempVoteCountRange={setTempVoteCountRange}
+              />
+            ) : (
+              <MyFilmsControls
+                queryString={queryString as MapFilmQueryString}
+                setQueryString={
+                  setQueryString as React.Dispatch<
+                    React.SetStateAction<MapFilmQueryString>
+                  >
+                }
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                sortDirection={sortDirection}
+                setSortDirection={setSortDirection}
+                numStars={numStars}
+                setNumStars={setNumStars}
+              />
+            )}
+          </div>
+
+          <div className="flex flex-col items-center w-full">
+            {/* Film gallery section — top-level split: Discover vs. My Films */}
+            {isDiscoverMode ? (
+              /* --- Discover mode --- */
+              suggestedFilmList.length > 0 ? (
+                <>
+                  <TmdbFilmGallery
+                    listOfFilmObjects={suggestedFilmList}
+                    setPage={setPage}
+                  />
+                  {/* Pagination footer: sentinel triggers next page load, or show end message */}
+                  {page.hasMore ? (
+                    /* 1px sentinel; IntersectionObserver rootMargin pre-fires 400px early */
+                    <div ref={loadMoreTrigger} className="w-full h-px mt-20" />
+                  ) : (
+                    <div className="w-full flex items-center justify-center m-10 text-base text-black">
+                      You've reached the end!
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* No results — only shown after loading completes */
+                !isLoading && (
+                  <div className="mt-10 mb-20 text-sm md:text-base">
+                    No films found.
+                  </div>
+                )
+              )
+            ) : /* --- My Films mode --- */
+            authState.status ? (
+              <UserFilmGallery
+                listOfFilmObjects={userFilmList}
+                queryString={galleryQueryString}
+                sortDirection={sortDirection}
+                sortBy={sortBy}
+              />
+            ) : (
+              /* Unauthenticated prompt */
+              <div className="mt-10 mb-20 text-sm md:text-base">
+                Log in and like a film to start!
+              </div>
+            )}
+          </div>
+        </div>
+        {/* end inner scroll container */}
+
+        {/* Desktop handle button — protrudes to the right at the sidebar's vertical center */}
+        <button
+          type="button"
+          aria-label="Resize or toggle sidebar"
+          className={[
+            "hidden md:flex absolute -right-7 top-1/2 -translate-y-1/2",
+            "z-10 w-7 h-14",
+            "flex-col items-center justify-center gap-[3px]",
+            "bg-elevated border border-control border-l-0",
+            "rounded-r-lg",
+            "inset-shadow-[2px_0px_5px_rgba(0,0,0,0.12)]",
+            "cursor-ew-resize touch-none select-none",
+            "transition-colors duration-150 ease-out",
+            "hover:bg-control",
+            "active:bg-control active:shadow-[1px_1px_4px_rgba(0,0,0,0.10)]",
+            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dark",
+          ].join(" ")}
           onClick={handleDragAreaClick}
           onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}
         >
-          <FaGripLines className="text-2xl text-light/40" />
-        </div>
-
-        {popupInfo &&
-          popupInfo.iso_a2 !== null &&
-          popupInfo.iso_a2 !== undefined && (
-            <div className="page-title-map font-heading">
-              {getCountryName(popupInfo.iso_a2)}
-            </div>
-          )}
-        {(!popupInfo ||
-          popupInfo.iso_a2 === null ||
-          popupInfo.iso_a2 === undefined) && (
-          <div className="flex flex-col items-center justify-center">
-            <div className="page-title-map font-heading">select region</div>
-            <div>(click on a valid region on map to start)</div>
-          </div>
-        )}
-
-        <div className="flex flex-col items-center justify-center mt-5 w-[90%] min-w-[20rem] md:w-[35rem]">
-          {/* Discover / My Films toggle */}
-          <Toggle<BrowseMode>
-            label="Browse"
-            value={isDiscoverMode ? "discover" : "my_films"}
-            onChange={(val) => {
-              if (val === "discover") setQueryString("discover");
-              else setQueryString(lastMyFilmsQueryString);
-            }}
-            options={[
-              { value: "discover", label: "Discover" },
-              { value: "my_films", label: "My Films" },
-            ]}
-          />
-
-          {isDiscoverMode ? (
-            <DiscoverControls
-              discoverBy={discoverBy}
-              setDiscoverBy={setDiscoverBy}
-              ratingRange={ratingRange}
-              setRatingRange={setRatingRange}
-              tempRatingRange={tempRatingRange}
-              setTempRatingRange={setTempRatingRange}
-              voteCountRange={voteCountRange}
-              setVoteCountRange={setVoteCountRange}
-              tempVoteCountRange={tempVoteCountRange}
-              setTempVoteCountRange={setTempVoteCountRange}
-            />
-          ) : (
-            <MyFilmsControls
-              queryString={queryString as MapFilmQueryString}
-              setQueryString={
-                setQueryString as React.Dispatch<
-                  React.SetStateAction<MapFilmQueryString>
-                >
-              }
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              sortDirection={sortDirection}
-              setSortDirection={setSortDirection}
-              numStars={numStars}
-              setNumStars={setNumStars}
-            />
-          )}
-        </div>
-
-        {/* Film gallery section — top-level split: Discover vs. My Films */}
-        {isDiscoverMode ? (
-          /* --- Discover mode --- */
-          suggestedFilmList.length > 0 ? (
-            <>
-              <TmdbFilmGallery
-                listOfFilmObjects={suggestedFilmList}
-                setPage={setPage}
-              />
-              {/* Pagination footer: sentinel triggers next page load, or show end message */}
-              {page.hasMore ? (
-                /* 1px sentinel; IntersectionObserver rootMargin pre-fires 400px early */
-                <div ref={loadMoreTrigger} className="w-full h-px mt-20" />
-              ) : (
-                <div className="w-full flex items-center justify-center m-10 text-base text-black">
-                  You've reached the end!
-                </div>
-              )}
-            </>
-          ) : (
-            /* No results — only shown after loading completes */
-            !isLoading && (
-              <div className="mt-10 mb-20 text-sm md:text-base">
-                No films found.
-              </div>
-            )
-          )
-        ) : (
-          /* --- My Films mode --- */
-          authState.status ? (
-            <UserFilmGallery
-              listOfFilmObjects={userFilmList}
-              queryString={galleryQueryString}
-              sortDirection={sortDirection}
-              sortBy={sortBy}
-            />
-          ) : (
-            /* Unauthenticated prompt */
-            <div className="mt-10 mb-20 text-sm md:text-base">
-              Log in and like a film to start!
-            </div>
-          )
-        )}
+          <GripVertical className="text-muted-light" />
+          {/* <FaGripLines className="text-[8px] text-muted-dark rotate-90" /> */}
+          {/* <FaGripLines className="text-[8px] text-muted-dark rotate-90" /> */}
+        </button>
       </div>
     </div>
   );

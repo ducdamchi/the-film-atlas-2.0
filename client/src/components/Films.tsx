@@ -1,165 +1,168 @@
 /* Libraries */
-import { useEffect, useState } from "react"
-import { useLocation } from "@tanstack/react-router"
+import { useEffect, useState } from "react";
+import { useLocation } from "@tanstack/react-router";
 
 /* Custom functions */
-import { useAuth } from "../utils/authContext"
-import { queryFilmFromTMDB, fetchListByParams } from "../utils/apiCalls"
-import useCommandKey from "../hooks/useCommandKey"
-import { usePersistedState } from "../hooks/usePersistedState"
+import { useAuth } from "../utils/authContext";
+import { queryFilmFromTMDB, fetchListByParams } from "../utils/apiCalls";
+import useCommandKey from "../hooks/useCommandKey";
+import { usePersistedState } from "../hooks/usePersistedState";
 
 /* Types */
-import type { TMDBFilmSummary } from "@/types/tmdb"
-import type { UserFilm } from "@/types/film"
+import type { TMDBFilmSummary } from "@/types/tmdb";
+import type { UserFilm } from "@/types/film";
 
 /* Components */
-import NavBar from "./layout/navbar/NavBar"
-import SearchBar from "./layout/SearchBar"
-import UserFilmGallery from "./films/UserFilmGallery"
-import TmdbFilmGallery from "./films/TmdbFilmGallery"
-import QuickSearchModal from "./layout/QuickSearchModal"
-import Toggle from "./ui-controls/Toggle"
-import Footer from "./layout/Footer"
+import NavBar from "./layout/navbar/NavBar";
+import SearchBar from "./layout/SearchBar";
+import UserFilmGallery from "./films/UserFilmGallery";
+import TmdbFilmGallery from "./films/TmdbFilmGallery";
+import QuickSearchModal from "./layout/QuickSearchModal";
+import Toggle from "./ui-controls/Toggle";
+import Footer from "./layout/Footer";
 
 /* Icons */
-import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa"
+import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa";
 
-type QueryString = "watched" | "watchlisted" | "watched/rated"
-type SortBy = "added_date" | "released_date"
-type SortDirection = "asc" | "desc"
+type QueryString = "watched" | "watchlisted" | "watched/rated";
+type SortBy = "added_date" | "released_date";
+type SortDirection = "asc" | "desc";
 
 export default function Films() {
   const [searchInput, setSearchInput] = usePersistedState<string>(
     "films-searchInput",
     "",
-  )
-  const [searchResult, setSearchResult] = useState<TMDBFilmSummary[]>([])
-  const [userFilmList, setUserFilmList] = useState<UserFilm[]>([])
+  );
+  const [searchResult, setSearchResult] = useState<TMDBFilmSummary[]>([]);
+  const [userFilmList, setUserFilmList] = useState<UserFilm[]>([]);
   const [isSearching, setIsSearching] = usePersistedState<boolean>(
     "films-isSearching",
     false,
-  )
+  );
   const [sortBy, setSortBy] = usePersistedState<SortBy>(
     "films-sortBy",
     "added_date",
-  )
+  );
   const [sortDirection, setSortDirection] = usePersistedState<SortDirection>(
     "films-sortDirection",
     "desc",
-  )
-  const [numStars, setNumStars] = usePersistedState<number>("films-numStars", 0)
+  );
+  const [numStars, setNumStars] = usePersistedState<number>(
+    "films-numStars",
+    0,
+  );
   const [queryString, setQueryString] = usePersistedState<QueryString>(
     "film-queryString",
     "watched",
-  )
+  );
   const [scrollPosition, setScrollPosition] = usePersistedState<number>(
     "films-scrollPosition",
     0,
-  )
-  const { authState, searchModalOpen, setSearchModalOpen } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
-  const location = useLocation()
+  );
+  const { authState, searchModalOpen, setSearchModalOpen } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
 
   function toggleSearchModal() {
-    setSearchModalOpen((status) => !status)
+    setSearchModalOpen((status) => !status);
   }
-  useCommandKey(toggleSearchModal, "k")
+  useCommandKey(toggleSearchModal, "k");
 
   /* Hook for scroll restoration */
   useEffect(() => {
     if (!isLoading) {
       if (scrollPosition) {
         setTimeout(() => {
-          window.scrollTo(0, parseInt(String(scrollPosition), 10))
-        }, 50)
+          window.scrollTo(0, parseInt(String(scrollPosition), 10));
+        }, 50);
       } else {
         setTimeout(() => {
-          window.scrollTo(0, 0)
-        }, 0)
+          window.scrollTo(0, 0);
+        }, 0);
       }
 
       const handleScroll = () => {
-        setScrollPosition(window.scrollY)
-      }
+        setScrollPosition(window.scrollY);
+      };
 
       const scrollTimer = setTimeout(() => {
-        window.addEventListener("scroll", handleScroll)
-      }, 500)
+        window.addEventListener("scroll", handleScroll);
+      }, 500);
 
       return () => {
-        clearTimeout(scrollTimer)
-        window.removeEventListener("scroll", handleScroll)
-      }
+        clearTimeout(scrollTimer);
+        window.removeEventListener("scroll", handleScroll);
+      };
     }
-  }, [isLoading])
+  }, [isLoading]);
 
   /* Query films from TMDB when user navigates back from Quick Search Modal */
   useEffect(() => {
     try {
       if (location.state) {
         const { searchInputFromQuickSearch } =
-          (location.state as { searchInputFromQuickSearch?: string }) || {}
+          (location.state as { searchInputFromQuickSearch?: string }) || {};
         if (typeof searchInputFromQuickSearch === "string") {
           if (searchInputFromQuickSearch.trim().length > 0) {
-            setSearchInput(searchInputFromQuickSearch)
+            setSearchInput(searchInputFromQuickSearch);
           }
         }
       }
     } catch (err) {
-      console.log(err)
+      console.log(err);
     }
-  }, [location.state])
+  }, [location.state]);
 
   /* Query films from TMDB with Search Bar — debounced 500ms */
   useEffect(() => {
     if (searchInput.trim().length === 0 || searchInput === null) {
-      setIsSearching(false)
-      return
+      setIsSearching(false);
+      return;
     }
 
-    setIsSearching(true)
+    setIsSearching(true);
 
     const timer = setTimeout(async () => {
       try {
-        const original_results = await queryFilmFromTMDB(searchInput)
+        const original_results = await queryFilmFromTMDB(searchInput);
         const filtered_results = original_results.filter(
           (movie) =>
             !(movie.backdrop_path === null || movie.poster_path === null),
-        )
+        );
         const sorted_filtered_results = filtered_results.sort(
           (a, b) => b.popularity - a.popularity,
-        )
-        setSearchResult(sorted_filtered_results)
+        );
+        setSearchResult(sorted_filtered_results);
       } catch (err) {
-        console.log("Error Querying Film: ", err)
+        console.log("Error Querying Film: ", err);
       }
-    }, 500)
+    }, 500);
 
-    return () => clearTimeout(timer)
-  }, [searchInput])
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   /* Fetch User's film list (liked, watchlisted or starred) from App's DB */
   useEffect(() => {
     if (authState.status) {
       const fetchUserFilmList = async () => {
         try {
-          setIsLoading(true)
+          setIsLoading(true);
           const results = await fetchListByParams({
             queryString: queryString,
             sortBy: sortBy,
             sortDirection: sortDirection,
             numStars: numStars,
-          })
-          setUserFilmList(results)
+          });
+          setUserFilmList(results);
         } catch (err) {
-          console.error("Error Fetching User Film List: ", err)
+          console.error("Error Fetching User Film List: ", err);
         } finally {
-          setIsLoading(false)
+          setIsLoading(false);
         }
-      }
-      fetchUserFilmList()
+      };
+      fetchUserFilmList();
     }
-  }, [sortBy, sortDirection, queryString, numStars, authState.status])
+  }, [sortBy, sortDirection, queryString, numStars, authState.status]);
 
   return (
     <div className="font-primary mt-20 min-h-screen">
@@ -171,7 +174,7 @@ export default function Films() {
         />
       )}
       {/* Wrapper for entire page */}
-      <div className="flex flex-col items-center">
+      <div className="@container flex flex-col items-center">
         <NavBar />
 
         <div className="font-heading page-title">Films</div>
@@ -255,9 +258,7 @@ export default function Films() {
                   },
                   {
                     value: 1,
-                    label: (
-                      <span className="text-2xl text-star">&#10048;</span>
-                    ),
+                    label: <span className="text-2xl text-star">&#10048;</span>,
                   },
                 ]}
               />
@@ -265,36 +266,36 @@ export default function Films() {
           </div>
         )}
 
-        {/* If user logged in and is not searching, show them list of liked films */}
-        {!isSearching && authState.status && (
-          <div className="mt-0">
+        <div className="flex flex-col items-center w-full">
+          {/* If user logged in and is not searching, show them list of liked films */}
+          {!isSearching && authState.status && (
             <UserFilmGallery
               listOfFilmObjects={userFilmList}
               queryString={queryString}
               sortDirection={sortDirection}
               sortBy={sortBy}
             />
-          </div>
-        )}
+          )}
 
-        {/* If user not logged in and is not searching */}
-        {!authState.status && !isSearching && (
-          <div className="mt-10 mb-20 text-sm md:text-base">
-            Log in to interact with films!
-          </div>
-        )}
-
-        {/* If user is searching, show list of search results */}
-        {isSearching && (
-          <div className="mt-10 md:mt-20 flex flex-col items-center w-full relative">
-            <div className="page-subtitle flex items-center justify-center">
-              Search Results:
+          {/* If user not logged in and is not searching */}
+          {!authState.status && !isSearching && (
+            <div className="mt-10 mb-20 text-sm @3xl:text-base">
+              Log in to interact with films!
             </div>
+          )}
 
-            <TmdbFilmGallery listOfFilmObjects={searchResult} />
-          </div>
-        )}
+          {/* If user is searching, show list of search results */}
+          {isSearching && (
+            <div className="mt-10 @3xl:mt-20 flex flex-col items-center w-full relative">
+              <div className="page-subtitle flex items-center justify-center">
+                Search Results:
+              </div>
+
+              <TmdbFilmGallery listOfFilmObjects={searchResult} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  )
+  );
 }

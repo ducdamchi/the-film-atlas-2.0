@@ -1,19 +1,19 @@
-import { useState } from "react"
-import { useAuth } from "@/utils/authContext"
-import { decodeToken } from "@/utils/decodeToken"
-import { COUNTRIES } from "@/utils/countries"
-import { LocationPicker } from "./LocationPicker"
+import { useState } from "react";
+import { useAuth } from "@/utils/authContext";
+import { decodeToken } from "@/utils/decodeToken";
+import { COUNTRIES } from "@/utils/countries";
+import { LocationPicker } from "./LocationPicker";
 
 function LocationChangeModal({ onClose }: { onClose: () => void }) {
-  const { authState, setAuthState } = useAuth()
-  const [country, setCountry] = useState(authState.locationCountry ?? "")
-  const [city, setCity] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const { authState, setAuthState } = useAuth();
+  const [country, setCountry] = useState(authState.locationCountry ?? "");
+  const [city, setCity] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
-    if (!country) return
-    setLoading(true)
+    if (!country) return;
+    setLoading(true);
     try {
       const res = await fetch("/profile/me/location", {
         method: "PATCH",
@@ -22,27 +22,29 @@ function LocationChangeModal({ onClose }: { onClose: () => void }) {
           accesstoken: localStorage.getItem("accessToken") ?? "",
         },
         body: JSON.stringify({ country, city }),
-      })
-      const data = await res.json()
+      });
+      const data = await res.json();
       if (data.error) {
-        setError(data.error)
-        return
+        setError(data.error);
+        return;
       }
-      localStorage.setItem("accessToken", data.token)
-      const decoded = decodeToken(data.token)
-      if (decoded) setAuthState(decoded)
-      onClose()
+      localStorage.setItem("accessToken", data.token);
+      const decoded = decodeToken(data.token);
+      if (decoded) setAuthState(decoded);
+      onClose();
     } catch {
-      setError("Something went wrong. Please try again.")
+      setError("Something went wrong. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 z-[600] flex items-center justify-center bg-overlay/70">
       <div className="bg-surface border border-control rounded-xl p-6 w-full max-w-sm shadow-xl font-primary">
-        <h3 className="text-base font-semibold text-body mb-4">Change your region</h3>
+        <h3 className="text-base font-semibold text-body mb-4">
+          Change your region
+        </h3>
         <LocationPicker
           country={country}
           city={city}
@@ -54,62 +56,69 @@ function LocationChangeModal({ onClose }: { onClose: () => void }) {
           <button
             className="flex-1 bg-body text-on-dark rounded-lg py-2 text-sm font-medium disabled:opacity-40 cursor-pointer"
             onClick={handleSave}
-            disabled={!country || !city || loading}>
+            disabled={!country || !city || loading}
+          >
             {loading ? "Saving..." : "Save"}
           </button>
           <button
             className="flex-1 border border-control text-subtle rounded-lg py-2 text-sm cursor-pointer"
-            onClick={onClose}>
+            onClick={onClose}
+          >
             Cancel
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function LocationBanner() {
-  const { authState } = useAuth()
+  const { authState } = useAuth();
   const [dismissed, setDismissed] = useState(
     () => !!sessionStorage.getItem("locationBannerDismissed"),
-  )
-  const [pickerOpen, setPickerOpen] = useState(false)
+  );
+  const [pickerOpen, setPickerOpen] = useState(false);
 
-  if (!authState.status || authState.locationSource !== "ip" || dismissed) return null
+  if (!authState.status || authState.locationSource !== "ip" || dismissed)
+    return null;
 
   const countryName =
     COUNTRIES.find((c) => c.code === authState.locationCountry)?.name ??
-    authState.locationCountry
+    authState.locationCountry;
 
   const dismiss = () => {
-    sessionStorage.setItem("locationBannerDismissed", "1")
-    setDismissed(true)
-  }
+    sessionStorage.setItem("locationBannerDismissed", "1");
+    setDismissed(true);
+  };
 
   return (
     <>
-      <div className="bg-surface border-b border-control px-4 py-2 flex items-center gap-3 text-sm font-primary text-subtle">
+      <div className="bg-surface border-1 border-control px-4 py-2 flex items-center gap-3 text-sm font-primary text-subtle">
         <span>
-          Showing content from <strong className="text-body">{countryName}</strong>. Not
-          right?
+          Showing content from{" "}
+          <strong className="text-body">{countryName}</strong>. Not right?
         </span>
         <button
           onClick={() => setPickerOpen(true)}
-          className="underline text-body cursor-pointer">
+          className="underline text-body cursor-pointer"
+        >
           Change region
         </button>
-        <button onClick={dismiss} className="ml-auto text-subtle cursor-pointer">
+        <button
+          onClick={dismiss}
+          className="ml-auto text-subtle cursor-pointer"
+        >
           ✕
         </button>
       </div>
       {pickerOpen && (
         <LocationChangeModal
           onClose={() => {
-            setPickerOpen(false)
-            dismiss()
+            setPickerOpen(false);
+            dismiss();
           }}
         />
       )}
     </>
-  )
+  );
 }

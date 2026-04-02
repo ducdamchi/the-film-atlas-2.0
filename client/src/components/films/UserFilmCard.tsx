@@ -82,10 +82,10 @@ export default function UserFilmCard({
           onNavigate={() => navigate({ to: `/films/${filmObject.id}` })}
         />
         {/* Title overlay — anchored to bottom of poster */}
-        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-light w-full flex justify-between gap-2">
+        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-light w-full flex justify-between gap-2 text-[12px] @7xl:text-[14px]">
           {/* Left side - Title, year, country */}
           <div className="flex flex-col items-start justify-center gap-0 ml-2 min-w-0 overflow-hidden">
-            <div className="overflow-hidden w-full text-base">
+            <div className="overflow-hidden w-full text-base @7xl:text-lg">
               <span
                 ref={titleSpanRef as React.RefObject<HTMLSpanElement>}
                 onClick={() => navigate({ to: `/films/${filmObject.id}` })}
@@ -96,7 +96,7 @@ export default function UserFilmCard({
                 {filmObject.title}
               </span>
             </div>
-            <div className="flex items-center uppercase text-[12px] font-light gap-1 w-full">
+            <div className="flex items-center uppercase font-light gap-1 w-full">
               {filmObject.release_date && (
                 <span className="shrink-0">
                   {getReleaseYear(filmObject.release_date)}
@@ -119,7 +119,7 @@ export default function UserFilmCard({
             </div>
           </div>
           {/* Right side - director photos */}
-          <div className="flex flex-col items-center justify-center gap-1 max-w-[22rem] mr-2 text-[12px] hover:text-hover-link transition-all duration-300 ease-out">
+          <div className="flex flex-col items-center justify-center gap-1 max-w-[22rem] mr-2 hover:text-hover-link transition-all duration-300 ease-out">
             {queryString && filmObject.directors && (
               <div className="flex items-start gap-1 justify-center">
                 {filmObject.directors.map((dir, key) => {

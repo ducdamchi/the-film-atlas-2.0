@@ -1,10 +1,10 @@
-import { BiSearchAlt2 } from "react-icons/bi"
-import { MdClose } from "react-icons/md"
+import { BiSearchAlt2 } from "react-icons/bi";
+import { MdClose } from "react-icons/md";
 
 interface SearchBarProps {
-  searchInput: string
-  setSearchInput: React.Dispatch<React.SetStateAction<string>>
-  placeholderString: string
+  searchInput: string;
+  setSearchInput: React.Dispatch<React.SetStateAction<string>>;
+  placeholderString: string;
 }
 
 export default function SearchBar({
@@ -15,21 +15,24 @@ export default function SearchBar({
   return (
     <>
       <div className="flex flex-col items-center justify-center gap-2 mt-10 w-full h-auto">
-        <div className="relative w-[50%] min-w-[20rem] max-w-[30rem] border-2 h-[2.5rem] p-2 lg:p-3 flex items-center gap-2 drop-shadow-xl border-1 rounded-full drop-shadow-sm/50 drop-shadow-black/40" style={{ borderColor: "var(--color-text-dark)" }}>
-          <BiSearchAlt2 className="ml-2 lg:mt-[2px]" />
+        <div
+          className="relative w-[50%] min-w-[20rem] max-w-[30rem] border-2 h-[2.5rem] p-2 @5xl:p-3 flex items-center gap-2 drop-shadow-xl border-1 rounded-full drop-shadow-sm/50 drop-shadow-black/40"
+          style={{ borderColor: "var(--color-text-dark)" }}
+        >
+          <BiSearchAlt2 className="ml-2 @5xl:mt-[2px]" />
           <input
-            className="h-[2.5rem] w-full border-0 focus:outline-0 input:bg-none text-base lg:text-lg"
+            className="h-[2.5rem] w-full border-0 focus:outline-0 input:bg-none text-base @5xl:text-lg"
             type="text"
             name="search-bar"
             autoComplete="off"
             placeholder={placeholderString}
             value={searchInput}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setSearchInput(event.target.value)
+              setSearchInput(event.target.value);
             }}
             onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
               if (event.key === "Enter") {
-                setSearchInput((event.target as HTMLInputElement).value)
+                setSearchInput((event.target as HTMLInputElement).value);
               }
             }}
           />
@@ -41,10 +44,11 @@ export default function SearchBar({
           )}
         </div>
         {searchInput && searchInput !== "" && (
-          <div className="pt-1 italic text-subtle font-light">
+          <div className="text-sm @5xl:text-base pt-1 italic text-subtle font-light">
             <span
               className="cursor-pointer hover:text-hover-link transition-all ease-out duration-200 underline"
-              onClick={() => setSearchInput("")}>
+              onClick={() => setSearchInput("")}
+            >
               Clear
             </span>{" "}
             search to return to list.
@@ -52,5 +56,5 @@ export default function SearchBar({
         )}
       </div>
     </>
-  )
+  );
 }

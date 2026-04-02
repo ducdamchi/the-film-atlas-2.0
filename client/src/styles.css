@@ -59,9 +59,9 @@
   --color-text-dark: oklch(18% 0.005 56); /* *-dark */
   --color-text-light: oklch(93% 0.003 48); /* *-light */
   /* --color-text-muted: oklch(52% 0.006 56); */
-  --color-text-muted-light: oklch(55.2% 0.016 285.938) /* *-muted-light */
-    --color-text-muted-dark: oklch(70.5% 0.015 286.067) /* *-muted-dark */
-    --color-text-control: oklch(44.6% 0.03 256.802); /* *-label */
+  --color-text-muted-light: oklch(55.2% 0.016 285.938); /* *-muted-light */
+  --color-text-muted-dark: oklch(70.5% 0.015 286.067); /* *-muted-dark */
+  --color-text-control: oklch(44.6% 0.03 256.802); /* *-label */
 
   /* --- Status colors --- */
   --color-status-error: oklch(55% 0.22 29); /* *-error */
@@ -121,34 +121,34 @@
 @layer components {
   .page-title,
   .page-title-map {
-    @apply uppercase font-bold text-xl md:text-2xl lg:text-3xl flex items-center justify-center w-full;
+    @apply uppercase font-bold text-xl @3xl:text-2xl @5xl:text-3xl flex items-center justify-center w-full;
   }
   .page-title {
     @apply mt-5 md:mt-10;
   }
 
   .page-subtitle {
-    @apply font-bold text-base md:text-xl lg:text-2xl w-auto;
+    @apply font-bold text-base @3xl:text-xl @5xl:text-2xl w-auto;
   }
 
   .yourListConsole {
-    @apply flex flex-col items-start justify-center mt-10 md:mr-5 lg:mr-8;
+    @apply @container w-full flex flex-col items-start justify-center mt-10 md:mr-5 lg:mr-8;
   }
 
   .toggleButton-whole {
-    @apply flex flex-col items-center p-2 w-full gap-2 md:flex-row md:justify-center md:gap-5 md:mr-20;
+    @apply flex flex-col items-center p-2 w-full gap-2 @3xl:flex-row @3xl:justify-center @3xl:gap-5 @3xl:mr-20;
   }
 
   .toggleButton-label {
-    @apply w-[7rem] flex self-center mr-45 md:mr-0 md:ml-0 md:justify-end uppercase text-xs lg:text-sm;
+    @apply w-[7rem] flex self-center mr-45 @3xl:mr-0 @3xl:ml-0 @3xl:justify-end uppercase text-xs @5xl:text-sm;
   }
 
   .toggleButton-buttonsContainer {
-    @apply relative bg-control rounded-full w-[20rem] h-[2.5rem] text-sm lg:text-base lg:w-[25rem];
+    @apply relative bg-control rounded-full w-[20rem] h-[2.5rem] text-sm @5xl:text-base @5xl:w-[25rem];
   }
 
   .filterButton-container {
-    @apply w-[20rem] text-xs lg:text-sm lg:w-[25rem];
+    @apply w-[20rem] text-xs @5xl:text-sm @5xl:w-[25rem];
   }
 
   .toggleButton-bg {
@@ -256,11 +256,11 @@
   }
 
   .filmGallery-grid {
-    @apply grid gap-6 grid-cols-1 md:grid-cols-2 md:gap-3 lg:gap-3 xl:grid-cols-3 xl:gap-4;
+    @apply grid gap-6 grid-cols-1 @3xl:grid-cols-2 @3xl:gap-3 @5xl:gap-3 @7xl:grid-cols-3 @7xl:gap-4;
   }
 
   .filmCard-width {
-    @apply w-[22rem] min-w-[22rem] lg:w-[26rem] 2xl:w-[32rem];
+    @apply w-[22rem] min-w-[22rem] @5xl:w-[26rem] @min-[96rem]:w-[32rem];
   }
 
   .docs-sectionTitle {
@@ -292,10 +292,6 @@
   }
 
   .console-card,
-  .console-overlay-sm,
-  .console-overlay-lg,
-  .console-overlay-panel,
-  .console-overlay-panel-sm,
   .console-landing-sm,
   .console-landing-lg {
     --console-hover-bg: none;
@@ -313,68 +309,6 @@
     --console-padding-tb: 0;
     --console-padding-lr: 10px;
     --console-button-height: 2rem;
-    --console-hover-text: var(--color-hover-dark);
-  }
-
-  .console-overlay-sm {
-    --console-text: var(--color-text-light);
-    --console-font-size: 12px;
-    --console-like-size: 1rem;
-    --console-save-size: 1.4rem;
-    --console-star-size: 1.2rem;
-    --console-gap: 4px;
-    --console-height: 1.4rem;
-    --console-button-padding: 4px;
-    --console-padding-tb: 6px;
-    --console-padding-lr: 10px;
-    --console-button-height: 1.7rem;
-    --console-hover-text: var(--color-hover-light);
-  }
-
-  .console-overlay-lg {
-    --console-text: var(--color-text-light);
-    --console-font-size: 14px;
-    --console-like-size: 1rem;
-    --console-save-size: 1.4rem;
-    --console-star-size: 1.3rem;
-    --console-gap: 4px;
-    --console-height: 1.4rem;
-    --console-button-padding: 4px;
-    --console-padding-tb: 16px;
-    --console-padding-lr: 16px;
-    --console-button-height: 2.2rem;
-    --console-hover-text: var(--color-hover-light);
-  }
-
-  /* Same sizing as overlay-sm but dark text/border — used in the slide-down panel at <1024px */
-  .console-overlay-panel-sm {
-    --console-text: var(--color-text-dark);
-    --console-font-size: 12px;
-    --console-like-size: 1rem;
-    --console-save-size: 1.4rem;
-    --console-star-size: 1.2rem;
-    --console-gap: 4px;
-    --console-height: 1.4rem;
-    --console-button-padding: 4px;
-    --console-padding-tb: 6px;
-    --console-padding-lr: 10px;
-    --console-button-height: 1.7rem;
-    --console-hover-text: var(--color-hover-dark);
-  }
-
-  /* Same sizing as overlay-lg but dark text/border — used in the slide-down panel */
-  .console-overlay-panel {
-    --console-text: var(--color-text-dark);
-    --console-font-size: 14px;
-    --console-like-size: 1rem;
-    --console-save-size: 1.4rem;
-    --console-star-size: 1.3rem;
-    --console-gap: 4px;
-    --console-height: 1.4rem;
-    --console-button-padding: 4px;
-    --console-padding-tb: 16px;
-    --console-padding-lr: 16px;
-    --console-button-height: 2.2rem;
     --console-hover-text: var(--color-hover-dark);
   }
 

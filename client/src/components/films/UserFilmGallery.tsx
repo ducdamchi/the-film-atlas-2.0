@@ -104,7 +104,7 @@ export default function UserFilmGallery({
   }, [listOfFilmObjects, queryString, sortBy, sortDirection]);
 
   return (
-    <div>
+    <div className="w-full flex flex-col items-center">
       {(listOfFilmObjects.length === 0 || "error" in listOfFilmObjects) && (
         <div className="mt-5 mb-20 text-sm md:text-base">No films found.</div>
       )}
