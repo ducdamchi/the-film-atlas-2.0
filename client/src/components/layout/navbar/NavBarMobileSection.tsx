@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { MdMenu, MdClose } from "react-icons/md";
 import { BiSearchAlt2 } from "react-icons/bi";
 import { ChevronDown } from "lucide-react";
-import { useAuth } from "@/utils/authContext";
+import { useApp } from "@/utils/appContext";
 import { CustomLink } from "./CustomLink";
 import { INFO_LINKS, type MenuState } from "./navTypes";
 import { IoIosMenu, IoIosCloseCircle } from "react-icons/io";
@@ -20,8 +20,6 @@ interface NavBarMobileSectionProps {
   borderWidth: number;
 }
 
-const CLOSED: MenuState = { isOpened: false, isNeutral: true };
-
 export function NavBarMobileSection({
   menuOpened,
   setMenuOpened,
@@ -34,12 +32,12 @@ export function NavBarMobileSection({
   borderWidth,
 }: NavBarMobileSectionProps) {
   const navigate = useNavigate();
-  const { setSearchModalOpen } = useAuth();
+  const { setSearchModalOpen } = useApp();
   const [mobileInfoDropdownOpen, setMobileInfoDropdownOpen] = useState(false);
 
   const closeAll = () => {
-    setMenuOpened(CLOSED);
-    setSettingsOpened(CLOSED);
+    setMenuOpened({ isOpened: false, isNeutral: false });
+    setSettingsOpened({ isOpened: false, isNeutral: false });
   };
 
   // ResizeObserver lives here (not in the hook) because NavBarMobileSection is
@@ -132,6 +130,9 @@ export function NavBarMobileSection({
           </CustomLink>
           <CustomLink to="/directors" exact={false} onClick={closeAll}>
             DIRECTORS
+          </CustomLink>
+          <CustomLink to="/collections" exact={false} onClick={closeAll}>
+            COLLECTIONS
           </CustomLink>
           <div>
             <button

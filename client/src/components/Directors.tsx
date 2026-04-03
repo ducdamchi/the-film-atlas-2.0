@@ -1,18 +1,17 @@
 /* Libraries */
-import { useEffect, useState } from "react"
-import { useLocation } from "@tanstack/react-router"
+import { useEffect, useState } from "react";
+import { useLocation } from "@tanstack/react-router";
 
 /* Custom functions */
-import { useAuth } from "../utils/authContext"
+import { useAuth } from "../utils/authContext";
 import {
   queryPersonFromTMDB,
   fetchDirectorListByParams,
-} from "../utils/apiCalls"
-import useCommandKey from "../hooks/useCommandKey"
-import { usePersistedState } from "../hooks/usePersistedState"
+} from "../utils/apiCalls";
+import { usePersistedState } from "../hooks/usePersistedState";
 
 /* Types */
-import type { Director } from "@/types/film"
+import type { Director } from "@/types/film";
 
 /**
  * TMDB /search/person result shape — includes `known_for` which the
@@ -21,24 +20,22 @@ import type { Director } from "@/types/film"
  * TMDBSearchResult (which models /search/multi), so we define it locally here.
  */
 interface DirectorSearchResult {
-  id: number
-  name: string
-  profile_path: string | null
-  known_for_department?: string
+  id: number;
+  name: string;
+  profile_path: string | null;
+  known_for_department?: string;
   known_for: Array<{
-    title?: string
-    name?: string
-    original_title?: string
-  }>
+    title?: string;
+    name?: string;
+    original_title?: string;
+  }>;
 }
 
 /* Components */
-import NavBar from "./layout/navbar/NavBar"
-import SearchBar from "./layout/SearchBar"
-import TmdbDirectorGallery from "./directors/TmdbDirectorGallery"
-import UserDirectorGallery from "./directors/UserDirectorGallery"
-import QuickSearchModal from "./layout/QuickSearchModal"
-import Toggle from "./ui-controls/Toggle"
+import SearchBar from "./layout/SearchBar";
+import TmdbDirectorGallery from "./directors/TmdbDirectorGallery";
+import UserDirectorGallery from "./directors/UserDirectorGallery";
+import Toggle from "./ui-controls/Toggle";
 
 /* Icons */
 import {
@@ -46,151 +43,139 @@ import {
   FaSortNumericDownAlt,
   FaSortAlphaDown,
   FaSortAlphaDownAlt,
-} from "react-icons/fa"
+} from "react-icons/fa";
 
-type DirectorSortBy = "name" | "score" | "highest_star"
-type SortDirection = "asc" | "desc"
+type DirectorSortBy = "name" | "score" | "highest_star";
+type SortDirection = "asc" | "desc";
 
 export default function Directors() {
   const [searchInput, setSearchInput] = usePersistedState<string>(
     "directors-searchInput",
     "",
-  )
-  const [searchResult, setSearchResult] = useState<DirectorSearchResult[]>([])
-  const [userDirectorList, setUserDirectorList] = useState<Director[]>([])
+  );
+  const [searchResult, setSearchResult] = useState<DirectorSearchResult[]>([]);
+  const [userDirectorList, setUserDirectorList] = useState<Director[]>([]);
   const [isSearching, setIsSearching] = usePersistedState<boolean>(
     "directors-isSearching",
     false,
-  )
-  const [isLoading, setIsLoading] = useState(false)
+  );
+  const [isLoading, setIsLoading] = useState(false);
   const [numStars, setNumStars] = usePersistedState<number>(
     "directors-numStars",
     0,
-  )
+  );
   const [sortBy, setSortBy] = usePersistedState<DirectorSortBy>(
     "directors-sortBy",
     "name",
-  )
+  );
   const [sortDirection, setSortDirection] = usePersistedState<SortDirection>(
     "directors-sortDirection",
     "desc",
-  )
+  );
   const [scrollPosition, setScrollPosition] = usePersistedState<number>(
     "directors-scrollPosition",
     0,
-  )
-  const { authState, searchModalOpen, setSearchModalOpen } = useAuth()
-  const location = useLocation()
-
-  function toggleSearchModal() {
-    setSearchModalOpen((status) => !status)
-  }
-  useCommandKey(toggleSearchModal, "k")
+  );
+  const { authState } = useAuth();
+  const location = useLocation();
 
   /* Hook for scroll restoration */
   useEffect(() => {
     if (!isLoading) {
       if (scrollPosition) {
         setTimeout(() => {
-          window.scrollTo(0, parseInt(String(scrollPosition), 10))
-        }, 50)
+          window.scrollTo(0, parseInt(String(scrollPosition), 10));
+        }, 50);
       } else {
         setTimeout(() => {
-          window.scrollTo(0, 0)
-        }, 0)
+          window.scrollTo(0, 0);
+        }, 0);
       }
 
       const handleScroll = () => {
-        setScrollPosition(window.scrollY)
-      }
+        setScrollPosition(window.scrollY);
+      };
 
       const scrollTimer = setTimeout(() => {
-        window.addEventListener("scroll", handleScroll)
-      }, 500)
+        window.addEventListener("scroll", handleScroll);
+      }, 500);
 
       return () => {
-        clearTimeout(scrollTimer)
-        window.removeEventListener("scroll", handleScroll)
-      }
+        clearTimeout(scrollTimer);
+        window.removeEventListener("scroll", handleScroll);
+      };
     }
-  }, [isLoading])
+  }, [isLoading]);
 
   /* Query director from TMDB with Quick Search Modal's Search Input */
   useEffect(() => {
     try {
       if (location.state) {
         const { searchInputFromQuickSearch } =
-          (location.state as { searchInputFromQuickSearch?: string }) || {}
+          (location.state as { searchInputFromQuickSearch?: string }) || {};
         if (typeof searchInputFromQuickSearch === "string") {
           if (searchInputFromQuickSearch.trim().length > 0) {
-            setSearchInput(searchInputFromQuickSearch)
+            setSearchInput(searchInputFromQuickSearch);
           }
         }
       }
     } catch (err) {
-      console.log(err)
+      console.log(err);
     }
-  }, [location.state])
+  }, [location.state]);
 
   /* Query director from TMDB with Search Bar */
   useEffect(() => {
     const timer = setTimeout(async () => {
       try {
         if (searchInput.trim().length === 0 || searchInput === null) {
-          setIsSearching(false)
+          setIsSearching(false);
         } else {
-          setIsSearching(true)
+          setIsSearching(true);
           // queryPersonFromTMDB wraps /search/person results which include
           // `known_for`. The return type is TMDBPerson[] but the runtime data
           // carries the extra field — cast here so DirectorTMDB_Gallery renders it.
-          const result = (await queryPersonFromTMDB(searchInput)) as unknown as DirectorSearchResult[]
+          const result = (await queryPersonFromTMDB(
+            searchInput,
+          )) as unknown as DirectorSearchResult[];
           const filtered_result = result.filter(
             (person) => person.known_for_department === "Directing",
-          )
-          setSearchResult(filtered_result)
+          );
+          setSearchResult(filtered_result);
         }
       } catch (err) {
-        console.log("Error Querying Film: ", err)
+        console.log("Error Querying Film: ", err);
       }
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [searchInput])
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   /* Fetch User's Directors list from App's DB */
   useEffect(() => {
     if (authState.status) {
       const fetchUserDirectorList = async () => {
         try {
-          setIsLoading(true)
+          setIsLoading(true);
           const result = await fetchDirectorListByParams({
             sortBy: sortBy,
             sortDirection: sortDirection,
             numStars: numStars,
-          })
-          setUserDirectorList(result)
+          });
+          setUserDirectorList(result);
         } catch (err) {
-          console.error("Error Fetching Directors List: ", err)
+          console.error("Error Fetching Directors List: ", err);
         } finally {
-          setIsLoading(false)
+          setIsLoading(false);
         }
-      }
-      fetchUserDirectorList()
+      };
+      fetchUserDirectorList();
     }
-  }, [sortDirection, sortBy, numStars])
+  }, [sortDirection, sortBy, numStars]);
 
   return (
     <div className="font-primary mt-20 min-h-screen">
-      {/* Quick Search Modal */}
-      {searchModalOpen && (
-        <QuickSearchModal
-          searchModalOpen={searchModalOpen}
-          setSearchModalOpen={setSearchModalOpen}
-        />
-      )}
       {/* Wrapper for entire page */}
       <div className=" flex flex-col items-center">
-        <NavBar />
-
         <div className="font-heading page-title">DIRECTORS</div>
 
         <SearchBar
@@ -280,5 +265,5 @@ export default function Directors() {
         )}
       </div>
     </div>
-  )
+  );
 }

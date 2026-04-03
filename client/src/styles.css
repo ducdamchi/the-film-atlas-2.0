@@ -132,7 +132,7 @@
   }
 
   .yourListConsole {
-    @apply @container w-full flex flex-col items-start justify-center mt-10 md:mr-5 lg:mr-8;
+    @apply @container overflow-visible w-full flex flex-col items-start justify-center mt-10 md:mr-5 lg:mr-8;
   }
 
   .toggleButton-whole {
@@ -256,11 +256,11 @@
   }
 
   .filmGallery-grid {
-    @apply grid gap-6 grid-cols-1 @3xl:grid-cols-2 @3xl:gap-3 @5xl:gap-3 @7xl:grid-cols-3 @7xl:gap-4;
+    @apply grid gap-6 grid-cols-1 @3xl:grid-cols-2 @3xl:gap-3 @6xl:grid-cols-3 @min-[90rem]:grid-cols-4;
   }
 
   .filmCard-width {
-    @apply w-[22rem] min-w-[22rem] @5xl:w-[26rem] @min-[96rem]:w-[32rem];
+    @apply w-[22rem] min-w-[22rem];
   }
 
   .docs-sectionTitle {

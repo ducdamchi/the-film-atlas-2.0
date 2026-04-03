@@ -1,16 +1,7 @@
 import { useState } from "react";
-import NavBar from "./layout/navbar/NavBar";
-import QuickSearchModal from "./layout/QuickSearchModal";
-import { useAuth } from "../utils/authContext";
 import Swal from "sweetalert2";
-import useCommandKey from "../hooks/useCommandKey";
 
 export default function Contact() {
-  const { searchModalOpen, setSearchModalOpen } = useAuth();
-  function toggleSearchModal() {
-    setSearchModalOpen((status) => !status);
-  }
-  useCommandKey(toggleSearchModal, "k");
   const [sent, setSent] = useState(false);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -43,14 +34,7 @@ export default function Contact() {
 
   return (
     <div className="font-primary mt-20 mb-20 min-h-screen">
-      {searchModalOpen && (
-        <QuickSearchModal
-          searchModalOpen={searchModalOpen}
-          setSearchModalOpen={setSearchModalOpen}
-        />
-      )}
       <div className="flex flex-col items-center text-base md:text-lg ">
-        <NavBar />
         <div className="font-heading page-title">Contact</div>
         <div className="relative mt-[4rem] mb-[4rem] flex h-auto w-full flex-col items-center justify-center gap-1">
           <div className="m-2 p-4">

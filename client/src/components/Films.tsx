@@ -5,7 +5,6 @@ import { useLocation } from "@tanstack/react-router";
 /* Custom functions */
 import { useAuth } from "../utils/authContext";
 import { queryFilmFromTMDB, fetchListByParams } from "../utils/apiCalls";
-import useCommandKey from "../hooks/useCommandKey";
 import { usePersistedState } from "../hooks/usePersistedState";
 
 /* Types */
@@ -13,11 +12,9 @@ import type { TMDBFilmSummary } from "@/types/tmdb";
 import type { UserFilm } from "@/types/film";
 
 /* Components */
-import NavBar from "./layout/navbar/NavBar";
 import SearchBar from "./layout/SearchBar";
 import UserFilmGallery from "./films/UserFilmGallery";
 import TmdbFilmGallery from "./films/TmdbFilmGallery";
-import QuickSearchModal from "./layout/QuickSearchModal";
 import Toggle from "./ui-controls/Toggle";
 import Footer from "./layout/Footer";
 
@@ -59,14 +56,9 @@ export default function Films() {
     "films-scrollPosition",
     0,
   );
-  const { authState, searchModalOpen, setSearchModalOpen } = useAuth();
+  const { authState } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
-
-  function toggleSearchModal() {
-    setSearchModalOpen((status) => !status);
-  }
-  useCommandKey(toggleSearchModal, "k");
 
   /* Hook for scroll restoration */
   useEffect(() => {
@@ -166,17 +158,8 @@ export default function Films() {
 
   return (
     <div className="font-primary mt-20 min-h-screen">
-      {/* Quick Search Modal */}
-      {searchModalOpen && (
-        <QuickSearchModal
-          searchModalOpen={searchModalOpen}
-          setSearchModalOpen={setSearchModalOpen}
-        />
-      )}
       {/* Wrapper for entire page */}
-      <div className="@container flex flex-col items-center">
-        <NavBar />
-
+      <div className="@container overflow-visible flex flex-col items-center">
         <div className="font-heading page-title">Films</div>
 
         <SearchBar

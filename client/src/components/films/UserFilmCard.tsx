@@ -82,10 +82,10 @@ export default function UserFilmCard({
           onNavigate={() => navigate({ to: `/films/${filmObject.id}` })}
         />
         {/* Title overlay — anchored to bottom of poster */}
-        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-light w-full flex justify-between gap-2 text-[12px] @7xl:text-[14px]">
+        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-light w-full flex justify-between gap-2 text-[12px]">
           {/* Left side - Title, year, country */}
           <div className="flex flex-col items-start justify-center gap-0 ml-2 min-w-0 overflow-hidden">
-            <div className="overflow-hidden w-full text-base @7xl:text-lg">
+            <div className="overflow-hidden w-full text-base">
               <span
                 ref={titleSpanRef as React.RefObject<HTMLSpanElement>}
                 onClick={() => navigate({ to: `/films/${filmObject.id}` })}

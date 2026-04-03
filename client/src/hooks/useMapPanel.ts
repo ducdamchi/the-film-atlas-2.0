@@ -5,11 +5,11 @@ import { usePersistedState } from "./usePersistedState";
 // Snap constants (§2.5 of map-reorientation-plan.md)
 // ---------------------------------------------------------------------------
 const SNAP_A = 0;
-const SNAP_B = 448;
-const SNAP_C = 768;
-const SNAP_D = 1376;
-const SNAP_E = 1664;
-const MIN_MAP_WIDTH = 64; // a snap is only available if it leaves this much map
+const SNAP_B = 448; // 28rem
+const SNAP_C = 768; // 48rem
+const SNAP_D = 1152; // 72rem
+const SNAP_E = 1504; // 94rem
+const MIN_MAP_WIDTH = 32; // a snap is only available if it leaves this much map
 const CLOSE_THRESHOLD = 200; // dragging below this px width → snap to A (collapse)
 
 /** Returns ordered list of available snap widths for the given viewport width. */

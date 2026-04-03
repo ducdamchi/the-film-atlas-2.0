@@ -1,4 +1,5 @@
 import { useRef, useEffect } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useScreenWidth } from "@/hooks/useScreenWidth";
 import { useNavPanelAnimation } from "@/hooks/useNavPanelAnimation";
@@ -30,11 +31,19 @@ export default function NavBar() {
   const screenWidth = useScreenWidth();
   const mobileMenu = screenWidth === null ? null : screenWidth < 1024;
 
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
   // Always start with menus closed on mount.
   useEffect(() => {
     setMenuOpened(CLOSED);
     setSettingsOpened(CLOSED);
   }, []);
+
+  // Close menus on route change (handles programmatic navigation that bypasses link onClick).
+  useEffect(() => {
+    if (menuOpened.isOpened) setMenuOpened({ isOpened: false, isNeutral: false });
+    if (settingsOpened.isOpened) setSettingsOpened({ isOpened: false, isNeutral: false });
+  }, [pathname]);
 
   // Close mobile menu when switching to desktop breakpoint.
   useEffect(() => {

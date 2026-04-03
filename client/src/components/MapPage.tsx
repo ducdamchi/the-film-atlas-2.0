@@ -7,7 +7,6 @@ import "react-range-slider-input/dist/style.css";
 import { useAuth } from "../utils/authContext";
 import { getCountryName } from "../utils/helperFunctions";
 import { MAPTILER_API_KEY, MAPTILER_STYLE_URL } from "../utils/mapConstants";
-import useCommandKey from "../hooks/useCommandKey";
 import { usePersistedState } from "../hooks/usePersistedState";
 import { useMapFilmData } from "../hooks/useMapFilmData";
 import { useMapInteraction } from "../hooks/useMapInteraction";
@@ -15,8 +14,6 @@ import { useDiscoverFilms } from "../hooks/useDiscoverFilms";
 import { useUserFilms } from "../hooks/useUserFilms";
 import { useMapPanel } from "../hooks/useMapPanel";
 
-import NavBar from "./layout/navbar/NavBar";
-import QuickSearchModal from "./layout/QuickSearchModal";
 import UserFilmGallery from "./films/UserFilmGallery";
 import TmdbFilmGallery from "./films/TmdbFilmGallery";
 import Toggle from "./ui-controls/Toggle";
@@ -59,10 +56,8 @@ function checkWebGLSupport(): boolean {
 }
 
 export default function MapPage() {
-  const { authState, searchModalOpen, setSearchModalOpen } = useAuth();
+  const { authState } = useAuth();
   const [webglSupported] = useState(() => checkWebGLSupport());
-
-  useCommandKey(() => setSearchModalOpen((s) => !s), "k");
 
   /* Browse mode state */
   const [queryString, setQueryString] = usePersistedState<MapQueryString>(
@@ -187,14 +182,6 @@ export default function MapPage() {
   return (
     <div className="font-primary fixed inset-0 overflow-hidden">
       {isLoading && <LoadingPage />}
-
-      {searchModalOpen && (
-        <QuickSearchModal
-          searchModalOpen={searchModalOpen}
-          setSearchModalOpen={setSearchModalOpen}
-        />
-      )}
-      <NavBar />
 
       {/* Map — fills the full viewport */}
       <div ref={mapContainerRef} className="absolute inset-0">

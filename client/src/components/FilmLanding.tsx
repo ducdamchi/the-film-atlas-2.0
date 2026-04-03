@@ -17,16 +17,14 @@ import {
   fetchFilmAwardsFromWikidata,
 } from "../utils/apiCalls";
 import useCommandKey from "../hooks/useCommandKey";
-import { useAuth } from "../utils/authContext";
+import { useApp } from "../utils/appContext";
 
 /* Types */
 import type { TMDBFilm, TMDBCrewMember } from "@/types/tmdb";
 import type { OmdbResponse, WikidataAwardsResponse } from "@/types/api";
 
 /* Components */
-import NavBar from "./layout/navbar/NavBar";
 import LoadingPage from "./layout/LoadingPage";
-import QuickSearchModal from "./layout/QuickSearchModal";
 import InteractionConsole from "./film-interaction/InteractionConsole";
 import PersonList from "./films/PersonList";
 import TrailerModal from "./films/TrailerModal";
@@ -92,14 +90,9 @@ export default function FilmLanding() {
     null,
   );
 
-  const { searchModalOpen, setSearchModalOpen } = useAuth();
+  const { setSearchModalOpen } = useApp();
   const { tmdbId } = useParams({ strict: false });
   const navigate = useNavigate();
-
-  function toggleSearchModal() {
-    setSearchModalOpen((status) => !status);
-  }
-  useCommandKey(toggleSearchModal, "k");
 
   function toggleSecretPanel() {
     setSecretPanel((cur) => (cur ? null : "torrents"));
@@ -288,19 +281,10 @@ export default function FilmLanding() {
     <div className="font-primary mt-[4.5rem]">
       {isLoading && <LoadingPage />}
 
-      {/* Quick Search Modal */}
-      {searchModalOpen && (
-        <QuickSearchModal
-          searchModalOpen={searchModalOpen}
-          setSearchModalOpen={setSearchModalOpen}
-        />
-      )}
 
       {/* Landing Page content */}
       <div className="w-screen h-auto flex flex-col justify-center">
         <div className="w-[100%] h-[90%] top-[5%] text-light">
-          <NavBar />
-
           {/* Backdrop section */}
           <div className="landing-main-img-container">
             {/* Main backdrop */}

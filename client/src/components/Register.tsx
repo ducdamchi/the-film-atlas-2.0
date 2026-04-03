@@ -1,40 +1,29 @@
-import { Formik, Form, Field, ErrorMessage } from "formik"
-import { useNavigate } from "@tanstack/react-router"
-import * as Yup from "yup"
-import axios from "axios"
-import NavBar from "./layout/navbar/NavBar"
-import AuthBg from "./layout/AuthBg"
-import QuickSearchModal from "./layout/QuickSearchModal"
-import { useAuth } from "../utils/authContext"
-import useCommandKey from "../hooks/useCommandKey"
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import { useNavigate } from "@tanstack/react-router";
+import * as Yup from "yup";
+import axios from "axios";
+import AuthBg from "./layout/AuthBg";
 
 interface RegisterValues {
-  email: string
-  username: string
-  password: string
-  confirmPassword: string
+  email: string;
+  username: string;
+  password: string;
+  confirmPassword: string;
 }
 
 interface RegisterResponse {
-  error?: string
-  message?: string
+  error?: string;
+  message?: string;
 }
 
 export default function Register() {
-  const { searchModalOpen, setSearchModalOpen } = useAuth()
-
-  function toggleSearchModal() {
-    setSearchModalOpen((status) => !status)
-  }
-  useCommandKey(toggleSearchModal, "k")
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const initialValues: RegisterValues = {
     email: "",
     username: "",
     password: "",
     confirmPassword: "",
-  }
+  };
 
   const onSubmit = (data: RegisterValues) => {
     axios
@@ -44,45 +33,42 @@ export default function Register() {
       )
       .then((response) => {
         if (response.data.error) {
-          alert(response.data.error)
+          alert(response.data.error);
         } else {
-          navigate({ to: "/login" })
+          navigate({ to: "/login" });
         }
-      })
-  }
+      });
+  };
 
   const validationSchema = Yup.object({
-    email: Yup.string().email("Invalid email address.").required("Email is required."),
+    email: Yup.string()
+      .email("Invalid email address.")
+      .required("Email is required."),
     username: Yup.string()
       .min(3, "Username must be at least 3 characters.")
       .max(30, "Username must be 30 characters or less.")
       .matches(/^[a-z0-9_]+$/i, "Letters, numbers, and underscores only.")
       .required("Username is required."),
-    password: Yup.string().min(8, "Password must be at least 8 characters.").required("Password is required."),
+    password: Yup.string()
+      .min(8, "Password must be at least 8 characters.")
+      .required("Password is required."),
     confirmPassword: Yup.string()
       .oneOf([Yup.ref("password")], "Passwords must match.")
       .required("Confirm Password is required."),
-  })
+  });
 
   return (
     <div className="font-primary mt-10 auth-whole min-h-screen">
       <AuthBg />
 
-      {searchModalOpen && (
-        <QuickSearchModal
-          searchModalOpen={searchModalOpen}
-          setSearchModalOpen={setSearchModalOpen}
-        />
-      )}
-
-      <NavBar />
       <div className="auth-formContainer">
         <div className="p-4">
           <Formik
             initialValues={initialValues}
             onSubmit={onSubmit}
             validationSchema={validationSchema}
-            enableReinitialize={true}>
+            enableReinitialize={true}
+          >
             <Form className="auth-form">
               <Field
                 className="auth-formField"
@@ -144,5 +130,5 @@ export default function Register() {
         </div>
       </div>
     </div>
-  )
+  );
 }

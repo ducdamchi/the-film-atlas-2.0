@@ -21,23 +21,30 @@ export interface AuthState {
   username: string
   id: number
   status: boolean
-  email?: string | null
-  locationCountry?: string | null
-  locationSource?: string | null
+  email: string | null
+  locationCountry: string | null
+  locationSource: string | null
 }
 
 /**
  * Everything the AuthContext exposes to consumers.
  *
- * `loading` / `setLoading` control the full-page loading gate in __root.tsx.
- * `searchModalOpen` / `setSearchModalOpen` are threaded through here so any
- * page can open or close the global QuickSearch modal without prop-drilling.
+ * `authLoading` is true while the initial token-verify request is in flight.
+ * Consumers can read it to defer auth-dependent rendering.  The setter is
+ * intentionally omitted — only __root.tsx drives that transition.
  */
 export interface AuthContextValue {
   authState: AuthState
   setAuthState: React.Dispatch<React.SetStateAction<AuthState>>
-  loading: boolean
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  authLoading: boolean
+}
+
+/**
+ * Everything the AppContext exposes to consumers.
+ *
+ * Holds app-wide UI state that is unrelated to the authenticated user.
+ */
+export interface AppContextValue {
   searchModalOpen: boolean
   setSearchModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 }

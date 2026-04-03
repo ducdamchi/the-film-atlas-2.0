@@ -1,27 +1,11 @@
-import NavBar from "./layout/navbar/NavBar"
-import QuickSearchModal from "./layout/QuickSearchModal"
-import { GoSquareFill } from "react-icons/go"
-import { useAuth } from "../utils/authContext"
-import { useNavigate } from "@tanstack/react-router"
-import useCommandKey from "../hooks/useCommandKey"
+import { GoSquareFill } from "react-icons/go";
+import { useNavigate } from "@tanstack/react-router";
 
 export default function Terms() {
-  const navigate = useNavigate()
-  const { searchModalOpen, setSearchModalOpen } = useAuth()
-  function toggleSearchModal() {
-    setSearchModalOpen((status) => !status)
-  }
-  useCommandKey(toggleSearchModal, "k")
+  const navigate = useNavigate();
   return (
     <div className="font-primary mt-20 mb-20 min-h-screen">
-      {searchModalOpen && (
-        <QuickSearchModal
-          searchModalOpen={searchModalOpen}
-          setSearchModalOpen={setSearchModalOpen}
-        />
-      )}
       <div className="flex flex-col items-center">
-        <NavBar />
         <div className="font-heading page-title">TERMS AND CONDITIONS</div>
 
         <div className="md:p-10 max-w-[40rem] md:text-lg md:max-w-[45rem] flex flex-col gap-0">
@@ -187,7 +171,8 @@ export default function Terms() {
                 Your privacy is important to us. Please review our separate{" "}
                 <span
                   onClick={() => navigate({ to: "/privacy" })}
-                  className="text-hover-dark cursor-pointer">
+                  className="text-hover-dark cursor-pointer"
+                >
                   Privacy Policy
                 </span>{" "}
                 for details on how we handle information. In short:
@@ -262,7 +247,8 @@ export default function Terms() {
                 via{" "}
                 <span
                   onClick={() => navigate({ to: "/contact" })}
-                  className="text-hover-dark cursor-pointer">
+                  className="text-hover-dark cursor-pointer"
+                >
                   this form
                 </span>
                 .
@@ -279,5 +265,5 @@ export default function Terms() {
         </div>
       </div>
     </div>
-  )
+  );
 }

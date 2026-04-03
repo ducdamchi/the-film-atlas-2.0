@@ -1,29 +1,13 @@
-import NavBar from "./layout/navbar/NavBar"
-import QuickSearchModal from "./layout/QuickSearchModal"
-import { GoSquareFill } from "react-icons/go"
-import { useAuth } from "../utils/authContext"
-import { RiProgress8Line, RiProgress4Line } from "react-icons/ri"
-import { useNavigate } from "@tanstack/react-router"
-import useCommandKey from "../hooks/useCommandKey"
-import { Link } from "@tanstack/react-router"
+import { GoSquareFill } from "react-icons/go";
+import { RiProgress8Line, RiProgress4Line } from "react-icons/ri";
+import { useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 
 export default function About() {
-  const navigate = useNavigate()
-  const { searchModalOpen, setSearchModalOpen } = useAuth()
-  function toggleSearchModal() {
-    setSearchModalOpen((status) => !status)
-  }
-  useCommandKey(toggleSearchModal, "k")
+  const navigate = useNavigate();
   return (
     <div className="font-primary mt-20 mb-20 min-h-screen">
-      {searchModalOpen && (
-        <QuickSearchModal
-          searchModalOpen={searchModalOpen}
-          setSearchModalOpen={setSearchModalOpen}
-        />
-      )}
       <div className="flex flex-col items-center">
-        <NavBar />
         <div className="font-heading page-title">About</div>
 
         <div className="md:p-10 max-w-[40rem] md:text-lg md:max-w-[45rem] flex flex-col gap-10">
@@ -68,7 +52,8 @@ export default function About() {
                   to="/docs#curation-stars"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-hover-dark cursor-pointer">
+                  className="text-hover-dark cursor-pointer"
+                >
                   3-star rating system
                 </Link>{" "}
                 on each of their creation. These two functionalities work
@@ -90,7 +75,8 @@ export default function About() {
                         target="_blank"
                         rel="noopener noreferrer"
                         href="https://www.themoviedb.org/?language=en-US"
-                        className="text-hover-dark">
+                        className="text-hover-dark"
+                      >
                         The Movie Database
                       </a>
                       .
@@ -113,7 +99,8 @@ export default function About() {
                       to="/docs#curation-score"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-hover-dark cursor-pointer">
+                      className="text-hover-dark cursor-pointer"
+                    >
                       score
                     </Link>{" "}
                     based on the user's interaction with their films.
@@ -172,9 +159,10 @@ export default function About() {
               Interested?{" "}
               <span
                 onClick={() => {
-                  navigate({ to: "/contact" })
+                  navigate({ to: "/contact" });
                 }}
-                className="text-hover-dark cursor-pointer">
+                className="text-hover-dark cursor-pointer"
+              >
                 Join our team!
               </span>
             </div>
@@ -182,5 +170,5 @@ export default function About() {
         </div>
       </div>
     </div>
-  )
+  );
 }

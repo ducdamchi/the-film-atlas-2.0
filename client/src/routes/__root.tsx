@@ -8,10 +8,13 @@ import axios from "axios";
 import "../styles.css";
 
 import { AuthContext } from "../utils/authContext";
+import { AppContext } from "../utils/appContext";
 import NavBar from "../components/layout/navbar/NavBar";
 import Footer from "../components/layout/Footer";
 import LoadingPage from "../components/layout/LoadingPage";
+import QuickSearchModal from "../components/layout/QuickSearchModal";
 import ScrollToAnchor from "../hooks/scrollToAnchor";
+import useCommandKey from "../hooks/useCommandKey";
 import { LocationBanner } from "../components/settings/LocationBanner";
 import { CompleteProfileModal } from "../components/settings/CompleteProfileModal";
 
@@ -23,7 +26,7 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isMapPage = pathname === "/map";
   const isHomePage = pathname === "/";
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
   const [authState, setAuthState] = useState({
     username: "",
     id: 0,
@@ -33,12 +36,13 @@ function RootComponent() {
     locationSource: null as string | null,
   });
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  useCommandKey(() => setSearchModalOpen((s) => !s), "k");
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
 
     if (!accessToken) {
-      setLoading(false);
+      setAuthLoading(false);
       return;
     }
 
@@ -62,31 +66,30 @@ function RootComponent() {
         console.error("Client: Authentication failed", err);
       })
       .finally(() => {
-        setLoading(false);
+        setAuthLoading(false);
       });
   }, []);
 
-  if (loading) {
-    return <LoadingPage />;
+  if (authLoading) {
+    return <LoadingPage variant="authenticating" />;
   }
 
   return (
-    <AuthContext.Provider
-      value={{
-        authState,
-        setAuthState,
-        loading,
-        setLoading,
-        searchModalOpen,
-        setSearchModalOpen,
-      }}
-    >
-      <ScrollToAnchor />
-      <NavBar />
-      {/* {!isMapPage && <LocationBanner />} */}
-      <Outlet />
-      {authState.status && !authState.email && <CompleteProfileModal />}
-      {!isMapPage && !isHomePage && <Footer />}
+    <AuthContext.Provider value={{ authState, setAuthState, authLoading }}>
+      <AppContext.Provider value={{ searchModalOpen, setSearchModalOpen }}>
+        <ScrollToAnchor />
+        <NavBar />
+        {searchModalOpen && (
+          <QuickSearchModal
+            searchModalOpen={searchModalOpen}
+            setSearchModalOpen={setSearchModalOpen}
+          />
+        )}
+        {/* {!isMapPage && <LocationBanner />} */}
+        <Outlet />
+        {authState.status && !authState.email && <CompleteProfileModal />}
+        {!isMapPage && !isHomePage && <Footer />}
+      </AppContext.Provider>
     </AuthContext.Provider>
   );
 }

@@ -18,8 +18,6 @@ interface NavBarSettingsPanelProps {
   borderWidth: number;
 }
 
-const CLOSED: MenuState = { isOpened: false, isNeutral: true };
-
 export function NavBarSettingsPanel({
   settingsOpened,
   setSettingsOpened,
@@ -67,7 +65,7 @@ export function NavBarSettingsPanel({
                 <CustomLink
                   className=""
                   to="/settings"
-                  onClick={() => setSettingsOpened(CLOSED)}
+                  onClick={() => setSettingsOpened({ isOpened: false, isNeutral: false })}
                 >
                   Settings
                 </CustomLink>

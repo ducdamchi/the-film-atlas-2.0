@@ -21,6 +21,7 @@ import { Route as FilmsRouteImport } from './routes/films_'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DirectorsRouteImport } from './routes/directors'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CollectionsRouteImport } from './routes/collections'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId_'
@@ -86,6 +87,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CollectionsRoute = CollectionsRouteImport.update({
+  id: '/collections',
+  path: '/collections',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -110,6 +116,7 @@ const PersonJobTmdbIdRoute = PersonJobTmdbIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/collections': typeof CollectionsRoute
   '/contact': typeof ContactRoute
   '/directors': typeof DirectorsRoute
   '/docs': typeof DocsRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/collections': typeof CollectionsRoute
   '/contact': typeof ContactRoute
   '/directors': typeof DirectorsRoute
   '/docs': typeof DocsRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/collections': typeof CollectionsRoute
   '/contact': typeof ContactRoute
   '/directors': typeof DirectorsRoute
   '/docs': typeof DocsRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/collections'
     | '/contact'
     | '/directors'
     | '/docs'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/collections'
     | '/contact'
     | '/directors'
     | '/docs'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/collections'
     | '/contact'
     | '/directors'
     | '/docs'
@@ -222,6 +234,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  CollectionsRoute: typeof CollectionsRoute
   ContactRoute: typeof ContactRoute
   DirectorsRoute: typeof DirectorsRoute
   DocsRoute: typeof DocsRoute
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/collections': {
+      id: '/collections'
+      path: '/collections'
+      fullPath: '/collections'
+      preLoaderRoute: typeof CollectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -358,6 +378,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  CollectionsRoute: CollectionsRoute,
   ContactRoute: ContactRoute,
   DirectorsRoute: DirectorsRoute,
   DocsRoute: DocsRoute,

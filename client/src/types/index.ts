@@ -12,6 +12,7 @@
 export type {
   AuthState,
   AuthContextValue,
+  AppContextValue,
 } from './auth'
 
 export type {

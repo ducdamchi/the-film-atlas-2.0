@@ -28,7 +28,7 @@ import type {
 } from "@/types/film";
 
 /**
- * The five variants that drive CSS custom property styling via .console-{variant}.
+ * The variants that drive CSS custom property styling via .console-{variant}.
  * Adding the union here means passing an invalid string like "hover" is a compile error.
  */
 type ConsoleVariant = "card" | "landing-sm" | "landing-lg";
@@ -63,7 +63,7 @@ export default function InteractionConsole({
   const [requestedRating, setRequestedRating] = useState<StarRating | -1>(-1); //-1 when neutral (no requests), 0 for unrated; 1, 2, 3 for stars.
   const [isStatusLoading, setIsStatusLoading] = useState(false);
 
-  const { authState, loading } = useAuth();
+  const { authState, authLoading } = useAuth();
   const navigate = useNavigate();
 
   /* Create the request body for API call to App's DB when user 'like' a film */

@@ -3,13 +3,10 @@ import { useNavigate, Link } from "@tanstack/react-router";
 import * as Yup from "yup";
 import axios from "axios";
 
-import NavBar from "./layout/navbar/NavBar";
 import AuthBg from "./layout/AuthBg";
-import QuickSearchModal from "./layout/QuickSearchModal";
 
 import { useAuth } from "../utils/authContext";
 import { decodeToken } from "../utils/decodeToken";
-import useCommandKey from "../hooks/useCommandKey";
 
 interface LoginValues {
   login: string;
@@ -29,12 +26,7 @@ export default function LogIn() {
     login: "",
     password: "",
   };
-  const { setAuthState, searchModalOpen, setSearchModalOpen } = useAuth();
-
-  function toggleSearchModal() {
-    setSearchModalOpen((status) => !status);
-  }
-  useCommandKey(toggleSearchModal, "k");
+  const { setAuthState } = useAuth();
 
   const onSubmit = (data: LoginValues) => {
     axios
@@ -68,14 +60,6 @@ export default function LogIn() {
     <div className="font-primary auth-whole mt-10 min-h-screen">
       <AuthBg />
 
-      {searchModalOpen && (
-        <QuickSearchModal
-          searchModalOpen={searchModalOpen}
-          setSearchModalOpen={setSearchModalOpen}
-        />
-      )}
-
-      <NavBar />
       <div className="auth-formContainer">
         <div className="p-4 w-full">
           <Formik

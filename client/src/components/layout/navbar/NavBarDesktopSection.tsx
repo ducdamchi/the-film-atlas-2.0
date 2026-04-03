@@ -2,13 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { BiSearchAlt2 } from "react-icons/bi";
 import { ChevronDown } from "lucide-react";
-import { useAuth } from "@/utils/authContext";
+import { useApp } from "@/utils/appContext";
 import { CustomLink } from "./CustomLink";
 import { INFO_LINKS } from "./navTypes";
 
 export function NavBarDesktopSection() {
   const navigate = useNavigate();
-  const { setSearchModalOpen } = useAuth();
+  const { setSearchModalOpen } = useApp();
   const [infoDropdownOpen, setInfoDropdownOpen] = useState(false);
   const infoDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +48,9 @@ export function NavBarDesktopSection() {
           </CustomLink>
           <CustomLink to="/directors" exact={false}>
             DIRECTORS
+          </CustomLink>
+          <CustomLink to="/collections" exact={false}>
+            COLLECTIONS
           </CustomLink>
           <div className="relative" ref={infoDropdownRef}>
             <button
