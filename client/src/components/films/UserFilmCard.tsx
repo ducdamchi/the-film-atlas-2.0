@@ -66,7 +66,7 @@ export default function UserFilmCard({
   return (
     <div
       id={`film-card-${filmObject.id}`}
-      className="filmCard-width md:aspect-16/10 flex flex-col justify-center items-center gap-0 text-dark rounded-none pt-0 relative group hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-[0_10px_15px_rgba(0,0,0,0.55)] border-1 md:border-0"
+      className="filmCard-width md:aspect-16/10 flex flex-col justify-center items-center gap-0 text-dark rounded-none pt-0 relative group/card hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-[0_10px_15px_rgba(0,0,0,0.55)] border-1 md:border-0"
       onMouseEnter={handleCardHoverEnter}
       onMouseLeave={handleCardHoverLeave}
     >

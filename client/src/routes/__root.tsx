@@ -23,7 +23,12 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { pathname, isRouterPending } = useRouterState({
+    select: (s) => ({
+      pathname: s.location.pathname,
+      isRouterPending: s.status === "pending",
+    }),
+  });
   const isMapPage = pathname === "/map";
   const isHomePage = pathname === "/";
   const [authLoading, setAuthLoading] = useState(true);
@@ -88,7 +93,14 @@ function RootComponent() {
         {/* {!isMapPage && <LocationBanner />} */}
         <Outlet />
         {authState.status && !authState.email && <CompleteProfileModal />}
-        {!isMapPage && !isHomePage && <Footer />}
+        {!isMapPage && !isHomePage && !isRouterPending && (
+          <div
+            key={pathname}
+            style={{ animation: "footer-fade-in 0.3s ease 0.25s both" }}
+          >
+            <Footer />
+          </div>
+        )}
       </AppContext.Provider>
     </AuthContext.Provider>
   );

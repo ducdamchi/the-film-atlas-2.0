@@ -87,10 +87,13 @@ export default function TripleStarRating({
           </button>
         </div>
         {isHovered && !showText && (officialRating ?? 0) >= 1 && (
-          <div className="w-0 overflow-hidden flex pointer-events-none transition-[width,opacity] duration-200 ease-out group-hover/rating:w-[0.75rem] flex items-center justify-center">
+          <div className="w-0 overflow-hidden flex transition-[width,opacity] duration-200 ease-out group-hover/rating:w-[0.75rem] flex items-center justify-center">
             <button
-              onClick={() => setRequestedRating(0)}
-              className="text-star hover:text-[var(--console-hover-text)] transition-colors duration-200 flex items-center"
+              onClick={() => {
+                setRequestedRating(0);
+                console.log("Clicked x");
+              }}
+              className="text-black hover:text-hover-dark transition-colors duration-200 flex items-center"
               style={{ fontSize: "0.5rem", lineHeight: 1 }}
             >
               ✕

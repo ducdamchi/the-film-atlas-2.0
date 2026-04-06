@@ -69,12 +69,9 @@ export default function CardHoverOverlay({
   if (slideDown) {
     return (
       /* Note: md break point here controls the desktop behavior of the card. specifically, mobile mode (< md) will display the card content as a block, giving it full space; while desktop mode (>= md) will display the card content as absolute, triggered only when user hovers over it.  */
-      <div className="w-full md:w-auto md:absolute md:top-full md:left-0 md:right-0 bg-elevated text-dark z-50 md:opacity-0 md:-translate-y-2 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto md:transition-[opacity,transform] md:duration-200 md:ease-out">
-        <div
-          className="w-full p-5 @7xl:px-7 pt-4 flex flex-col items-center justify-start gap-2"
-          onClick={handleNavigate}
-        >
-          <div className="flex justify-between items-center w-full">
+      <div className="w-full md:w-auto md:absolute md:top-full md:left-0 md:right-0 bg-elevated text-dark z-50 md:opacity-0 md:-translate-y-2 md:pointer-events-none md:group-hover/card:opacity-100 md:group-hover/card:translate-y-0 md:group-hover/card:pointer-events-auto md:transition-[opacity,transform] md:duration-200 md:ease-out">
+        <div className="z-50 w-full p-5 @7xl:px-7 pt-4 flex flex-col items-center justify-start gap-2">
+          <div className="z-50 flex justify-between items-center w-full">
             <div>
               <InteractionConsole
                 tmdbId={filmObject.id}
@@ -92,50 +89,58 @@ export default function CardHoverOverlay({
               </button>
             </div> */}
           </div>
-          {isLoading ? (
-            <div className="w-full flex flex-col gap-2">
-              <SkeletonBlock className="h-4 w-1/2" />
-              <div className="flex flex-col gap-1.5 w-full">
-                <SkeletonBlock className="h-3 w-full" />
-                <SkeletonBlock className="h-3 w-[90%]" />
-                <SkeletonBlock className="h-3 w-[65%]" />
+          <div className="z-50 w-full" onClick={handleNavigate}>
+            {isLoading ? (
+              <div className="w-full flex flex-col gap-2 z-50">
+                <SkeletonBlock className="h-4 w-1/2" />
+                <div className="flex flex-col gap-1.5 w-full">
+                  <SkeletonBlock className="h-3 w-full" />
+                  <SkeletonBlock className="h-3 w-[90%]" />
+                  <SkeletonBlock className="h-3 w-[65%]" />
+                </div>
+                <div className="flex items-center gap-3 w-full">
+                  <SkeletonBlock className="h-3 w-16" />
+                  <SkeletonBlock className="h-3 w-28" />
+                </div>
               </div>
-              <div className="flex items-center gap-3 w-full">
-                <SkeletonBlock className="h-3 w-16" />
-                <SkeletonBlock className="h-3 w-28" />
-              </div>
-            </div>
-          ) : fetchError ? (
-            <span className="text-sm @7xl:text-base font-light text-muted flex items-start justify-center gap-1">
-              <IoWarning className="text-lg @7xl:text-xl" /> Details
-              unavailable.
-            </span>
-          ) : (
-            <div className="flex flex-col items-start justify-center gap-1 w-full">
-              {details?.original_language !== "en" && (
-                <span className="text-sm @7xl:text-base font-bold">
-                  {details?.original_title}
-                </span>
-              )}
-              <span className="text-sm @7xl:text-base font-light line-clamp-4">
-                {details?.overview || (filmObject as TMDBFilmSummary).overview}
+            ) : fetchError ? (
+              <span className="text-sm @7xl:text-base font-light text-muted flex items-start justify-center gap-1 z-50">
+                <IoWarning className="text-lg @7xl:text-xl" /> Details
+                unavailable.
               </span>
-              <span className="flex items-center gap-3 w-full min-w-0 text-sm @7xl:text-base font-light">
-                <span className="flex items-center gap-1 shrink-0">
-                  <IoIosTimer className="text-lg @7xl:text-xl" />
-                  <span>{details?.runtime} min</span>
-                </span>
-                <span className="flex items-center gap-1 min-w-0 max-w-[85%]">
-                  <IoLanguageSharp className="text-lg @7xl:text-xl shrink-0" />
-                  <span className="truncate">
-                    {details?.spoken_languages
-                      ?.map((l: TMDBSpokenLanguage) => l.english_name)
-                      .join(", ")}
+            ) : (
+              <div className="flex flex-col items-start justify-center gap-1 w-full z-50">
+                {details?.original_language !== "en" && (
+                  <span className="text-sm @7xl:text-base font-bold">
+                    {details?.original_title}
                   </span>
+                )}
+                <span className="text-sm @7xl:text-base font-light line-clamp-4">
+                  {details?.overview ||
+                    (filmObject as TMDBFilmSummary).overview}
                 </span>
-              </span>
-            </div>
-          )}
+                <span className="flex items-center gap-3 w-full min-w-0 text-sm @7xl:text-base font-light">
+                  {details?.runtime && (
+                    <span className="flex items-center gap-1 shrink-0">
+                      <IoIosTimer className="text-lg @7xl:text-xl" />
+                      <span>{details.runtime} min</span>
+                    </span>
+                  )}
+                  {details?.spoken_languages && (
+                    <span className="flex items-center gap-1 min-w-0 max-w-[85%]">
+                      <IoLanguageSharp className="text-lg @7xl:text-xl shrink-0" />
+
+                      <span className="truncate">
+                        {details?.spoken_languages
+                          ?.map((l: TMDBSpokenLanguage) => l.english_name)
+                          .join(", ")}
+                      </span>
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

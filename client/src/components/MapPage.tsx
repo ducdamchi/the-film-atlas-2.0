@@ -293,7 +293,7 @@ export default function MapPage() {
         >
           {/* Mobile drag handle — sticky at top so it's always reachable while scrolling */}
           <div
-            className="md:hidden sticky top-0 z-250 w-full flex flex-col items-center cursor-ns-resize touch-none select-none bg-none hover:bg-control/70 transition-colors ease-out duration-200 py-2 mb-2"
+            className="md:hidden sticky top-0 z-250 w-full flex flex-col items-center cursor-ns-resize touch-none select-none bg-elevated hover:bg-control transition-colors ease-out duration-200 py-2 mb-2"
             onClick={handleDragAreaClick}
             onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}
           >

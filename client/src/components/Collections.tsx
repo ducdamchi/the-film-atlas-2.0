@@ -12,29 +12,36 @@ import type { UserFilm } from "@/types/film";
 import SearchBar from "./layout/SearchBar";
 import CollectionRow from "./collections/CollectionRow";
 import { LayoutGrid, GalleryHorizontal } from "lucide-react";
+import CollectionCarousel from "./collections/CollectionCarousel";
+import LoadingPage from "./layout/LoadingPage";
 
 export default function Collections() {
   const [searchInput, setSearchInput] = useState<string>("");
   const [watchedFilms, setWatchedFilms] = useState<UserFilm[]>([]);
   const [watchlistedFilms, setWatchlistedFilms] = useState<UserFilm[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { authState } = useAuth();
 
   useEffect(() => {
     if (!authState.status) return;
+    setIsLoading(true);
     Promise.all([
       fetchListByParams({ queryString: "watched" }),
       fetchListByParams({ queryString: "watchlisted" }),
     ]).then(([watched, watchlisted]) => {
       setWatchedFilms(watched);
       setWatchlistedFilms(watchlisted);
+      setIsLoading(false);
     });
   }, [authState.status]);
 
+  if (isLoading) return <LoadingPage variant="authenticating" />;
+
   return (
-    <div className="font-primary mt-20 min-h-screen">
-      <div className="flex flex-col items-center">
+    <div className="font-primary mt-20 min-h-screen w-screen">
+      <div className="flex flex-col items-center w-full">
         <div className="font-heading page-title">COLLECTIONS</div>
         <SearchBar
           searchInput={searchInput}
@@ -46,8 +53,26 @@ export default function Collections() {
             Log in to view your collections!
           </div>
         ) : (
-          <section className="w-full mt-8 flex flex-col justify-center gap-10">
-            <div className="flex justify-center items-center border-1">
+          <section className="@container w-full mt-8 flex flex-col items-center gap-10">
+            <CollectionCarousel
+              films={watchlistedFilms}
+              queryString="watchlisted"
+              title="Watchlist"
+            />
+            <CollectionCarousel
+              films={watchedFilms}
+              queryString="watched"
+              title="Watched"
+            />
+          </section>
+        )}
+      </div>
+    </div>
+  );
+}
+
+{
+  /* <div className="flex justify-center items-center border-1">
               <button
                 onClick={() => setIsExpanded((prev) => !prev)}
                 className="p-2 bg-control rounded-full hover:bg-dark/10 transition-colors duration-150 text-dark"
@@ -61,26 +86,5 @@ export default function Collections() {
                   <LayoutGrid size={18} />
                 )}
               </button>
-            </div>
-            <CollectionRow
-              collection={{
-                title: "Watchlist",
-                films: watchlistedFilms,
-                queryString: "watchlisted",
-              }}
-              isExpanded={isExpanded}
-            />
-            <CollectionRow
-              collection={{
-                title: "Watched",
-                films: watchedFilms,
-                queryString: "watched",
-              }}
-              isExpanded={isExpanded}
-            />
-          </section>
-        )}
-      </div>
-    </div>
-  );
+            </div> */
 }
