@@ -39,10 +39,32 @@ router.post("/register", async (req, res) => {
     const hash = await bcrypt.hash(password, process.env.NODE_ENV === "production" ? 12 : 10)
     // Phase 1: `password` (legacy NOT NULL) and `password_hash` both get the same hash.
     // `password` will be dropped in Phase 2 (Migration 005).
-    await pool.query(
+    const { rows: [newUser] } = await pool.query(
       `INSERT INTO "Users" (id, email, username, password, password_hash, email_verified, account_status)
-       VALUES (gen_random_uuid(), $1, $2, $3, $3, true, 'active')`,
+       VALUES (gen_random_uuid(), $1, $2, $3, $3, true, 'active') RETURNING id`,
       [email, username, hash]
+    )
+    const newUserId = newUser.id
+
+    // Create system collections for the new user
+    const { rows: [watchedCol] } = await pool.query(
+      `INSERT INTO "Collections" (title, is_public, collection_type)
+       VALUES ('Watched', false, 'watched') RETURNING id`
+    )
+    await pool.query(
+      `INSERT INTO "CollectionOwners" ("collectionId", "userId", role)
+       VALUES ($1, $2, 'owner')`,
+      [watchedCol.id, newUserId]
+    )
+
+    const { rows: [watchlistCol] } = await pool.query(
+      `INSERT INTO "Collections" (title, is_public, collection_type)
+       VALUES ('Watchlist', false, 'watchlist') RETURNING id`
+    )
+    await pool.query(
+      `INSERT INTO "CollectionOwners" ("collectionId", "userId", role)
+       VALUES ($1, $2, 'owner')`,
+      [watchlistCol.id, newUserId]
     )
 
     return res.status(201).json({ message: "Account created." })

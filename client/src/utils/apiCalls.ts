@@ -514,6 +514,88 @@ export async function fetchSubtitleFile(file_id: string | number, filename: stri
   return URL.createObjectURL(blob)
 }
 
+export interface AppCollection {
+  id: string
+  title: string
+  description: string
+  cover_photo: string | null
+  is_public: boolean
+  collection_type: string // 'standard' | 'watched' | 'watchlist'
+  film_count: number
+  total_runtime: number
+  is_pinned: boolean
+  display_position: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export function fetchUserCollections(): Promise<AppCollection[]> {
+  return axios
+    .get(`${import.meta.env.VITE_API_URL}/profile/me/collections`, {
+      headers: { accessToken: localStorage.getItem("accessToken") },
+    })
+    .then((response) => response.data as AppCollection[])
+    .catch((err) => {
+      console.error("Client: Error fetching user collections", err)
+      throw err
+    })
+}
+
+export function fetchCollectionById(id: string): Promise<{ collection: AppCollection; films: UserFilm[] }> {
+  return axios
+    .get(`${import.meta.env.VITE_API_URL}/profile/me/collections/${id}`, {
+      headers: { accessToken: localStorage.getItem("accessToken") },
+    })
+    .then((response) => {
+      const { films: rawFilms, ...collection } = response.data
+      const films: UserFilm[] = (rawFilms ?? []).map(
+        (f: Record<string, unknown>) => ({
+          id: f.id,
+          title: f.title,
+          runtime: f.runtime,
+          directors: f.directors,
+          directorNamesForSorting: f.directorNamesForSorting,
+          poster_path: f.poster_path,
+          backdrop_path: f.backdrop_path,
+          origin_country: f.origin_country,
+          release_date: f.release_date,
+          added_date: f.added_at as string,
+        }),
+      )
+      return { collection: collection as AppCollection, films }
+    })
+    .catch((err) => {
+      console.error("Client: Error fetching collection", err)
+      throw err
+    })
+}
+
+export function deleteCollection(id: string): Promise<void> {
+  return axios
+    .delete(`${import.meta.env.VITE_API_URL}/profile/me/collections/${id}`, {
+      headers: { accessToken: localStorage.getItem("accessToken") },
+    })
+    .then(() => {})
+    .catch((err) => {
+      console.error("Client: Error deleting collection", err)
+      throw err
+    })
+}
+
+export function createCollection(params: { id: string; title: string; description: string }): Promise<AppCollection> {
+  return axios
+    .post(
+      `${import.meta.env.VITE_API_URL}/profile/me/collections`,
+      params,
+      { headers: { accessToken: localStorage.getItem("accessToken") } },
+    )
+    .then((response) => response.data as AppCollection)
+    .catch((err) => {
+      console.error("Client: Error creating collection", err)
+      throw err
+    })
+}
+
 export function fetchFilmFromYTS(imdb_id: string): Promise<unknown> {
   return axios
     .get(`${import.meta.env.VITE_API_URL}/proxy/yts/${imdb_id}`)

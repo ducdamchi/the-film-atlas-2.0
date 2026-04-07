@@ -91,7 +91,6 @@ export default function TripleStarRating({
             <button
               onClick={() => {
                 setRequestedRating(0);
-                console.log("Clicked x");
               }}
               className="text-black hover:text-hover-dark transition-colors duration-200 flex items-center"
               style={{ fontSize: "0.5rem", lineHeight: 1 }}

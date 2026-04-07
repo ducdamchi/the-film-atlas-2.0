@@ -5,16 +5,19 @@ import {
   useRef,
   useCallback,
 } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import UserFilmCard from "../films/UserFilmCard";
 import LoadingPage from "../layout/LoadingPage";
+import CollectionHeader from "./CollectionHeader";
+import CarouselNavPanel from "./CarouselNavPanel";
 import type { UserFilm } from "@/types/film";
+import type { CollectionData } from "@/hooks/useCollections";
+import { deleteCollection } from "@/utils/apiCalls";
+import { CirclePlus } from "lucide-react";
 
 interface CollectionCarouselProps {
-  films: UserFilm[];
-  queryString: string | null;
-  title: string | null;
+  collection: CollectionData;
+  onDelete?: (id: string) => void;
 }
 
 const CARD_WIDTH = 352; // 22rem — fixed, matches .filmGallery-grid
@@ -29,10 +32,13 @@ function getSlidesPerPage(containerPx: number): number {
 }
 
 export default function CollectionCarousel({
-  films,
-  queryString,
-  title,
+  collection,
+  onDelete,
 }: CollectionCarouselProps) {
+  const { films, queryString, ...collectionHeaderProps } = collection;
+  const { id, collectionType = "standard" } = collectionHeaderProps;
+  const isSystemCollection =
+    collectionType === "watched" || collectionType === "watchlist";
   const [outerEl, setOuterEl] = useState<HTMLDivElement | null>(null);
   const outerRef = useCallback(
     (node: HTMLDivElement | null) => setOuterEl(node),
@@ -42,7 +48,6 @@ export default function CollectionCarousel({
 
   const [slidesPerPage, setSlidesPerPage] = useState(1);
   const [layoutReady, setLayoutReady] = useState(false);
-
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const pendingInitialIndex = useRef<number | null>(null);
@@ -192,101 +197,92 @@ export default function CollectionCarousel({
     }
   }, [isTransitioning, realCount, currentIndex, slidesPerPage, applyTransform]);
 
-  if (realCount === 0) return null;
+  const innerWidth = slidesPerPage * CARD_WIDTH + (slidesPerPage - 1) * GAP;
+  const innerHeight = (CARD_WIDTH / 16) * 10;
 
   return (
     <>
-      {!layoutReady && <LoadingPage variant="loading" />}
+      {!layoutReady && realCount > 0 && <LoadingPage variant="loading" />}
       <div
         ref={outerRef}
         style={{ width: layoutReady ? carouselWidth : 0 }}
-        className="group/carousel relative hover:z-[50] flex flex-col gap-2"
+        className={`flex flex-col gap-3 ${realCount > 0 ? " group/carousel relative hover:z-[50]" : ""}`}
       >
         {layoutReady && (
           <>
-            <div
-              className="flex justify-between"
-              style={{
-                paddingLeft: NAV_BUTTON_WIDTH,
-                paddingRight: NAV_BUTTON_WIDTH,
-              }}
-            >
-              <div className="page-subtitle">{title}</div>
-              <div>{films.length} films</div>
-            </div>
+            <CollectionHeader
+              {...collectionHeaderProps}
+              filmCount={realCount}
+              isSystemCollection={isSystemCollection}
+              navButtonWidth={NAV_BUTTON_WIDTH}
+              onDelete={() => deleteCollection(id).then(() => onDelete?.(id))}
+            />
 
-            <div className="relative">
-              {/* Left nav panel — full-height masking panel with centered arrow */}
+            {realCount === 0 ? (
               <div
-                onClick={showArrows ? handlePrev : undefined}
-                className={`absolute left-0 top-0 h-full z-20 flex items-center justify-center transition-opacity duration-200 ${showArrows ? "opacity-100 cursor-pointer" : "opacity-0 cursor-default"}`}
-                style={{ width: NAV_BUTTON_WIDTH }}
-                aria-label="Previous"
-                role="button"
-              >
-                {/* Left edge blur */}
-                <div
-                  className="pointer-events-none absolute left-0 top-0 h-full z-10 bg-linear-to-r from-white to-transparent"
-                  style={{ width: NAV_BUTTON_WIDTH }}
-                />
-                <div className="absolute inset-0 bg-elevated  group-hover/carousel:opacity-0 transition-all duration-200 ease-out" />
-                <button className="z-10 p-2 border-0 flex items-center justify-center rounded-full backdrop-blur-sm group-hover/carousel:backdrop-brightness-70 transition-all duration-200 ease-out hover:backdrop-brightness-50">
-                  <ChevronLeft
-                    size={24}
-                    className="text-dark group-hover/carousel:text-white"
-                  />
-                </button>
-              </div>
-
-              {/* Overflow container — inset by nav button width so cards start/end at nav edges */}
-              <div
+                className="relative"
                 style={{
-                  overflowX: "clip",
-                  overflowY: "visible",
                   paddingLeft: NAV_BUTTON_WIDTH,
                   paddingRight: NAV_BUTTON_WIDTH,
-                  position: "relative",
                 }}
               >
-                {/* Flex track */}
-                <div ref={trackRef} className="flex gap-3">
-                  {allSlides.map((film, idx) => (
-                    <div key={`${film.id}-${idx}`} style={{ flexShrink: 0 }}>
-                      <UserFilmCard
-                        filmObject={film}
-                        queryString={queryString}
-                      />
-                    </div>
-                  ))}
-                  {Array.from({ length: fillerCount }).map((_, idx) => (
-                    <div
-                      key={`filler-${idx}`}
-                      className="filmCard-width md:aspect-16/10"
-                      style={{ flexShrink: 0 }}
-                    />
-                  ))}
+                <div
+                  style={{ width: innerWidth, height: innerHeight }}
+                  className="flex items-center justify-center border-1 border-muted-light/40 bg-control/40 rounded-md hover:bg-control transition-all ease-out duration-200"
+                >
+                  <span className="text-base text-muted flex items-center justify-center gap-1">
+                    <CirclePlus className="size-[24px]" />
+                    Add films
+                  </span>
                 </div>
               </div>
+            ) : (
+              <div className="relative">
+                <CarouselNavPanel
+                  direction="left"
+                  showArrows={showArrows}
+                  onClick={handlePrev}
+                  width={NAV_BUTTON_WIDTH}
+                />
 
-              {/* Right nav panel — full-height masking panel with centered arrow */}
-              <div
-                onClick={showArrows ? handleNext : undefined}
-                className={`absolute right-0 top-0 h-full z-20 flex items-center justify-center transition-opacity duration-200 ${showArrows ? "opacity-100 cursor-pointer" : "opacity-0 cursor-default"}`}
-                style={{ width: NAV_BUTTON_WIDTH }}
-                aria-label="Next"
-                role="button"
-              >
-                {/* Right edge blur */}
-                <div className="pointer-events-none absolute w-[64px] right-0 top-0 h-full z-10 bg-linear-to-l from-white to-transparent" />
-                <div className="absolute inset-0 bg-elevated transition-all duration-200 group-hover/carousel:opacity-0" />
-                <button className="z-10 p-2 border-0 flex items-center justify-center rounded-full backdrop-blur-sm group-hover/carousel:backdrop-brightness-70 transition-all duration-200 ease-out hover:backdrop-brightness-50">
-                  <ChevronRight
-                    size={24}
-                    className="text-dark group-hover/carousel:text-white"
-                  />
-                </button>
+                {/* Overflow container — inset by nav button width so cards start/end at nav edges */}
+                <div
+                  style={{
+                    overflowX: "clip",
+                    overflowY: "visible",
+                    paddingLeft: NAV_BUTTON_WIDTH,
+                    paddingRight: NAV_BUTTON_WIDTH,
+                    position: "relative",
+                  }}
+                >
+                  {/* Flex track */}
+                  <div ref={trackRef} className="flex gap-3">
+                    {allSlides.map((film, idx) => (
+                      <div key={`${film.id}-${idx}`} style={{ flexShrink: 0 }}>
+                        <UserFilmCard
+                          filmObject={film}
+                          queryString={queryString}
+                        />
+                      </div>
+                    ))}
+                    {Array.from({ length: fillerCount }).map((_, idx) => (
+                      <div
+                        key={`filler-${idx}`}
+                        className="filmCard-width md:aspect-16/10"
+                        style={{ flexShrink: 0 }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <CarouselNavPanel
+                  direction="right"
+                  showArrows={showArrows}
+                  onClick={handleNext}
+                  width={NAV_BUTTON_WIDTH}
+                />
               </div>
-            </div>
+            )}
           </>
         )}
       </div>
