@@ -15,35 +15,41 @@ export interface CollectionData {
   description: string | null;
   collectionType: string;
   queryString: string | null;
+  isPublic: boolean;
+  filmCount: number;
+  totalRuntime: number;
+  isPinned: boolean;
   films: UserFilm[];
 }
 
 function resolveCollection(col: AppCollection): Promise<CollectionData> {
+  const shared = {
+    id: col.id,
+    title: col.title,
+    description: col.description ?? null,
+    collectionType: col.collection_type,
+    isPublic: col.is_public,
+    filmCount: col.film_count,
+    totalRuntime: col.total_runtime,
+    isPinned: col.is_pinned,
+  };
+
   if (col.collection_type === "watched") {
     return fetchListByParams({ queryString: "watched" }).then((films) => ({
-      id: col.id,
-      title: col.title,
-      description: col.description ?? null,
-      collectionType: col.collection_type,
+      ...shared,
       queryString: "watched" as string | null,
       films,
     }));
   }
   if (col.collection_type === "watchlist") {
     return fetchListByParams({ queryString: "watchlisted" }).then((films) => ({
-      id: col.id,
-      title: col.title,
-      description: col.description ?? null,
-      collectionType: col.collection_type,
+      ...shared,
       queryString: "watchlisted" as string | null,
       films,
     }));
   }
   return fetchCollectionById(col.id).then(({ films }) => ({
-    id: col.id,
-    title: col.title,
-    description: col.description ?? null,
-    collectionType: col.collection_type,
+    ...shared,
     queryString: col.id as string | null,
     films,
   }));

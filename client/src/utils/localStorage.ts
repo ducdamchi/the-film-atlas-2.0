@@ -25,6 +25,8 @@ export const PERSISTED_STATE_KEYS = [
   "films-numStars",
   "films-queryString",
   "films-scrollPosition",
+  "map-showPanel",
+  "map-sidebarWidth",
   "map-popupInfo",
   "map-suggestedFilmList",
   "map-page",

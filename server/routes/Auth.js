@@ -49,21 +49,21 @@ router.post("/register", async (req, res) => {
     // Create system collections for the new user
     const { rows: [watchedCol] } = await pool.query(
       `INSERT INTO "Collections" (title, is_public, collection_type)
-       VALUES ('Watched', false, 'watched') RETURNING id`
+       VALUES ('Watched', true, 'watched') RETURNING id`
     )
     await pool.query(
-      `INSERT INTO "CollectionOwners" ("collectionId", "userId", role)
-       VALUES ($1, $2, 'owner')`,
+      `INSERT INTO "CollectionOwners" ("collectionId", "userId", role, is_pinned)
+       VALUES ($1, $2, 'owner', true)`,
       [watchedCol.id, newUserId]
     )
 
     const { rows: [watchlistCol] } = await pool.query(
       `INSERT INTO "Collections" (title, is_public, collection_type)
-       VALUES ('Watchlist', false, 'watchlist') RETURNING id`
+       VALUES ('Watchlist', true, 'watchlist') RETURNING id`
     )
     await pool.query(
-      `INSERT INTO "CollectionOwners" ("collectionId", "userId", role)
-       VALUES ($1, $2, 'owner')`,
+      `INSERT INTO "CollectionOwners" ("collectionId", "userId", role, is_pinned)
+       VALUES ($1, $2, 'owner', true)`,
       [watchlistCol.id, newUserId]
     )
 

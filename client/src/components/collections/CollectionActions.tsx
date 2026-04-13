@@ -1,30 +1,130 @@
-import { Trash2, SquarePen } from "lucide-react";
+import { Trash2, SquarePen, Globe, Lock } from "lucide-react";
+import { TiPin, TiPinOutline } from "react-icons/ti";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CollectionActionsProps {
+  name: string;
+  isPublic: boolean;
+  isPinned: boolean;
+  isSystemCollection: boolean;
   onEdit?: () => void;
-  onDelete?: () => void;
+  onDelete?: () => Promise<void>;
+  onTogglePin?: () => Promise<void>;
+  onToggleVisibility?: () => Promise<void>;
 }
 
 export default function CollectionActions({
+  name,
+  isPublic,
+  isPinned,
+  isSystemCollection,
   onEdit,
   onDelete,
+  onTogglePin,
+  onToggleVisibility,
 }: CollectionActionsProps) {
+  function handleDelete() {
+    onDelete?.()
+      .then(() => toast.success("Collection Deleted"))
+      .catch(() => toast.error("Failed to delete collection"));
+  }
+
+  function handleTogglePin() {
+    onTogglePin?.()
+      .then(() =>
+        toast.success(isPinned ? "Collection Unpinned" : "Collection Pinned"),
+      )
+      .catch(() => toast.error("Failed to update pin"));
+  }
+
+  function handleToggleVisibility() {
+    onToggleVisibility?.()
+      .then(() =>
+        toast.success(
+          isPublic ? "Collection set to Private" : "Collection set to Public",
+        ),
+      )
+      .catch(() => toast.error("Failed to update visibility"));
+  }
+
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-0">
       <button
-        className="text-xl text-dark hover:bg-control/50 transition-all ease-out duration-200 p-1 rounded-sm"
-        aria-label="Edit"
-        onClick={onEdit}
+        className="text-xl text-dark hover:bg-control/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+        aria-label={isPublic ? "Make Private" : "Make Public"}
+        title={isPublic ? "Make Private" : "Make Public"}
+        onClick={handleToggleVisibility}
       >
-        <SquarePen className="size-[18px]" />
+        {isPublic ? (
+          <Globe className="size-[18px] text-saved" />
+        ) : (
+          <Lock className="size-[18px]" />
+        )}
       </button>
       <button
-        className="text-xl text-red-600 hover:bg-red-600/20 transition-all ease-out duration-200 p-1 rounded-sm"
-        aria-label="Delete"
-        onClick={onDelete}
+        className="text-xl text-dark hover:bg-control/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+        aria-label={isPinned ? "Unpin" : "Pin"}
+        title={isPinned ? "Unpin" : "Pin"}
+        onClick={handleTogglePin}
       >
-        <Trash2 className="size-[18px]" />
+        {isPinned ? (
+          <TiPin className={`size-[18px] text-saved`} />
+        ) : (
+          <TiPinOutline className={`size-[18px]`} />
+        )}
       </button>
+      {!isSystemCollection && (
+        <>
+          <button
+            className="text-xl text-dark hover:bg-control/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+            aria-label="Edit"
+            title="Edit"
+            onClick={onEdit}
+          >
+            <SquarePen className="size-[18px]" />
+          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                className="text-xl text-red-700 hover:bg-red-600/20 transition-all ease-out duration-200 p-0.5 rounded-sm"
+                aria-label="Delete"
+                title="Delete"
+              >
+                <Trash2 className="size-[18px]" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Collection</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete "{name}" collection? This
+                  action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-red-700 hover:bg-red-800"
+                  onClick={handleDelete}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
     </div>
   );
 }

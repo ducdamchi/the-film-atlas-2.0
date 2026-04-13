@@ -17,12 +17,16 @@ import ScrollToAnchor from "../hooks/scrollToAnchor";
 import useCommandKey from "../hooks/useCommandKey";
 import { LocationBanner } from "../components/settings/LocationBanner";
 import { CompleteProfileModal } from "../components/settings/CompleteProfileModal";
+import { runMigrations } from "../utils/localStorageMigrations";
+import { Toaster } from "../components/ui/sonner";
 
 export const Route = createRootRoute({
   component: RootComponent,
 });
 
 function RootComponent() {
+  runMigrations();
+
   const { pathname, isRouterPending } = useRouterState({
     select: (s) => ({
       pathname: s.location.pathname,
@@ -93,6 +97,7 @@ function RootComponent() {
         {/* {!isMapPage && <LocationBanner />} */}
         <Outlet />
         {authState.status && !authState.email && <CompleteProfileModal />}
+        <Toaster position="top-right" />
         {!isMapPage && !isHomePage && !isRouterPending && (
           <div
             key={pathname}

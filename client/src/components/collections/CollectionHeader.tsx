@@ -9,17 +9,24 @@ export interface CollectionHeaderProps extends Omit<
   isSystemCollection: boolean;
   navButtonWidth: number;
   onEdit?: () => void;
-  onDelete?: () => void;
+  onDelete?: () => Promise<void>;
+  onTogglePin?: () => Promise<void>;
+  onToggleVisibility?: () => Promise<void>;
 }
 
 export default function CollectionHeader({
   title,
   filmCount,
   description,
+  isPublic,
+  totalRuntime,
+  isPinned,
   isSystemCollection,
   navButtonWidth,
   onEdit,
   onDelete,
+  onTogglePin,
+  onToggleVisibility,
 }: CollectionHeaderProps) {
   return (
     <div
@@ -31,9 +38,16 @@ export default function CollectionHeader({
           <div className="page-subtitle">{title}</div>
           <div>{filmCount} films</div>
         </div>
-        {!isSystemCollection && (
-          <CollectionActions onEdit={onEdit} onDelete={onDelete} />
-        )}
+        <CollectionActions
+          name={title}
+          isPublic={isPublic}
+          isPinned={isPinned}
+          isSystemCollection={isSystemCollection}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onTogglePin={onTogglePin}
+          onToggleVisibility={onToggleVisibility}
+        />
       </div>
       <div className="">{description}</div>
     </div>

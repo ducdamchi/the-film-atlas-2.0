@@ -3,6 +3,7 @@ const router = express.Router()
 const pool = require("../db/pool")
 const { verify } = require("jsonwebtoken")
 const { validateToken } = require("../middlewares/AuthMiddleware")
+const { updateAggregates } = require("../utils/collectionAggregates")
 
 // Auth optional — sets req.user if token is valid, continues either way
 const optionalAuth = (req, res, next) => {
@@ -25,58 +26,6 @@ async function getOwner(collectionId, userId) {
   return rows[0] || null
 }
 
-// Update collection aggregate fields after adding or removing a film.
-// delta = +1 (add) or -1 (remove)
-async function updateAggregates(collectionId, film, delta) {
-  const { rows } = await pool.query(
-    `SELECT genres_aggregate, countries_aggregate, decades_aggregate, total_runtime
-     FROM "Collections" WHERE id = $1`,
-    [collectionId]
-  )
-  if (!rows[0]) return
-
-  const col = rows[0]
-  const genresAgg = col.genres_aggregate || {}
-  const countriesAgg = col.countries_aggregate || {}
-  const decadesAgg = col.decades_aggregate || {}
-
-  for (const g of film.genres || []) {
-    const key = String(g.id)
-    genresAgg[key] = Math.max(0, (genresAgg[key] || 0) + delta)
-    if (genresAgg[key] === 0) delete genresAgg[key]
-  }
-
-  for (const c of film.origin_country || []) {
-    countriesAgg[c] = Math.max(0, (countriesAgg[c] || 0) + delta)
-    if (countriesAgg[c] === 0) delete countriesAgg[c]
-  }
-
-  if (film.release_date && film.release_date.length >= 4) {
-    const decade = `${film.release_date.substring(0, 3)}0s`
-    decadesAgg[decade] = Math.max(0, (decadesAgg[decade] || 0) + delta)
-    if (decadesAgg[decade] === 0) delete decadesAgg[decade]
-  }
-
-  await pool.query(
-    `UPDATE "Collections" SET
-       genres_aggregate = $1,
-       countries_aggregate = $2,
-       decades_aggregate = $3,
-       total_runtime = GREATEST(0, total_runtime + $4),
-       film_count = GREATEST(0, film_count + $5),
-       "updatedAt" = now()
-     WHERE id = $6`,
-    [
-      JSON.stringify(genresAgg),
-      JSON.stringify(countriesAgg),
-      JSON.stringify(decadesAgg),
-      (film.runtime || 0) * delta,
-      delta,
-      collectionId,
-    ]
-  )
-}
-
 // ─── Collection CRUD ─────────────────────────────────────────────────────────
 
 /* POST /profile/me/collections — create a collection */
@@ -91,7 +40,7 @@ router.post("/", validateToken, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO "Collections" (id, title, description, cover_photo, is_public)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [id, title, description, cover_photo || null, is_public !== false]
+      [id, title, description, cover_photo || null, is_public ?? true]
     )
     const collection = rows[0]
 
@@ -120,10 +69,10 @@ router.get("/", validateToken, async (req, res) => {
              THEN (SELECT COUNT(*)::integer FROM "WatchlistedFilms" WHERE "userId" = $1)
            ELSE c.film_count
          END AS film_count,
-         CASE WHEN c.collection_type = 'standard' THEN c.genres_aggregate ELSE NULL END AS genres_aggregate,
-         CASE WHEN c.collection_type = 'standard' THEN c.countries_aggregate ELSE NULL END AS countries_aggregate,
-         CASE WHEN c.collection_type = 'standard' THEN c.decades_aggregate ELSE NULL END AS decades_aggregate,
-         CASE WHEN c.collection_type = 'standard' THEN c.total_runtime ELSE 0 END AS total_runtime,
+         c.genres_aggregate,
+         c.countries_aggregate,
+         c.decades_aggregate,
+         c.total_runtime,
          c."createdAt", c."updatedAt",
          co.is_pinned, co.display_position
        FROM "Collections" c
@@ -262,6 +211,7 @@ router.delete("/:id", validateToken, async (req, res) => {
 
 /* POST /collections/:id/films — add a film */
 router.post("/:id/films", validateToken, async (req, res) => {
+  const client = await pool.connect()
   try {
     const collectionId = req.params.id
     const userId = req.user.id
@@ -272,8 +222,10 @@ router.post("/:id/films", validateToken, async (req, res) => {
     const film = req.body
     if (!film.tmdbId) return res.status(400).json({ error: "tmdbId is required" })
 
+    await client.query("BEGIN")
+
     // Upsert Film
-    await pool.query(
+    await client.query(
       `INSERT INTO "Films"
          (id, title, runtime, directors, "directorNamesForSorting",
           poster_path, backdrop_path, origin_country, release_date, genres, overview)
@@ -297,20 +249,23 @@ router.post("/:id/films", validateToken, async (req, res) => {
     )
 
     // Insert into CollectionFilms (reject duplicate)
-    const { rows, rowCount } = await pool.query(
+    const { rows, rowCount } = await client.query(
       `INSERT INTO "CollectionFilms" ("collectionId", "filmId", "addedBy", note)
        VALUES ($1,$2,$3,$4)
        ON CONFLICT ("collectionId", "filmId") DO NOTHING
        RETURNING id`,
       [collectionId, film.tmdbId, userId, film.note || null]
     )
-    if (!rowCount) return res.status(409).json({ error: "Film already in collection" })
+    if (!rowCount) {
+      await client.query("ROLLBACK")
+      return res.status(409).json({ error: "Film already in collection" })
+    }
 
     // Update collection aggregates
-    await updateAggregates(collectionId, film, +1)
+    await updateAggregates(client, collectionId, film, +1)
 
     // Upsert UserFilmProfile — append collectionId to collection_ids
-    await pool.query(
+    await client.query(
       `INSERT INTO "UserFilmProfile"
          ("userId", "filmId", is_watched, stars, is_watchlisted, collection_ids,
           genres, origin_country, release_date, runtime, "updatedAt")
@@ -337,6 +292,8 @@ router.post("/:id/films", validateToken, async (req, res) => {
       ]
     )
 
+    await client.query("COMMIT")
+
     const { rows: [updated] } = await pool.query(
       `SELECT film_count FROM "Collections" WHERE id = $1`,
       [collectionId]
@@ -344,13 +301,17 @@ router.post("/:id/films", validateToken, async (req, res) => {
 
     return res.status(201).json({ collection_film_id: rows[0].id, film_count: updated.film_count })
   } catch (err) {
+    await client.query("ROLLBACK")
     console.error(err)
     return res.status(500).json({ error: "Error adding film to collection" })
+  } finally {
+    client.release()
   }
 })
 
 /* DELETE /collections/:id/films/:filmId */
 router.delete("/:id/films/:filmId", validateToken, async (req, res) => {
+  const client = await pool.connect()
   try {
     const { id: collectionId, filmId } = req.params
     const owner = await getOwner(collectionId, req.user.id)
@@ -367,13 +328,15 @@ router.delete("/:id/films/:filmId", validateToken, async (req, res) => {
     )
     if (!cfRow) return res.status(404).json({ error: "Film not in collection" })
 
-    await pool.query(
+    await client.query("BEGIN")
+
+    await client.query(
       `DELETE FROM "CollectionFilms" WHERE "collectionId" = $1 AND "filmId" = $2`,
       [collectionId, filmId]
     )
 
     // Update aggregates
-    await updateAggregates(collectionId, {
+    await updateAggregates(client, collectionId, {
       genres: cfRow.genres,
       origin_country: cfRow.origin_country,
       release_date: cfRow.release_date,
@@ -381,7 +344,7 @@ router.delete("/:id/films/:filmId", validateToken, async (req, res) => {
     }, -1)
 
     // Update UserFilmProfile for the addedBy user — remove this collection from collection_ids
-    await pool.query(
+    await client.query(
       `UPDATE "UserFilmProfile" SET
          collection_ids = COALESCE(
            (SELECT jsonb_agg(elem)
@@ -394,13 +357,15 @@ router.delete("/:id/films/:filmId", validateToken, async (req, res) => {
       [JSON.stringify(collectionId), cfRow.addedBy, filmId]
     )
     // Delete profile row if no interactions remain
-    await pool.query(
+    await client.query(
       `DELETE FROM "UserFilmProfile"
        WHERE "userId" = $1 AND "filmId" = $2
          AND is_watched = false AND is_watchlisted = false
          AND collection_ids = '[]'::jsonb`,
       [cfRow.addedBy, filmId]
     )
+
+    await client.query("COMMIT")
 
     const { rows: [updated] } = await pool.query(
       `SELECT film_count FROM "Collections" WHERE id = $1`,
@@ -409,8 +374,11 @@ router.delete("/:id/films/:filmId", validateToken, async (req, res) => {
 
     return res.status(200).json({ deleted: true, film_count: updated.film_count })
   } catch (err) {
+    await client.query("ROLLBACK")
     console.error(err)
     return res.status(500).json({ error: "Error removing film from collection" })
+  } finally {
+    client.release()
   }
 })
 
@@ -436,6 +404,60 @@ router.put("/:id/films/:filmId", validateToken, async (req, res) => {
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: "Error updating film in collection" })
+  }
+})
+
+// ─── Pin / Visibility ─────────────────────────────────────────────────────────
+
+/* PATCH /collections/:id/pin — toggle pin for the calling user */
+router.patch("/:id/pin", validateToken, async (req, res) => {
+  try {
+    const { id } = req.params
+    const { pinned } = req.body
+
+    if (typeof pinned !== "boolean") {
+      return res.status(400).json({ error: "pinned must be a boolean" })
+    }
+
+    // Verify caller has a row in CollectionOwners for this collection
+    const { rows, rowCount } = await pool.query(
+      `UPDATE "CollectionOwners" SET is_pinned = $1
+       WHERE "collectionId" = $2 AND "userId" = $3
+       RETURNING is_pinned`,
+      [pinned, id, req.user.id]
+    )
+    if (!rowCount) return res.status(403).json({ error: "Forbidden" })
+
+    return res.status(200).json({ is_pinned: rows[0].is_pinned })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: "Error updating pin" })
+  }
+})
+
+/* PATCH /collections/:id/visibility — toggle public/private (standard collections only) */
+router.patch("/:id/visibility", validateToken, async (req, res) => {
+  try {
+    const { id } = req.params
+    const { is_public } = req.body
+
+    if (typeof is_public !== "boolean") {
+      return res.status(400).json({ error: "is_public must be a boolean" })
+    }
+
+    const owner = await getOwner(id, req.user.id)
+    if (!owner) return res.status(403).json({ error: "Forbidden" })
+
+    const { rows: [updated] } = await pool.query(
+      `UPDATE "Collections" SET is_public = $1, "updatedAt" = now()
+       WHERE id = $2 RETURNING is_public`,
+      [is_public, id]
+    )
+
+    return res.status(200).json({ is_public: updated.is_public })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: "Error updating visibility" })
   }
 })
 

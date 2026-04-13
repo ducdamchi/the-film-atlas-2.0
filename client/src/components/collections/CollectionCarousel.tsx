@@ -18,6 +18,8 @@ import { CirclePlus } from "lucide-react";
 interface CollectionCarouselProps {
   collection: CollectionData;
   onDelete?: (id: string) => void;
+  onTogglePin?: (id: string) => Promise<void>;
+  onToggleVisibility?: (id: string) => Promise<void>;
 }
 
 const CARD_WIDTH = 352; // 22rem — fixed, matches .filmGallery-grid
@@ -34,6 +36,8 @@ function getSlidesPerPage(containerPx: number): number {
 export default function CollectionCarousel({
   collection,
   onDelete,
+  onTogglePin,
+  onToggleVisibility,
 }: CollectionCarouselProps) {
   const { films, queryString, ...collectionHeaderProps } = collection;
   const { id, collectionType = "standard" } = collectionHeaderProps;
@@ -215,7 +219,9 @@ export default function CollectionCarousel({
               filmCount={realCount}
               isSystemCollection={isSystemCollection}
               navButtonWidth={NAV_BUTTON_WIDTH}
-              onDelete={() => deleteCollection(id).then(() => onDelete?.(id))}
+              onDelete={() => deleteCollection(id).then(() => { onDelete?.(id); })}
+              onTogglePin={onTogglePin ? () => onTogglePin(id) : undefined}
+              onToggleVisibility={onToggleVisibility ? () => onToggleVisibility(id) : undefined}
             />
 
             {realCount === 0 ? (

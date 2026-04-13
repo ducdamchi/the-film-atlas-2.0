@@ -417,6 +417,18 @@
   border: none;
 }
 
+[data-sonner-toast] {
+  background: var(--color-bg-elevated) !important;
+  color: var(--color-text-dark) !important;
+  border-color: var(--color-bg-muted-dark) !important;
+  border-radius: 2px !important;
+  font-size: 14px !important;
+}
+
+[data-sonner-toast] [data-description] {
+  color: var(--color-text-muted-dark) !important;
+}
+
 .swal2-popup {
   border-radius: 0;
   font-family: var(--font-primary);

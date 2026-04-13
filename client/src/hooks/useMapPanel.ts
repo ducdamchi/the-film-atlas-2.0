@@ -61,11 +61,9 @@ export function useMapPanel(): MapPanelState {
   const isDragEndRef = useRef<boolean>(false);
   const dragClickGuardRef = useRef<boolean>(false);
 
-  // Reuse the same persisted-open key as the old useBottomSheet so existing
-  // user sessions aren't reset.
   const [showPanel, setShowPanel] = usePersistedState<boolean>(
-    "map-showBelowMapContent",
-    false,
+    "map-showPanel",
+    true,
   );
   const [sidebarWidth, setSidebarWidth] = usePersistedState<number>(
     "map-sidebarWidth",

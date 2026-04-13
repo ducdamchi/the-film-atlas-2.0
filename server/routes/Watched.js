@@ -4,6 +4,7 @@ const pool = require("../db/pool")
 const db = require("../db/kysely")
 const { sql } = require("kysely")
 const { validateToken } = require("../middlewares/AuthMiddleware")
+const { updateAggregates, getSystemCollectionId } = require("../utils/collectionAggregates")
 
 /* Avg_rating: total stars / total films watched. max value = 3
   watchScore: logarithm function that rewards watching multiple films. max value = 1 (at 10+ films)
@@ -224,12 +225,14 @@ router.get("/:tmdbId", validateToken, async (req, res) => {
 
 /* POST: Handle when user watches (likes) a film */
 router.post("/", validateToken, async (req, res) => {
+  const client = await pool.connect()
   try {
+    await client.query("BEGIN")
     const jwtUserId = req.user.id
     const reqData = req.body
 
     // Upsert Film (update genres/overview if newly available)
-    await pool.query(
+    await client.query(
       `INSERT INTO "Films"
          (id, title, runtime, directors, "directorNamesForSorting",
           poster_path, backdrop_path, origin_country, release_date, genres, overview)
@@ -253,7 +256,7 @@ router.post("/", validateToken, async (req, res) => {
     )
 
     // Insert into WatchedFilms
-    const watchedResult = await pool.query(
+    const watchedResult = await client.query(
       `INSERT INTO "WatchedFilms" ("filmId", "userId", stars)
        VALUES ($1, $2, $3)
        RETURNING id, stars`,
@@ -262,13 +265,13 @@ router.post("/", validateToken, async (req, res) => {
     const likedFilmId = watchedResult.rows[0].id
 
     // Remove from WatchlistedFilms if present (watched overrides watchlisted)
-    await pool.query(
+    const { rowCount: removedFromWatchlist } = await client.query(
       `DELETE FROM "WatchlistedFilms" WHERE "filmId" = $1 AND "userId" = $2`,
       [reqData.tmdbId, jwtUserId]
     )
 
     // Upsert UserFilmProfile — mark watched, unset watchlisted
-    await pool.query(
+    await client.query(
       `INSERT INTO "UserFilmProfile"
          ("userId", "filmId", is_watched, stars, is_watchlisted, collection_ids,
           genres, origin_country, release_date, runtime, "updatedAt")
@@ -296,7 +299,7 @@ router.post("/", validateToken, async (req, res) => {
     // Handle directors
     for (const director of reqData.directors) {
       // Upsert Director
-      await pool.query(
+      await client.query(
         `INSERT INTO "Directors" (id, name, profile_path)
          VALUES ($1,$2,$3)
          ON CONFLICT (id) DO NOTHING`,
@@ -304,7 +307,7 @@ router.post("/", validateToken, async (req, res) => {
       )
 
       // Upsert UserDirectorStats
-      const udsResult = await pool.query(
+      const udsResult = await client.query(
         `INSERT INTO "UserDirectorStats"
            ("directorId", "userId", num_watched_films, num_starred_films,
             num_stars_total, avg_rating, highest_star, score)
@@ -329,21 +332,21 @@ router.post("/", validateToken, async (req, res) => {
         directorStatsId = udsResult.rows[0].id
       } else {
         // Row already existed — fetch it
-        const existing = await pool.query(
+        const existing = await client.query(
           `SELECT id FROM "UserDirectorStats" WHERE "directorId" = $1 AND "userId" = $2 LIMIT 1`,
           [director.tmdbId, jwtUserId]
         )
         directorStatsId = existing.rows[0].id
 
         // Insert into UserDirectorFilms junction
-        await pool.query(
+        await client.query(
           `INSERT INTO "UserDirectorFilms" ("watchedFilmId", "directorStatsId")
            VALUES ($1, $2)`,
           [likedFilmId, directorStatsId]
         )
 
         // Recalculate aggregates from UserDirectorFilms
-        const aggResult = await pool.query(
+        const aggResult = await client.query(
           `SELECT
              COUNT(wf.id)::int AS num_watched_films,
              COUNT(CASE WHEN wf.stars > 0 THEN 1 END)::int AS num_starred_films,
@@ -356,7 +359,7 @@ router.post("/", validateToken, async (req, res) => {
         )
         const agg = aggResult.rows[0]
 
-        await pool.query(
+        await client.query(
           `UPDATE "UserDirectorStats" SET
              num_watched_films = $1,
              num_starred_films = $2,
@@ -387,49 +390,72 @@ router.post("/", validateToken, async (req, res) => {
       }
 
       // Insert into UserDirectorFilms junction (new director stats row)
-      await pool.query(
+      await client.query(
         `INSERT INTO "UserDirectorFilms" ("watchedFilmId", "directorStatsId")
          VALUES ($1, $2)`,
         [likedFilmId, directorStatsId]
       )
     }
 
+    // Update watched collection aggregates
+    const watchedCollectionId = await getSystemCollectionId(client, jwtUserId, "watched")
+    if (watchedCollectionId) {
+      await updateAggregates(client, watchedCollectionId, reqData, +1)
+    }
+
+    // If film was on watchlist, update watchlist aggregates
+    if (removedFromWatchlist > 0) {
+      const watchlistCollectionId = await getSystemCollectionId(client, jwtUserId, "watchlist")
+      if (watchlistCollectionId) {
+        await updateAggregates(client, watchlistCollectionId, reqData, -1)
+      }
+    }
+
+    await client.query("COMMIT")
     return res.status(200).json({ liked: true, stars: reqData.stars })
   } catch (err) {
+    await client.query("ROLLBACK")
     console.error(err)
     return res.status(500).json({ error: "Error Adding Entry" })
+  } finally {
+    client.release()
   }
 })
 
 /* DELETE: Remove a watched film */
 router.delete("/", validateToken, async (req, res) => {
+  const client = await pool.connect()
   try {
+    await client.query("BEGIN")
     const jwtUserId = req.user.id
     const tmdbId = req.body.tmdbId
 
     // Get the watched film entry
-    const watchedResult = await pool.query(
+    const watchedResult = await client.query(
       `SELECT id FROM "WatchedFilms" WHERE "filmId" = $1 AND "userId" = $2 LIMIT 1`,
       [tmdbId, jwtUserId]
     )
     if (watchedResult.rows.length === 0) {
+      await client.query("ROLLBACK")
       return res.status(404).json({ error: "Watched Film Not Found" })
     }
     const likedFilmId = watchedResult.rows[0].id
 
-    // Get the film's directors for director stats update
-    const filmResult = await pool.query(
-      `SELECT directors FROM "Films" WHERE id = $1 LIMIT 1`,
+    // Get the film's data for director stats update and aggregate sync
+    const filmResult = await client.query(
+      `SELECT directors, runtime, genres, origin_country, release_date FROM "Films" WHERE id = $1 LIMIT 1`,
       [tmdbId]
     )
     if (filmResult.rows.length === 0) {
+      await client.query("ROLLBACK")
       return res.status(404).json({ error: "Film Not Found" })
     }
-    const directors = filmResult.rows[0].directors
+    const filmRow = filmResult.rows[0]
+    const directors = filmRow.directors
 
     // Handle each director
     for (const director of directors) {
-      const udsResult = await pool.query(
+      const udsResult = await client.query(
         `SELECT id FROM "UserDirectorStats" WHERE "directorId" = $1 AND "userId" = $2 LIMIT 1`,
         [director.tmdbId, jwtUserId]
       )
@@ -437,13 +463,13 @@ router.delete("/", validateToken, async (req, res) => {
       const directorStatsId = udsResult.rows[0].id
 
       // Remove from UserDirectorFilms junction
-      await pool.query(
+      await client.query(
         `DELETE FROM "UserDirectorFilms" WHERE "watchedFilmId" = $1 AND "directorStatsId" = $2`,
         [likedFilmId, directorStatsId]
       )
 
       // Recalculate remaining aggregates
-      const aggResult = await pool.query(
+      const aggResult = await client.query(
         `SELECT
            COUNT(wf.id)::int AS num_watched_films,
            COUNT(CASE WHEN wf.stars > 0 THEN 1 END)::int AS num_starred_films,
@@ -457,11 +483,11 @@ router.delete("/", validateToken, async (req, res) => {
       const agg = aggResult.rows[0]
 
       if (agg.num_watched_films === 0) {
-        await pool.query(`DELETE FROM "UserDirectorStats" WHERE id = $1`, [
+        await client.query(`DELETE FROM "UserDirectorStats" WHERE id = $1`, [
           directorStatsId,
         ])
       } else {
-        await pool.query(
+        await client.query(
           `UPDATE "UserDirectorStats" SET
              num_watched_films = $1,
              num_starred_films = $2,
@@ -490,20 +516,26 @@ router.delete("/", validateToken, async (req, res) => {
       }
     }
 
+    // Update watched collection aggregates before deleting the WatchedFilms row
+    const watchedCollectionId = await getSystemCollectionId(client, jwtUserId, "watched")
+    if (watchedCollectionId) {
+      await updateAggregates(client, watchedCollectionId, filmRow, -1)
+    }
+
     // Delete from WatchedFilms
-    await pool.query(
+    await client.query(
       `DELETE FROM "WatchedFilms" WHERE "filmId" = $1 AND "userId" = $2`,
       [tmdbId, jwtUserId]
     )
 
     // Update UserFilmProfile — mark unwatched
-    await pool.query(
+    await client.query(
       `UPDATE "UserFilmProfile" SET is_watched = false, stars = 0, "updatedAt" = now()
        WHERE "userId" = $1 AND "filmId" = $2`,
       [jwtUserId, tmdbId]
     )
     // Delete row if no interactions remain
-    await pool.query(
+    await client.query(
       `DELETE FROM "UserFilmProfile"
        WHERE "userId" = $1 AND "filmId" = $2
          AND is_watched = false AND is_watchlisted = false
@@ -511,10 +543,14 @@ router.delete("/", validateToken, async (req, res) => {
       [jwtUserId, tmdbId]
     )
 
+    await client.query("COMMIT")
     return res.status(200).json({ liked: false, stars: null })
   } catch (err) {
+    await client.query("ROLLBACK")
     console.error(err)
     return res.status(500).json({ error: "Error Removing Entry" })
+  } finally {
+    client.release()
   }
 })
 

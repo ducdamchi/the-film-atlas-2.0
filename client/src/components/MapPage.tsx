@@ -142,7 +142,12 @@ export default function MapPage() {
   const isLoading = discoverLoading || userFilmsLoading;
 
   /* Show/hide panel when a country is selected */
+  const isMountedRef = useRef(false);
   useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
     if (popupInfo && popupInfo.iso_a2 != null) {
       setShowPanel(true);
     } else {

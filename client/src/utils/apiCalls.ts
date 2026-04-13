@@ -24,7 +24,7 @@ import type {
 } from "@/types/film"
 import type { DiscoverFilmParams } from "@/types/map"
 
-const TMDB_API_KEY = "14b22a55c02218f84058041c5f553d3d"
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
 
 /* Query for films from TMDB (search with provided input)
 @params:
@@ -578,6 +578,34 @@ export function deleteCollection(id: string): Promise<void> {
     .then(() => {})
     .catch((err) => {
       console.error("Client: Error deleting collection", err)
+      throw err
+    })
+}
+
+export function patchCollectionPin(id: string, pinned: boolean): Promise<{ is_pinned: boolean }> {
+  return axios
+    .patch(
+      `${import.meta.env.VITE_API_URL}/profile/me/collections/${id}/pin`,
+      { pinned },
+      { headers: { accessToken: localStorage.getItem("accessToken") } },
+    )
+    .then((res) => res.data as { is_pinned: boolean })
+    .catch((err) => {
+      console.error("Client: Error toggling pin", err)
+      throw err
+    })
+}
+
+export function patchCollectionVisibility(id: string, is_public: boolean): Promise<{ is_public: boolean }> {
+  return axios
+    .patch(
+      `${import.meta.env.VITE_API_URL}/profile/me/collections/${id}/visibility`,
+      { is_public },
+      { headers: { accessToken: localStorage.getItem("accessToken") } },
+    )
+    .then((res) => res.data as { is_public: boolean })
+    .catch((err) => {
+      console.error("Client: Error toggling visibility", err)
       throw err
     })
 }
