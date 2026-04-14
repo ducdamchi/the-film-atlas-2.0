@@ -10,6 +10,7 @@ import UserFilmCard from "../films/UserFilmCard";
 import LoadingPage from "../layout/LoadingPage";
 import CollectionHeader from "./CollectionHeader";
 import CarouselNavPanel from "./CarouselNavPanel";
+import CollectionSearchModal from "./CollectionSearchModal";
 import type { UserFilm } from "@/types/film";
 import type { CollectionData } from "@/hooks/useCollections";
 import { deleteCollection } from "@/utils/apiCalls";
@@ -20,6 +21,10 @@ interface CollectionCarouselProps {
   onDelete?: (id: string) => void;
   onTogglePin?: (id: string) => Promise<void>;
   onToggleVisibility?: (id: string) => Promise<void>;
+  onRename?: (id: string, newTitle: string) => Promise<void>;
+  onUpdateDescription?: (id: string, newDescription: string) => Promise<void>;
+  onFilmAdded?: (collectionId: string, film: UserFilm) => void;
+  onFilmRemoved?: (collectionId: string, filmId: number) => void;
 }
 
 const CARD_WIDTH = 352; // 22rem — fixed, matches .filmGallery-grid
@@ -38,6 +43,10 @@ export default function CollectionCarousel({
   onDelete,
   onTogglePin,
   onToggleVisibility,
+  onRename,
+  onUpdateDescription,
+  onFilmAdded,
+  onFilmRemoved,
 }: CollectionCarouselProps) {
   const { films, queryString, ...collectionHeaderProps } = collection;
   const { id, collectionType = "standard" } = collectionHeaderProps;
@@ -54,6 +63,7 @@ export default function CollectionCarousel({
   const [layoutReady, setLayoutReady] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const pendingInitialIndex = useRef<number | null>(null);
 
   const realCount = films.length;
@@ -219,9 +229,12 @@ export default function CollectionCarousel({
               filmCount={realCount}
               isSystemCollection={isSystemCollection}
               navButtonWidth={NAV_BUTTON_WIDTH}
+              onAdd={() => setIsAddModalOpen(true)}
               onDelete={() => deleteCollection(id).then(() => { onDelete?.(id); })}
               onTogglePin={onTogglePin ? () => onTogglePin(id) : undefined}
               onToggleVisibility={onToggleVisibility ? () => onToggleVisibility(id) : undefined}
+              onRename={onRename ? (newTitle) => onRename(id, newTitle) : undefined}
+              onUpdateDescription={onUpdateDescription ? (newDesc) => onUpdateDescription(id, newDesc) : undefined}
             />
 
             {realCount === 0 ? (
@@ -232,15 +245,16 @@ export default function CollectionCarousel({
                   paddingRight: NAV_BUTTON_WIDTH,
                 }}
               >
-                <div
+                <button
                   style={{ width: innerWidth, height: innerHeight }}
                   className="flex items-center justify-center border-1 border-muted-light/40 bg-control/40 rounded-md hover:bg-control transition-all ease-out duration-200"
+                  onClick={() => setIsAddModalOpen(true)}
                 >
                   <span className="text-base text-muted flex items-center justify-center gap-1">
                     <CirclePlus className="size-[24px]" />
                     Add films
                   </span>
-                </div>
+                </button>
               </div>
             ) : (
               <div className="relative">
@@ -292,6 +306,16 @@ export default function CollectionCarousel({
           </>
         )}
       </div>
+
+      {isAddModalOpen && (
+        <CollectionSearchModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          collection={collection}
+          onFilmAdded={(film) => onFilmAdded?.(id, film)}
+          onFilmRemoved={(filmId) => onFilmRemoved?.(id, filmId)}
+        />
+      )}
     </>
   );
 }

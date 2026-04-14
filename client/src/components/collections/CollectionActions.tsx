@@ -1,4 +1,13 @@
-import { Trash2, SquarePen, Globe, Lock } from "lucide-react";
+import {
+  Trash2,
+  SquarePen,
+  Globe,
+  Lock,
+  ImagePlus,
+  Pin,
+  PinOff,
+  Plus,
+} from "lucide-react";
 import { TiPin, TiPinOutline } from "react-icons/ti";
 import { toast } from "sonner";
 import {
@@ -18,6 +27,7 @@ interface CollectionActionsProps {
   isPublic: boolean;
   isPinned: boolean;
   isSystemCollection: boolean;
+  onAdd?: () => void;
   onEdit?: () => void;
   onDelete?: () => Promise<void>;
   onTogglePin?: () => Promise<void>;
@@ -29,6 +39,7 @@ export default function CollectionActions({
   isPublic,
   isPinned,
   isSystemCollection,
+  onAdd,
   onEdit,
   onDelete,
   onTogglePin,
@@ -62,6 +73,14 @@ export default function CollectionActions({
     <div className="flex items-center gap-0">
       <button
         className="text-xl text-dark hover:bg-control/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+        aria-label="Add films"
+        title="Add films"
+        onClick={onAdd}
+      >
+        <Plus className="size-[18px]" />
+      </button>
+      <button
+        className="text-xl text-dark hover:bg-control/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
         aria-label={isPublic ? "Make Private" : "Make Public"}
         title={isPublic ? "Make Private" : "Make Public"}
         onClick={handleToggleVisibility}
@@ -69,7 +88,7 @@ export default function CollectionActions({
         {isPublic ? (
           <Globe className="size-[18px] text-saved" />
         ) : (
-          <Lock className="size-[18px]" />
+          <Lock className="size-[18px] text-red-700" />
         )}
       </button>
       <button
@@ -79,9 +98,9 @@ export default function CollectionActions({
         onClick={handleTogglePin}
       >
         {isPinned ? (
-          <TiPin className={`size-[18px] text-saved`} />
+          <Pin className={`size-[18px] text-saved`} />
         ) : (
-          <TiPinOutline className={`size-[18px]`} />
+          <PinOff className={`size-[18px] `} />
         )}
       </button>
       {!isSystemCollection && (
@@ -92,7 +111,7 @@ export default function CollectionActions({
             title="Edit"
             onClick={onEdit}
           >
-            <SquarePen className="size-[18px]" />
+            <ImagePlus className="size-[18px]" />
           </button>
           <AlertDialog>
             <AlertDialogTrigger asChild>

@@ -610,6 +610,79 @@ export function patchCollectionVisibility(id: string, is_public: boolean): Promi
     })
 }
 
+export function putCollectionTitle(id: string, title: string): Promise<AppCollection> {
+  return axios
+    .put(
+      `${import.meta.env.VITE_API_URL}/profile/me/collections/${id}`,
+      { title },
+      { headers: { accessToken: localStorage.getItem("accessToken") } },
+    )
+    .then((res) => res.data as AppCollection)
+    .catch((err) => {
+      console.error("Client: Error renaming collection", err)
+      throw err
+    })
+}
+
+export function putCollectionDescription(id: string, description: string): Promise<AppCollection> {
+  return axios
+    .put(
+      `${import.meta.env.VITE_API_URL}/profile/me/collections/${id}`,
+      { description },
+      { headers: { accessToken: localStorage.getItem("accessToken") } },
+    )
+    .then((res) => res.data as AppCollection)
+    .catch((err) => {
+      console.error("Client: Error updating collection description", err)
+      throw err
+    })
+}
+
+export function addFilmToCollection(
+  collectionId: string,
+  film: {
+    tmdbId: number
+    title: string
+    runtime: number | null
+    directors: { tmdbId: number; name: string; profile_path: string | null }[]
+    directorNamesForSorting: string
+    poster_path: string | null
+    backdrop_path: string | null
+    origin_country: string[]
+    release_date: string
+    genres?: { id: number; name: string }[]
+    overview?: string
+  },
+): Promise<{ collection_film_id: string; film_count: number }> {
+  return axios
+    .post(
+      `${import.meta.env.VITE_API_URL}/profile/me/collections/${collectionId}/films`,
+      film,
+      { headers: { accessToken: localStorage.getItem("accessToken") } },
+    )
+    .then((res) => res.data as { collection_film_id: string; film_count: number })
+    .catch((err) => {
+      console.error("Client: Error adding film to collection", err)
+      throw err
+    })
+}
+
+export function removeFilmFromCollection(
+  collectionId: string,
+  filmId: number | string,
+): Promise<{ deleted: boolean; film_count: number }> {
+  return axios
+    .delete(
+      `${import.meta.env.VITE_API_URL}/profile/me/collections/${collectionId}/films/${filmId}`,
+      { headers: { accessToken: localStorage.getItem("accessToken") } },
+    )
+    .then((res) => res.data as { deleted: boolean; film_count: number })
+    .catch((err) => {
+      console.error("Client: Error removing film from collection", err)
+      throw err
+    })
+}
+
 export function createCollection(params: { id: string; title: string; description: string }): Promise<AppCollection> {
   return axios
     .post(

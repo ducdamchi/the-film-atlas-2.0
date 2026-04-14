@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 
 /* Custom functions */
 import { useAuth } from "@/utils/authContext";
-import { createCollection, patchCollectionPin, patchCollectionVisibility } from "@/utils/apiCalls";
+import { createCollection, patchCollectionPin, patchCollectionVisibility, putCollectionTitle, putCollectionDescription } from "@/utils/apiCalls";
 import { useCollections } from "@/hooks/useCollections";
+import type { UserFilm } from "@/types/film";
 
 /* Components */
 import SearchBar from "./layout/SearchBar";
@@ -99,6 +100,69 @@ export default function Collections() {
       });
   }
 
+  function handleRename(id: string, newTitle: string): Promise<void> {
+    const originalTitle = collections.find((c) => c.id === id)?.title ?? newTitle;
+    setCollections((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, title: newTitle } : c)),
+    );
+    return putCollectionTitle(id, newTitle)
+      .then((confirmed) => {
+        setCollections((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, title: confirmed.title } : c)),
+        );
+      })
+      .catch(() => {
+        setCollections((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, title: originalTitle } : c)),
+        );
+        throw new Error();
+      });
+  }
+
+  function handleUpdateDescription(id: string, newDescription: string): Promise<void> {
+    const originalDescription = collections.find((c) => c.id === id)?.description ?? null;
+    setCollections((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, description: newDescription } : c)),
+    );
+    return putCollectionDescription(id, newDescription)
+      .then((confirmed) => {
+        setCollections((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, description: confirmed.description ?? null } : c)),
+        );
+      })
+      .catch(() => {
+        setCollections((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, description: originalDescription } : c)),
+        );
+        throw new Error();
+      });
+  }
+
+  function handleAddFilmToCollection(collectionId: string, film: UserFilm) {
+    setCollections((prev) =>
+      prev.map((c) =>
+        c.id === collectionId
+          ? { ...c, films: [...c.films, film], filmCount: c.filmCount + 1, totalRuntime: c.totalRuntime + (film.runtime ?? 0) }
+          : c,
+      ),
+    );
+  }
+
+  function handleRemoveFilmFromCollection(collectionId: string, filmId: number) {
+    setCollections((prev) =>
+      prev.map((c) => {
+        if (c.id !== collectionId) return c;
+        const removed = c.films.find((f) => f.id === filmId);
+        return {
+          ...c,
+          films: c.films.filter((f) => f.id !== filmId),
+          filmCount: c.filmCount - 1,
+          totalRuntime: c.totalRuntime - (removed?.runtime ?? 0),
+        };
+      }),
+    );
+  }
+
   function handleToggleVisibility(id: string): Promise<void> {
     const col = collections.find((c) => c.id === id);
     if (!col) return Promise.resolve();
@@ -155,6 +219,10 @@ export default function Collections() {
                     }
                     onTogglePin={handleTogglePin}
                     onToggleVisibility={handleToggleVisibility}
+                    onRename={handleRename}
+                    onUpdateDescription={handleUpdateDescription}
+                    onFilmAdded={handleAddFilmToCollection}
+                    onFilmRemoved={handleRemoveFilmFromCollection}
                   />
                 </div>
               ))}
