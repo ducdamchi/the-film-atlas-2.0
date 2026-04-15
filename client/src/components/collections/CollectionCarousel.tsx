@@ -11,6 +11,7 @@ import LoadingPage from "../layout/LoadingPage";
 import CollectionHeader from "./CollectionHeader";
 import CarouselNavPanel from "./CarouselNavPanel";
 import CollectionSearchModal from "./CollectionSearchModal";
+import CollectionFooter from "./CollectionFooter";
 import type { UserFilm } from "@/types/film";
 import type { CollectionData } from "@/hooks/useCollections";
 import { deleteCollection } from "@/utils/apiCalls";
@@ -25,6 +26,8 @@ interface CollectionCarouselProps {
   onUpdateDescription?: (id: string, newDescription: string) => Promise<void>;
   onFilmAdded?: (collectionId: string, film: UserFilm) => void;
   onFilmRemoved?: (collectionId: string, filmId: number) => void;
+  counterpartCollection?: CollectionData;
+  onCounterpartFilmRemoved?: (filmId: number) => void;
 }
 
 const CARD_WIDTH = 352; // 22rem — fixed, matches .filmGallery-grid
@@ -47,6 +50,8 @@ export default function CollectionCarousel({
   onUpdateDescription,
   onFilmAdded,
   onFilmRemoved,
+  counterpartCollection,
+  onCounterpartFilmRemoved,
 }: CollectionCarouselProps) {
   const { films, queryString, ...collectionHeaderProps } = collection;
   const { id, collectionType = "standard" } = collectionHeaderProps;
@@ -132,6 +137,42 @@ export default function CollectionCarousel({
   useEffect(() => {
     applyTransform(currentIndex, 300);
   }, [currentIndex, applyTransform]);
+
+  // When realCount crosses the slidesPerPage boundary, showArrows flips.
+  // Entering clone mode (false→true): index 0 now points at prepended clones; snap to slidesPerPage.
+  // Leaving clone mode (true→false): clones are gone; reset to 0.
+  const prevShowArrowsRef = useRef(showArrows);
+  useEffect(() => {
+    const wasShowing = prevShowArrowsRef.current;
+    prevShowArrowsRef.current = showArrows;
+
+    if (!wasShowing && showArrows) {
+      setCurrentIndex(slidesPerPage);
+      applyTransform(slidesPerPage, 0);
+    } else if (wasShowing && !showArrows) {
+      setCurrentIndex(0);
+      applyTransform(0, 0);
+    }
+  }, [showArrows, slidesPerPage, applyTransform]);
+
+  // When a film is added or removed while already in arrow mode (both before and after the change),
+  // animate back to the first real index. Boundary crossings (showArrows flipping) are handled
+  // separately by the prevShowArrowsRef effect above.
+  const prevRealCountRef = useRef(realCount);
+  useEffect(() => {
+    const prevCount = prevRealCountRef.current;
+    prevRealCountRef.current = realCount;
+
+    if (
+      realCount !== prevCount &&
+      prevCount > slidesPerPage &&
+      realCount > slidesPerPage &&
+      currentIndex !== slidesPerPage
+    ) {
+      setCurrentIndex(slidesPerPage);
+      applyTransform(slidesPerPage, 300);
+    }
+  }, [realCount, slidesPerPage, currentIndex, applyTransform]);
 
   // On initial mount, trackRef doesn't exist until layoutReady becomes true.
   // Apply the correct starting position instantly (no transition) before the
@@ -234,7 +275,6 @@ export default function CollectionCarousel({
               onTogglePin={onTogglePin ? () => onTogglePin(id) : undefined}
               onToggleVisibility={onToggleVisibility ? () => onToggleVisibility(id) : undefined}
               onRename={onRename ? (newTitle) => onRename(id, newTitle) : undefined}
-              onUpdateDescription={onUpdateDescription ? (newDesc) => onUpdateDescription(id, newDesc) : undefined}
             />
 
             {realCount === 0 ? (
@@ -303,6 +343,12 @@ export default function CollectionCarousel({
                 />
               </div>
             )}
+            <CollectionFooter
+              description={collectionHeaderProps.description}
+              isSystemCollection={isSystemCollection}
+              navButtonWidth={NAV_BUTTON_WIDTH}
+              onUpdateDescription={onUpdateDescription ? (newDesc) => onUpdateDescription(id, newDesc) : undefined}
+            />
           </>
         )}
       </div>
@@ -314,6 +360,8 @@ export default function CollectionCarousel({
           collection={collection}
           onFilmAdded={(film) => onFilmAdded?.(id, film)}
           onFilmRemoved={(filmId) => onFilmRemoved?.(id, filmId)}
+          counterpartCollection={counterpartCollection}
+          onCounterpartFilmRemoved={onCounterpartFilmRemoved}
         />
       )}
     </>

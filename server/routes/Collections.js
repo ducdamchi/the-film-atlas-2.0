@@ -140,7 +140,7 @@ router.get("/:id", optionalAuth, async (req, res) => {
        FROM "CollectionFilms" cf
        JOIN "Films" f ON f.id = cf."filmId"
        WHERE cf."collectionId" = $1
-       ORDER BY cf."createdAt" ASC`,
+       ORDER BY cf."createdAt" DESC`,
       [id]
     )
 

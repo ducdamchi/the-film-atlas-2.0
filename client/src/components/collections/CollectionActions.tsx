@@ -1,14 +1,11 @@
+import { Trash2, Image, EllipsisVertical } from "lucide-react";
 import {
-  Trash2,
-  SquarePen,
-  Globe,
-  Lock,
-  ImagePlus,
-  Pin,
-  PinOff,
-  Plus,
-} from "lucide-react";
-import { TiPin, TiPinOutline } from "react-icons/ti";
+  MdLock,
+  MdPublic,
+  MdBookmark,
+  MdBookmarkBorder,
+  MdLibraryAdd,
+} from "react-icons/md";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -21,6 +18,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface CollectionActionsProps {
   name: string;
@@ -77,7 +80,7 @@ export default function CollectionActions({
         title="Add films"
         onClick={onAdd}
       >
-        <Plus className="size-[18px]" />
+        <MdLibraryAdd className="size-[22px]" />
       </button>
       <button
         className="text-xl text-dark hover:bg-control/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
@@ -86,9 +89,9 @@ export default function CollectionActions({
         onClick={handleToggleVisibility}
       >
         {isPublic ? (
-          <Globe className="size-[18px] text-saved" />
+          <MdPublic className="size-[22px] text-saved" />
         ) : (
-          <Lock className="size-[18px] text-red-700" />
+          <MdLock className="size-[22px] text-red-700" />
         )}
       </button>
       <button
@@ -98,52 +101,59 @@ export default function CollectionActions({
         onClick={handleTogglePin}
       >
         {isPinned ? (
-          <Pin className={`size-[18px] text-saved`} />
+          <MdBookmark className={`size-[22px] text-saved`} />
         ) : (
-          <PinOff className={`size-[18px] `} />
+          <MdBookmarkBorder className={`size-[22px] `} />
         )}
       </button>
-      {!isSystemCollection && (
-        <>
-          <button
-            className="text-xl text-dark hover:bg-control/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
-            aria-label="Edit"
-            title="Edit"
-            onClick={onEdit}
-          >
-            <ImagePlus className="size-[18px]" />
-          </button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button
-                className="text-xl text-red-700 hover:bg-red-600/20 transition-all ease-out duration-200 p-0.5 rounded-sm"
-                aria-label="Delete"
-                title="Delete"
-              >
-                <Trash2 className="size-[18px]" />
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Collection</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete "{name}" collection? This
-                  action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-red-700 hover:bg-red-800"
-                  onClick={handleDelete}
-                >
+
+      <AlertDialog>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="text-xl text-dark hover:bg-control/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+              aria-label="More options"
+              title="More options"
+            >
+              <EllipsisVertical className="size-[22px]" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit} className="focus:bg-gray-600/10">
+              <Image className="size-4" />
+              Edit cover
+            </DropdownMenuItem>
+            {!isSystemCollection && (
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem className="text-red-700 focus:text-red-700 focus:bg-red-600/10">
+                  <Trash2 className="size-4" />
                   Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </>
-      )}
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {!isSystemCollection && (
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Collection</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{name}" collection? This action
+                cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-700 hover:bg-red-800"
+                onClick={handleDelete}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        )}
+      </AlertDialog>
     </div>
   );
 }

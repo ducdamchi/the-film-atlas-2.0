@@ -142,7 +142,7 @@ export default function Collections() {
     setCollections((prev) =>
       prev.map((c) =>
         c.id === collectionId
-          ? { ...c, films: [...c.films, film], filmCount: c.filmCount + 1, totalRuntime: c.totalRuntime + (film.runtime ?? 0) }
+          ? { ...c, films: [film, ...c.films], filmCount: c.filmCount + 1, totalRuntime: c.totalRuntime + (film.runtime ?? 0) }
           : c,
       ),
     );
@@ -208,24 +208,40 @@ export default function Collections() {
               </button>
             </div>
             <section className="@container w-full mt-8 flex flex-col items-center gap-10">
-              {collections.map((col) => (
-                <div key={col.id} id={col.id} className="w-full flex flex-col items-center">
-                  <CollectionCarousel
-                    collection={col}
-                    onDelete={(deletedId) =>
-                      setCollections((prev) =>
-                        prev.filter((c) => c.id !== deletedId),
-                      )
-                    }
-                    onTogglePin={handleTogglePin}
-                    onToggleVisibility={handleToggleVisibility}
-                    onRename={handleRename}
-                    onUpdateDescription={handleUpdateDescription}
-                    onFilmAdded={handleAddFilmToCollection}
-                    onFilmRemoved={handleRemoveFilmFromCollection}
-                  />
-                </div>
-              ))}
+              {(() => {
+                const watchedCollection = collections.find((c) => c.collectionType === "watched");
+                const watchlistCollection = collections.find((c) => c.collectionType === "watchlist");
+                return collections.map((col) => {
+                  const counterpart =
+                    col.collectionType === "watched" ? watchlistCollection :
+                    col.collectionType === "watchlist" ? watchedCollection :
+                    undefined;
+                  return (
+                    <div key={col.id} id={col.id} className="w-full flex flex-col items-center">
+                      <CollectionCarousel
+                        collection={col}
+                        onDelete={(deletedId) =>
+                          setCollections((prev) =>
+                            prev.filter((c) => c.id !== deletedId),
+                          )
+                        }
+                        onTogglePin={handleTogglePin}
+                        onToggleVisibility={handleToggleVisibility}
+                        onRename={handleRename}
+                        onUpdateDescription={handleUpdateDescription}
+                        onFilmAdded={handleAddFilmToCollection}
+                        onFilmRemoved={handleRemoveFilmFromCollection}
+                        counterpartCollection={counterpart}
+                        onCounterpartFilmRemoved={
+                          counterpart
+                            ? (filmId) => handleRemoveFilmFromCollection(counterpart.id, filmId)
+                            : undefined
+                        }
+                      />
+                    </div>
+                  );
+                });
+              })()}
             </section>
           </>
         )}
