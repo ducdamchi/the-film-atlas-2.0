@@ -102,9 +102,9 @@ export default function CollectionHeader({
               {title}
             </div>
           )}
-          <div className="hidden min-[832px]:flex min-[832px]:gap-1">
+          <div className="hidden min-[832px]:block">
             <div className="text-base lg:text-lg font-extralight">
-              {filmCount}
+              {filmCount} films
             </div>
             {/* <div className=""> &bull; {totalRuntime} minutes</div> */}
           </div>

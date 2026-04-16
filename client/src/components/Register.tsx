@@ -75,7 +75,7 @@ export default function Register() {
                 type="email"
                 id="email"
                 name="email"
-                placeholder="email"
+                placeholder="Email"
               />
               <ErrorMessage
                 name="email"
@@ -87,7 +87,7 @@ export default function Register() {
                 className="auth-formField"
                 id="username"
                 name="username"
-                placeholder="username"
+                placeholder="Username"
               />
               <ErrorMessage
                 name="username"
@@ -100,7 +100,7 @@ export default function Register() {
                 type="password"
                 id="password"
                 name="password"
-                placeholder="password"
+                placeholder="Password"
               />
 
               <ErrorMessage
@@ -114,7 +114,7 @@ export default function Register() {
                 type="password"
                 id="confirmPassword"
                 name="confirmPassword"
-                placeholder="confirm password"
+                placeholder="Confirm Password"
               />
 
               <ErrorMessage
@@ -123,7 +123,7 @@ export default function Register() {
                 className="auth-formErrorMessage"
               />
               <button type="submit" className="auth-formSubmitButton">
-                create new account
+                Create New Account
               </button>
             </Form>
           </Formik>

@@ -51,6 +51,33 @@ export function queryFilmFromTMDB(searchInput: string): Promise<TMDBFilmSummary[
     })
 }
 
+/** Paginated variant of queryFilmFromTMDB. Returns results for the given page
+ *  along with the total number of pages so callers can implement infinite scroll. */
+export function queryFilmFromTMDBPaged(
+  searchInput: string,
+  page = 1,
+): Promise<{ results: TMDBFilmSummary[]; totalPages: number }> {
+  const searchUrl = "https://api.themoviedb.org/3/search/movie"
+
+  return axios
+    .get(searchUrl, {
+      params: {
+        query: searchInput,
+        api_key: TMDB_API_KEY,
+        include_adult: false,
+        page,
+      },
+    })
+    .then((response) => ({
+      results: response.data.results as TMDBFilmSummary[],
+      totalPages: response.data.total_pages as number,
+    }))
+    .catch((err) => {
+      console.log("Error: ", err)
+      throw err
+    })
+}
+
 /* Fetch info of one film (with known id) from TMDB
 @params:
 - tmdbId: unique TMDB id assigned to film

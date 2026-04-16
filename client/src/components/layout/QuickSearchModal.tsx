@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { getReleaseYear } from "@/utils/helperFunctions";
@@ -8,10 +8,14 @@ import {
   queryMultiFromTMDB,
 } from "@/utils/apiCalls";
 import useClickOutside from "@/hooks/useClickOutside";
+import { useModalKeyboardNav } from "@/hooks/useModalKeyboardNav";
+import { useDebounceSearch } from "@/hooks/useDebounceSearch";
+import SearchModalShell from "@/components/shared/SearchModalShell";
 
-import { BiSearchAlt2, BiSolidRightArrowSquare } from "react-icons/bi";
+import { BiSolidRightArrowSquare } from "react-icons/bi";
+import { Loader } from "lucide-react";
 
-import type { TMDBFilmSummary, TMDBSearchResult } from "@/types/tmdb";
+import type { TMDBFilmSummary, TMDBPerson, TMDBSearchResult } from "@/types/tmdb";
 
 const imgBaseUrl = "https://image.tmdb.org/t/p/original";
 
@@ -21,6 +25,24 @@ type SectionName = (typeof SECTION_NAMES)[number];
 interface QuickSearchModalProps {
   searchModalOpen: boolean;
   setSearchModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function rankFilms(films: TMDBFilmSummary[]): TMDBFilmSummary[] {
+  return [...films].sort((a, b) => {
+    const hasBackdropA = !!a.backdrop_path;
+    const hasBackdropB = !!b.backdrop_path;
+    if (hasBackdropA !== hasBackdropB) return hasBackdropA ? -1 : 1;
+    return (b.popularity ?? 0) - (a.popularity ?? 0);
+  });
+}
+
+function applyEmptyToEnd(
+  order: SectionName[],
+  counts: Record<SectionName, number>,
+): SectionName[] {
+  const nonEmpty = order.filter((s) => counts[s] > 0);
+  const empty = order.filter((s) => counts[s] === 0);
+  return [...nonEmpty, ...empty];
 }
 
 function rankSections(multiResults: TMDBSearchResult[]): SectionName[] {
@@ -116,246 +138,171 @@ function SearchSection<T>({
   );
 }
 
+type QuickSearchResult = [TMDBFilmSummary[], TMDBPerson[], TMDBPerson[]];
+
 export default function QuickSearchModal({
   searchModalOpen,
   setSearchModalOpen,
 }: QuickSearchModalProps) {
   const [searchInput, setSearchInput] = useState("");
-  const [searchResult_Film, setSearchResult_Film] = useState<TMDBFilmSummary[]>(
-    [],
-  );
-  const [searchResult_Director, setSearchResult_Director] = useState<
-    TMDBSearchResult[]
-  >([]);
-  const [searchResult_Actor, setSearchResult_Actor] = useState<
-    TMDBSearchResult[]
-  >([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionName[]>([
     "Films",
     "Directors",
     "Actors",
   ]);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-  const [displayedResults, setDisplayedResults] = useState<NodeListOf<Element>>(
-    // Safe initial value: an empty NodeList
-    document.querySelectorAll(".no-results-placeholder"),
-  );
 
   const searchModalRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
   const resultsRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
-  const closeModal = () => setSearchModalOpen(false);
-  const modalRef = useClickOutside<HTMLDivElement>(closeModal);
+  const closeModal = useCallback(() => setSearchModalOpen(false), [setSearchModalOpen]);
+  const modalRef = useClickOutside(closeModal);
 
-  useEffect(() => {
-    if (resultsRef.current && searchModalRef.current) {
-      if (focusedIndex === -1) {
-        searchModalRef.current.focus();
-      } else {
-        const el = displayedResults[focusedIndex];
-        if (el instanceof HTMLElement) el.focus();
-      }
-    }
-  }, [focusedIndex, resultsRef, searchModalRef]);
+  const allQueryFetcher = useCallback(
+    async (q: string): Promise<QuickSearchResult> => {
+      const [result_film, result_persons, result_multi] = await Promise.all([
+        queryFilmFromTMDB(q),
+        queryPersonFromTMDB(q),
+        queryMultiFromTMDB(q),
+      ]);
+      setSectionOrder(rankSections(result_multi));
+      return [
+        result_film,
+        result_persons.filter((p) => p.known_for_department === "Directing"),
+        result_persons.filter((p) => p.known_for_department === "Acting"),
+      ];
+    },
+    [],
+  );
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        if (focusedIndex === displayedResults.length - 1) {
-          setFocusedIndex(-1);
-        } else {
-          setFocusedIndex((prev) => prev + 1);
-        }
-      } else if (event.key === "ArrowUp") {
-        event.preventDefault();
-        if (focusedIndex === -1) {
-          setFocusedIndex(displayedResults.length - 1);
-        } else {
-          setFocusedIndex((prev) => prev - 1);
-        }
-      } else if (event.key === "Escape") {
-        closeModal();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [displayedResults, focusedIndex]);
+  const { result, isSearching } = useDebounceSearch<QuickSearchResult>(
+    searchInput,
+    searchModalOpen,
+    allQueryFetcher,
+  );
 
-  useEffect(() => {
-    if (resultsRef.current) {
-      setDisplayedResults(
-        resultsRef.current.querySelectorAll(".search-result"),
-      );
-    }
-  }, [searchResult_Film]);
+  const [rawFilms, searchResult_Director, searchResult_Actor] =
+    result ?? [[], [], []];
+  const searchResult_Film = rankFilms(rawFilms);
 
-  useEffect(() => {
-    if (searchModalOpen && searchModalRef.current) {
-      searchModalRef.current.focus();
-    }
-  }, [searchModalOpen]);
+  const counts: Record<SectionName, number> = {
+    Films: searchResult_Film.length,
+    Directors: searchResult_Director.length,
+    Actors: searchResult_Actor.length,
+  };
+  const orderedSections = applyEmptyToEnd(sectionOrder, counts);
 
-  useEffect(() => {
-    if (
-      !searchModalOpen ||
-      searchInput.trim().length === 0 ||
-      searchInput === null
-    ) {
-      setIsSearching(false);
-      return;
-    }
-    setIsSearching(true);
-    const timer = setTimeout(async () => {
-      try {
-        const [result_film, result_persons, result_multi] = await Promise.all([
-          queryFilmFromTMDB(searchInput),
-          queryPersonFromTMDB(searchInput),
-          queryMultiFromTMDB(searchInput),
-        ]);
-        setSearchResult_Film(result_film);
-        setSearchResult_Director(
-          result_persons.filter((p) => p.known_for_department === "Directing"),
-        );
-        setSearchResult_Actor(
-          result_persons.filter((p) => p.known_for_department === "Acting"),
-        );
-        setSectionOrder(rankSections(result_multi));
-      } catch (err) {
-        console.log("Error Querying Film with Quick Search Modal: ", err);
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchModalOpen, searchInput]);
+  useModalKeyboardNav({
+    isOpen: searchModalOpen,
+    resultsRef,
+    inputRef: searchModalRef,
+    resultCount: searchResult_Film.length + searchResult_Director.length + searchResult_Actor.length,
+    onEscape: closeModal,
+  });
 
   return (
-    <div className="font-primary fixed top-[20%] left-0 w-screen h-auto z-500 flex justify-center">
-      <div
-        className="relative w-[60%] h-auto min-w-[20rem] max-w-[32rem] bg-void/80 text-light backdrop-blur-sm border-1 border-dark/50 rounded-md"
-        ref={modalRef}
-      >
-        {/* Search bar */}
-        <div className="relative flex justify-start h-auto border-dark/50">
-          <div className="relative w-full min-w-[10rem] h-[2.5rem] md:h-[3rem] xl:h-[3.5rem] p-2 flex items-center gap-3">
-            <BiSearchAlt2 className="border-light ml-1 text-lg md:text-xl" />
-            <input
-              ref={searchModalRef}
-              className="h-[4rem] w-full border-light focus:outline-0 input:bg-none text-base lg:text-lg"
-              type="text"
-              name="search-bar"
-              autoComplete="off"
-              placeholder="Quick search for anything..."
-              value={searchInput}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setSearchInput(e.target.value)
-              }
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                if (e.key === "Enter") {
-                  navigate({
-                    to: "/films",
-                    state: {
-                      searchInputFromQuickSearch: e.currentTarget.value,
-                    },
-                  });
-                }
-              }}
-            />
-            <button
-              className="border-1 p-[3px] md:pb-1 md:pl-2 md:pr-2 rounded-md text-[12px] md:text-sm xl:text-base"
-              onClick={closeModal}
-            >
-              esc
-            </button>
-          </div>
+    <SearchModalShell
+      inputRef={searchModalRef}
+      modalRef={modalRef}
+      searchInput={searchInput}
+      onSearchChange={setSearchInput}
+      onClose={closeModal}
+      placeholder="Quick search for anything..."
+      onEnter={(value) =>
+        navigate({
+          to: "/films",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          state: { searchInputFromQuickSearch: value } as any,
+        })
+      }
+    >
+      {isSearching ? (
+        <div className="flex justify-center items-center py-6">
+          <Loader className="size-5 animate-spin text-light/50" />
         </div>
-
-        {/* Results */}
-        {isSearching && (
-          <div
-            className="w-full text-light p-2 max-h-[60vh] overflow-y-auto"
-            ref={resultsRef}
-          >
-            {sectionOrder.map((section) => {
-              if (section === "Films")
-                return (
-                  <SearchSection<TMDBFilmSummary>
-                    key="Films"
-                    title="Films"
-                    results={searchResult_Film}
-                    maxItems={5}
-                    renderItem={(film, key) => (
-                      <SearchResultItem
-                        key={key}
-                        to={`/films/${film.id}`}
-                        imageSrc={
-                          film.backdrop_path
-                            ? `${imgBaseUrl}${film.backdrop_path}`
-                            : "backdropnotfound.jpg"
-                        }
-                        label={film.title}
-                        sublabel={
-                          film.release_date
-                            ? getReleaseYear(film.release_date)
-                            : null
-                        }
-                        linkText="Visit Page"
-                      />
-                    )}
-                  />
-                );
-              if (section === "Directors")
-                return (
-                  <SearchSection<TMDBSearchResult>
-                    key="Directors"
-                    title="Directors"
-                    results={searchResult_Director}
-                    maxItems={3}
-                    renderItem={(person, key) => (
-                      <SearchResultItem
-                        key={key}
-                        to={`/person/director/${person.id}`}
-                        imageSrc={
-                          person.profile_path
-                            ? `${imgBaseUrl}${person.profile_path}`
-                            : "/picnotfound.jpg"
-                        }
-                        label={person.name ?? person.title ?? "Unknown"}
-                        sublabel={null}
-                        linkText="Visit Page"
-                      />
-                    )}
-                  />
-                );
-              if (section === "Actors")
-                return (
-                  <SearchSection<TMDBSearchResult>
-                    key="Actors"
-                    title="Actors"
-                    results={searchResult_Actor}
-                    maxItems={3}
-                    renderItem={(person, key) => (
-                      <SearchResultItem
-                        key={key}
-                        to={`/person/actor/${person.id}`}
-                        imageSrc={
-                          person.profile_path
-                            ? `${imgBaseUrl}${person.profile_path}`
-                            : "/picnotfound.jpg"
-                        }
-                        label={person.name ?? person.title ?? "Unknown"}
-                        sublabel={null}
-                        linkText="Visit Page"
-                      />
-                    )}
-                  />
-                );
-              return null;
-            })}
-          </div>
-        )}
-      </div>
-    </div>
+      ) : result !== null && (
+        <div
+          className="w-full text-light p-2 max-h-[60vh] overflow-y-auto"
+          ref={resultsRef}
+        >
+          {orderedSections.map((section) => {
+            if (section === "Films")
+              return (
+                <SearchSection<TMDBFilmSummary>
+                  key="Films"
+                  title="Films"
+                  results={searchResult_Film}
+                  maxItems={7}
+                  renderItem={(film, key) => (
+                    <SearchResultItem
+                      key={key}
+                      to={`/films/${film.id}`}
+                      imageSrc={
+                        film.backdrop_path
+                          ? `${imgBaseUrl}${film.backdrop_path}`
+                          : "backdropnotfound.jpg"
+                      }
+                      label={film.title}
+                      sublabel={
+                        film.release_date
+                          ? getReleaseYear(film.release_date)
+                          : null
+                      }
+                      linkText="Visit Page"
+                    />
+                  )}
+                />
+              );
+            if (section === "Directors")
+              return (
+                <SearchSection<TMDBPerson>
+                  key="Directors"
+                  title="Directors"
+                  results={searchResult_Director}
+                  maxItems={3}
+                  renderItem={(person, key) => (
+                    <SearchResultItem
+                      key={key}
+                      to={`/person/director/${person.id}`}
+                      imageSrc={
+                        person.profile_path
+                          ? `${imgBaseUrl}${person.profile_path}`
+                          : "/picnotfound.jpg"
+                      }
+                      label={person.name}
+                      sublabel={null}
+                      linkText="Visit Page"
+                    />
+                  )}
+                />
+              );
+            if (section === "Actors")
+              return (
+                <SearchSection<TMDBPerson>
+                  key="Actors"
+                  title="Actors"
+                  results={searchResult_Actor}
+                  maxItems={3}
+                  renderItem={(person, key) => (
+                    <SearchResultItem
+                      key={key}
+                      to={`/person/actor/${person.id}`}
+                      imageSrc={
+                        person.profile_path
+                          ? `${imgBaseUrl}${person.profile_path}`
+                          : "/picnotfound.jpg"
+                      }
+                      label={person.name}
+                      sublabel={null}
+                      linkText="Visit Page"
+                    />
+                  )}
+                />
+              );
+            return null;
+          })}
+        </div>
+      )}
+    </SearchModalShell>
   );
 }

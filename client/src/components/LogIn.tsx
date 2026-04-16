@@ -73,7 +73,7 @@ export default function LogIn() {
                 className="auth-formField"
                 id="login"
                 name="login"
-                placeholder="email or username"
+                placeholder="Email or Username"
               />
               <ErrorMessage
                 name="login"
@@ -86,7 +86,7 @@ export default function LogIn() {
                 type="password"
                 id="password"
                 name="password"
-                placeholder="password"
+                placeholder="Password"
               />
 
               <ErrorMessage
@@ -95,7 +95,7 @@ export default function LogIn() {
                 className="auth-formErrorMessage"
               />
               <button type="submit" className="auth-formSubmitButton">
-                log in
+                Log In
               </button>
 
               {/* <CustomLink to="/register" highlight={false}>
@@ -105,7 +105,7 @@ export default function LogIn() {
           </Formik>
           <div className="flex flex-col items-center justify-center mt-5">
             <Link to="/register" className="text-muted-light">
-              Register an account
+              Register an Account
             </Link>
             <Link to="/forgot-password" className="text-muted-light">
               Forgot password?

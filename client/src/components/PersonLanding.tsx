@@ -156,7 +156,6 @@ export default function PersonLanding() {
     <div className="font-primary mt-[4.5rem]">
       {isLoading && <LoadingPage />}
 
-
       {/* Text over backdrop */}
       <div className="landing-main-img-container">
         <div className="flex w-screen grayscale">
@@ -267,7 +266,7 @@ export default function PersonLanding() {
       </div>
 
       {/* Filmography */}
-      <div className=" w-screen flex flex-col items-center justify-start bg-page">
+      <div className="@container w-screen flex flex-col items-center justify-start bg-page">
         <div className="landing-sectionTitle self-start ml-4 md:ml-8 lg:ml-12 2xl:ml-20 pl-4">
           filmography
         </div>

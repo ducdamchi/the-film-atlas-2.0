@@ -104,6 +104,7 @@ export interface TMDBFilm {
   poster_path: string | null
   backdrop_path: string | null
   origin_country: string[]      // ISO 3166-1 alpha-2 codes, e.g. ["IR", "FR"]
+  genres: { id: number; name: string }[]
   imdb_id: string | null        // used to fetch OMDB ratings & Wikidata awards
   popularity: number
   vote_average: number
