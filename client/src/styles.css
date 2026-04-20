@@ -81,6 +81,8 @@
 
   /* --- Slider component border (not a Tailwind token — use var()) --- */
   --slider-border: oklch(86% 0.007 269); /* var(--slider-border) */
+
+  --color-modal-border: oklch(21% 0.006 285.885);
 }
 
 .dark {
@@ -193,6 +195,10 @@
 
   .auth-formErrorMessage {
     @apply text-error self-start ml-2;
+  }
+
+  .accountSettings-formSubmitButton {
+    @apply w-[18rem] p-2 text-light bg-dark font-light hover:bg-dark/90 transition-all ease-out duration-300 rounded-none;
   }
 
   .console-button {

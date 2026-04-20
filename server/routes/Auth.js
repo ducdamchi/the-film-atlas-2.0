@@ -87,7 +87,7 @@ router.post("/login", async (req, res) => {
 
     const { rows } = await pool.query(
       `SELECT id, username, email, password_hash, email_verified, account_status,
-              location_country, location_source
+              location_country, location_city, location_source
        FROM "Users" WHERE email = $1 OR username = $1 LIMIT 1`,
       [credential]
     )
@@ -121,6 +121,7 @@ router.post("/login", async (req, res) => {
         username: user.username,
         email: user.email,
         location_country: user.location_country,
+        location_city: user.location_city,
         location_source: user.location_source,
       },
       process.env.JWT_SECRET,

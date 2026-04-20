@@ -42,6 +42,7 @@ function RootComponent() {
     status: false,
     email: null as string | null,
     locationCountry: null as string | null,
+    locationCity: null as string | null,
     locationSource: null as string | null,
   });
   const [searchModalOpen, setSearchModalOpen] = useState(false);
@@ -67,6 +68,7 @@ function RootComponent() {
             status: true,
             email: response.data.email ?? null,
             locationCountry: response.data.location_country ?? null,
+            locationCity: response.data.location_city ?? null,
             locationSource: response.data.location_source ?? null,
           });
         }

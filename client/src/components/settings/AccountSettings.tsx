@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useAuth } from "@/utils/authContext";
 import { decodeToken } from "@/utils/decodeToken";
-import { LocationPicker } from "./LocationPicker";
-import { COUNTRIES } from "@/utils/countries";
 import NavBar from "@/components/layout/navbar/NavBar";
 import { useNavigate } from "@tanstack/react-router";
+import { LocationPicker } from "./LocationPicker";
 
 function Section({
   title,
@@ -15,7 +14,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border border-control rounded-none p-6">
+    <section className="border border-dark bg-elevated rounded-none p-6">
       <h2 className="text-base font-semibold text-body mb-4">{title}</h2>
       {children}
     </section>
@@ -31,9 +30,36 @@ function StatusMessage({ success, error }: { success: string; error: string }) {
 function ChangeUsername() {
   const { authState, setAuthState } = useAuth();
   const [username, setUsername] = useState(authState.username);
+  const [isEditing, setIsEditing] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setSuccess("");
+    setError("");
+  };
+
+  useEffect(() => {
+    if (isEditing) inputRef.current?.focus();
+  }, [isEditing]);
+
+  const handleFormBlur = (e: React.FocusEvent<HTMLFormElement>) => {
+    if (!formRef.current?.contains(e.relatedTarget)) {
+      setIsEditing(false);
+      setUsername(authState.username);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setUsername(authState.username);
+    setSuccess("");
+    setError("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +80,7 @@ function ChangeUsername() {
       const decoded = decodeToken(data.token!);
       if (decoded) setAuthState(decoded);
       setSuccess("Username updated.");
+      setIsEditing(false);
     } catch (err: unknown) {
       const msg = axios.isAxiosError(err) ? err.response?.data?.error : null;
       setError(msg ?? "Error updating username.");
@@ -63,22 +90,48 @@ function ChangeUsername() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <input
-        className="auth-formField"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="New username"
-        minLength={3}
-        maxLength={30}
-      />
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit}
+      onBlur={handleFormBlur}
+      className="flex flex-col gap-3"
+    >
+      <div className="flex w-[18rem]">
+        <input
+          ref={inputRef}
+          className={`auth-formField border-dark border-r-0 w-full transition-opacity ${!isEditing ? "cursor-not-allowed text-dark/80" : ""}`}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="New username"
+          minLength={3}
+          maxLength={30}
+          readOnly={!isEditing}
+        />
+        {isEditing ? (
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="flex items-center justify-center min-w-[4rem] px-3 bg-red-800 text-light text-sm hover:bg-red-800/90 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleEdit}
+            className="flex items-center justify-center min-w-[4rem] px-3 bg-dark text-light text-sm hover:bg-dark/90 transition-colors cursor-pointer"
+          >
+            Edit
+          </button>
+        )}
+      </div>
       <StatusMessage success={success} error={error} />
       <button
         type="submit"
-        disabled={loading || username === authState.username}
-        className="auth-formSubmitButton disabled:transition-none disabled:bg-muted"
+        disabled={loading || !isEditing || username === authState.username}
+        className={`accountSettings-formSubmitButton disabled:cursor-not-allowed`}
       >
-        {loading ? "Saving..." : "Save username"}
+        {loading ? "Saving..." : "Update username"}
       </button>
     </form>
   );
@@ -126,32 +179,32 @@ function ChangePassword() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <input
-        className="auth-formField"
+        className="auth-formField border-dark"
         type="password"
         value={current}
         onChange={(e) => setCurrent(e.target.value)}
-        placeholder="Current password"
+        placeholder="Current password *"
       />
       <input
-        className="auth-formField"
+        className="auth-formField border-dark"
         type="password"
         value={next}
         onChange={(e) => setNext(e.target.value)}
-        placeholder="New password"
+        placeholder="New password *"
         minLength={8}
       />
       <input
-        className="auth-formField"
+        className="auth-formField border-dark"
         type="password"
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
-        placeholder="Confirm new password"
+        placeholder="Confirm new password *"
       />
       <StatusMessage success={success} error={error} />
       <button
         type="submit"
         disabled={loading || !current || !next || !confirm}
-        className="auth-formSubmitButton disabled:opacity-40"
+        className=" accountSettings-formSubmitButton disabled:cursor-not-allowed"
       >
         {loading ? "Saving..." : "Update password"}
       </button>
@@ -161,143 +214,59 @@ function ChangePassword() {
 
 function ChangeRegion() {
   const { authState, setAuthState } = useAuth();
-  const [country, setCountry] = useState("");
-  const [city, setCity] = useState("");
-  const [currentSource, setCurrentSource] = useState<string | null>(null);
-  const [currentCountry, setCurrentCountry] = useState<string | null>(null);
+  const [country, setCountry] = useState(authState.locationCountry ?? "");
+  const [city, setCity] = useState(authState.locationCity ?? "");
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [detecting, setDetecting] = useState(false);
 
-  useEffect(() => {
-    axios
-      .get<{
-        location_country: string | null;
-        location_city: string | null;
-        location_source: string | null;
-      }>("/profile/me/location", {
-        headers: { accesstoken: localStorage.getItem("accessToken") ?? "" },
-      })
-      .then(({ data }) => {
-        setCountry(data.location_country ?? "");
-        setCity(data.location_city ?? "");
-        setCurrentCountry(data.location_country);
-        setCurrentSource(data.location_source);
-      })
-      .catch(() => {});
-  }, []);
-
-  const currentCountryName =
-    COUNTRIES.find((c) => c.code === currentCountry)?.name ?? currentCountry;
-
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess("");
     setError("");
     setLoading(true);
     try {
-      const { data } = await axios.patch<{ token?: string; error?: string }>(
-        "/profile/me/location",
-        { country, city },
-        { headers: { accesstoken: localStorage.getItem("accessToken") ?? "" } },
-      );
+      const res = await fetch("/profile/me/location", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          accesstoken: localStorage.getItem("accessToken") ?? "",
+        },
+        body: JSON.stringify({ country, city }),
+      });
+      const data = await res.json();
       if (data.error) {
         setError(data.error);
         return;
       }
-      localStorage.setItem("accessToken", data.token!);
-      const decoded = decodeToken(data.token!);
+      localStorage.setItem("accessToken", data.token);
+      const decoded = decodeToken(data.token);
       if (decoded) setAuthState(decoded);
-      setCurrentCountry(country);
-      setCurrentSource("manual");
       setSuccess("Region updated.");
-    } catch (err: unknown) {
-      const msg = axios.isAxiosError(err) ? err.response?.data?.error : null;
-      setError(msg ?? "Error updating region.");
+    } catch {
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAutoDetect = async () => {
-    setSuccess("");
-    setError("");
-    setDetecting(true);
-    try {
-      const { data } = await axios.post<{
-        token?: string;
-        location_country?: string;
-        location_city?: string;
-        error?: string;
-      }>(
-        "/profile/me/location/detect",
-        {},
-        {
-          headers: { accesstoken: localStorage.getItem("accessToken") ?? "" },
-        },
-      );
-      if (data.error) {
-        setError(data.error);
-        return;
-      }
-      localStorage.setItem("accessToken", data.token!);
-      const decoded = decodeToken(data.token!);
-      if (decoded) {
-        setAuthState(decoded);
-        setCountry(data.location_country ?? "");
-        setCity(data.location_city ?? "");
-        setCurrentCountry(data.location_country ?? null);
-        setCurrentSource("ip");
-      }
-      setSuccess("Region auto-detected.");
-    } catch (err: unknown) {
-      const msg = axios.isAxiosError(err) ? err.response?.data?.error : null;
-      setError(msg ?? "Could not detect location.");
-    } finally {
-      setDetecting(false);
-    }
-  };
-
   return (
-    <div className="flex flex-col gap-4">
-      {currentCountry && (
-        <p className="text-sm text-subtle">
-          Current:{" "}
-          <span className="text-body">
-            {currentCountryName}
-            {currentSource === "ip" ? " (auto-detected)" : " (set manually)"}
-          </span>
-        </p>
-      )}
-
-      <form onSubmit={handleSave} className="flex flex-col gap-3">
-        <LocationPicker
-          country={country}
-          city={city}
-          onCountryChange={setCountry}
-          onCityChange={setCity}
-        />
-        <button
-          type="submit"
-          disabled={loading || !country || !city}
-          className="auth-formSubmitButton disabled:opacity-40"
-        >
-          {loading ? "Saving..." : "Save manually"}
-        </button>
-      </form>
-
-      <button
-        type="button"
-        onClick={handleAutoDetect}
-        disabled={detecting}
-        className="text-sm text-subtle underline text-left cursor-pointer disabled:opacity-40"
-      >
-        {detecting ? "Detecting..." : "Auto-detect from IP instead"}
-      </button>
-
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <LocationPicker
+        country={country}
+        city={city}
+        onCountryChange={setCountry}
+        onCityChange={setCity}
+      />
       <StatusMessage success={success} error={error} />
-    </div>
+      <button
+        type="submit"
+        disabled={loading || !country || !city || (country === authState.locationCountry && city === authState.locationCity)}
+        className="accountSettings-formSubmitButton disabled:cursor-not-allowed"
+      >
+        {loading ? "Saving..." : "Update region"}
+      </button>
+    </form>
   );
 }
 
@@ -324,7 +293,7 @@ export function AccountSettings() {
           <ChangePassword />
         </Section>
 
-        <Section title="Your Region">
+        <Section title="Change Region">
           <ChangeRegion />
         </Section>
       </div>

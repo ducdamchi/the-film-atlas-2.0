@@ -23,6 +23,7 @@ export interface AuthState {
   status: boolean
   email: string | null
   locationCountry: string | null
+  locationCity: string | null
   locationSource: string | null
 }
 

@@ -17,6 +17,7 @@ export function decodeToken(token: string): AuthState | null {
       status: true,
       email: payload.email ?? null,
       locationCountry: payload.location_country ?? null,
+      locationCity: payload.location_city ?? null,
       locationSource: payload.location_source ?? null,
     }
   } catch {

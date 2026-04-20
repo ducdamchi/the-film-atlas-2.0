@@ -26,28 +26,13 @@ export function LocationPicker({
   const [open, setOpen] = useState(false);
   const [noResults, setNoResults] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!city) setQuery("");
+    setQuery(city);
   }, [city]);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
 
   function handleInput(value: string) {
     setQuery(value);
-    onCityChange("");
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
@@ -70,7 +55,7 @@ export function LocationPicker({
         });
 
         const res = await fetch(
-          `https://secure.geonames.org/searchJSON?${params}`
+          `https://secure.geonames.org/searchJSON?${params}`,
         );
         const data = await res.json();
         const cities: GeonamesCity[] = data.geonames ?? [];
@@ -93,6 +78,7 @@ export function LocationPicker({
   }
 
   function handleSelect(name: string) {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setQuery(name);
     onCityChange(name);
     setSuggestions([]);
@@ -116,7 +102,7 @@ export function LocationPicker({
             setNoResults(false);
             setOpen(false);
           }}
-          className="auth-formField bg-surface text-body"
+          className="auth-formField border-dark"
         >
           <option value="">Select your country</option>
           {COUNTRIES.map((c) => (
@@ -127,21 +113,23 @@ export function LocationPicker({
         </select>
       </div>
 
-      <div className="flex flex-col gap-1" ref={containerRef}>
+      <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-subtle">
           City <span className="text-red-600">*</span>
         </label>
-        <div className="relative">
+        <div className="w-[18rem] border-dark relative">
           <input
             type="text"
-            className="auth-formField bg-surface w-full"
+            className="auth-formField w-full border-dark"
             placeholder={
               country ? "Start typing your city..." : "Select a country first"
             }
             value={query}
             disabled={!country}
             onChange={(e) => handleInput(e.target.value)}
-            onFocus={() => (suggestions.length > 0 || noResults) && setOpen(true)}
+            onFocus={() =>
+              (suggestions.length > 0 || noResults) && setOpen(true)
+            }
           />
           {open && (
             <ul className="absolute z-50 w-full mt-1 bg-elevated border border-control rounded-lg shadow-lg overflow-hidden">
@@ -149,6 +137,7 @@ export function LocationPicker({
                 suggestions.map((name) => (
                   <li
                     key={name}
+                    tabIndex={0}
                     className="px-3 py-2 text-sm text-body hover:bg-surface cursor-pointer"
                     onMouseDown={() => handleSelect(name)}
                   >

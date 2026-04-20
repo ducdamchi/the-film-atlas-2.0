@@ -14,6 +14,7 @@ function reissueToken(base, overrides) {
       username: base.username,
       email: base.email ?? null,
       location_country: base.location_country ?? null,
+      location_city: base.location_city ?? null,
       location_source: base.location_source ?? null,
       ...overrides,
     },
@@ -120,6 +121,7 @@ router.patch("/location", validateToken, async (req, res) => {
 
     const newToken = reissueToken(req.user, {
       location_country: country,
+      location_city: city,
       location_source: "manual",
     })
     return res.json({ token: newToken })
