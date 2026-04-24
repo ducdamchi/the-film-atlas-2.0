@@ -175,7 +175,7 @@ export default function Directors() {
   return (
     <div className="font-primary mt-20 min-h-screen">
       {/* Wrapper for entire page */}
-      <div className=" flex flex-col items-center">
+      <div className="@container flex flex-col items-center">
         <div className="font-heading page-title">DIRECTORS</div>
 
         <SearchBar

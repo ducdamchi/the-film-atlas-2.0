@@ -3,7 +3,13 @@ import { useState, useEffect } from "react";
 
 /* Custom functions */
 import { useAuth } from "@/utils/authContext";
-import { createCollection, patchCollectionPin, patchCollectionVisibility, putCollectionTitle, putCollectionDescription } from "@/utils/apiCalls";
+import {
+  createCollection,
+  patchCollectionPin,
+  patchCollectionVisibility,
+  putCollectionTitle,
+  putCollectionDescription,
+} from "@/utils/apiCalls";
 import { useCollections } from "@/hooks/useCollections";
 import type { UserFilm } from "@/types/film";
 
@@ -23,7 +29,9 @@ export default function Collections() {
   useEffect(() => {
     if (!newCollectionId) return;
     requestAnimationFrame(() => {
-      document.getElementById(newCollectionId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document
+        .getElementById(newCollectionId)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   }, [newCollectionId]);
 
@@ -101,7 +109,8 @@ export default function Collections() {
   }
 
   function handleRename(id: string, newTitle: string): Promise<void> {
-    const originalTitle = collections.find((c) => c.id === id)?.title ?? newTitle;
+    const originalTitle =
+      collections.find((c) => c.id === id)?.title ?? newTitle;
     setCollections((prev) =>
       prev.map((c) => (c.id === id ? { ...c, title: newTitle } : c)),
     );
@@ -119,20 +128,32 @@ export default function Collections() {
       });
   }
 
-  function handleUpdateDescription(id: string, newDescription: string): Promise<void> {
-    const originalDescription = collections.find((c) => c.id === id)?.description ?? null;
+  function handleUpdateDescription(
+    id: string,
+    newDescription: string,
+  ): Promise<void> {
+    const originalDescription =
+      collections.find((c) => c.id === id)?.description ?? null;
     setCollections((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, description: newDescription } : c)),
+      prev.map((c) =>
+        c.id === id ? { ...c, description: newDescription } : c,
+      ),
     );
     return putCollectionDescription(id, newDescription)
       .then((confirmed) => {
         setCollections((prev) =>
-          prev.map((c) => (c.id === id ? { ...c, description: confirmed.description ?? null } : c)),
+          prev.map((c) =>
+            c.id === id
+              ? { ...c, description: confirmed.description ?? null }
+              : c,
+          ),
         );
       })
       .catch(() => {
         setCollections((prev) =>
-          prev.map((c) => (c.id === id ? { ...c, description: originalDescription } : c)),
+          prev.map((c) =>
+            c.id === id ? { ...c, description: originalDescription } : c,
+          ),
         );
         throw new Error();
       });
@@ -142,13 +163,21 @@ export default function Collections() {
     setCollections((prev) =>
       prev.map((c) =>
         c.id === collectionId
-          ? { ...c, films: [film, ...c.films], filmCount: c.filmCount + 1, totalRuntime: c.totalRuntime + (film.runtime ?? 0) }
+          ? {
+              ...c,
+              films: [film, ...c.films],
+              filmCount: c.filmCount + 1,
+              totalRuntime: c.totalRuntime + (film.runtime ?? 0),
+            }
           : c,
       ),
     );
   }
 
-  function handleRemoveFilmFromCollection(collectionId: string, filmId: number) {
+  function handleRemoveFilmFromCollection(
+    collectionId: string,
+    filmId: number,
+  ) {
     setCollections((prev) =>
       prev.map((c) => {
         if (c.id !== collectionId) return c;
@@ -184,7 +213,7 @@ export default function Collections() {
 
   return (
     <div className="font-primary mt-20 min-h-screen w-screen mb-40">
-      <div className="flex flex-col items-center w-full">
+      <div className="@container flex flex-col items-center w-full">
         <div className="font-heading page-title">COLLECTIONS</div>
         <SearchBar
           searchInput={searchInput}
@@ -207,17 +236,27 @@ export default function Collections() {
                 <span>New Collection</span>
               </button>
             </div>
-            <section className="@container w-full mt-8 flex flex-col items-center gap-10">
+            <section className="w-full mt-8 flex flex-col items-center gap-10">
               {(() => {
-                const watchedCollection = collections.find((c) => c.collectionType === "watched");
-                const watchlistCollection = collections.find((c) => c.collectionType === "watchlist");
+                const watchedCollection = collections.find(
+                  (c) => c.collectionType === "watched",
+                );
+                const watchlistCollection = collections.find(
+                  (c) => c.collectionType === "watchlist",
+                );
                 return collections.map((col) => {
                   const counterpart =
-                    col.collectionType === "watched" ? watchlistCollection :
-                    col.collectionType === "watchlist" ? watchedCollection :
-                    undefined;
+                    col.collectionType === "watched"
+                      ? watchlistCollection
+                      : col.collectionType === "watchlist"
+                        ? watchedCollection
+                        : undefined;
                   return (
-                    <div key={col.id} id={col.id} className="w-full flex flex-col items-center">
+                    <div
+                      key={col.id}
+                      id={col.id}
+                      className="w-full flex flex-col items-center"
+                    >
                       <CollectionCarousel
                         collection={col}
                         onDelete={(deletedId) =>
@@ -234,7 +273,11 @@ export default function Collections() {
                         counterpartCollection={counterpart}
                         onCounterpartFilmRemoved={
                           counterpart
-                            ? (filmId) => handleRemoveFilmFromCollection(counterpart.id, filmId)
+                            ? (filmId) =>
+                                handleRemoveFilmFromCollection(
+                                  counterpart.id,
+                                  filmId,
+                                )
                             : undefined
                         }
                       />
