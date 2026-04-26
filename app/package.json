@@ -22,7 +22,7 @@
     "@tanstack/react-router": "latest",
     "@tanstack/react-router-devtools": "latest",
     "@tanstack/router-plugin": "^1.132.0",
-    "@tanstack/start": "^1.120.20",
+    "@tanstack/react-start": "latest",
     "axios": "^1.13.6",
     "better-react-mathjax": "^3.0.0",
     "class-variance-authority": "^0.7.1",
