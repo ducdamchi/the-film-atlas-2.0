@@ -15,6 +15,7 @@ export function usePersistedState<T>(
   initialValue: T,
 ): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [value, setValue] = useState<T>(() => {
+    if (typeof window === 'undefined') return initialValue
     try {
       const raw = window.localStorage.getItem(key)
       if (raw === null) return initialValue   // key never stored

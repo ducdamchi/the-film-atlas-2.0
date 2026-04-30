@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 
 export interface CustomLinkProps {
@@ -20,10 +19,7 @@ export function CustomLink({
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const isActive = exact ? currentPath === to : currentPath.startsWith(to);
-  const activeColor = useMemo(() => {
-    const colors = ["text-atlas-blue", "text-atlas-green", "text-atlas-pink"];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }, []);
+  const activeColor = "text-atlas-pink";
   return (
     <div className={isActive && highlight ? `${activeColor} font-bold` : ""}>
       <Link to={to} {...props}>

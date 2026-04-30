@@ -1,5 +1,5 @@
 import { type RefObject } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, ClientOnly } from "@tanstack/react-router";
 import { MdOutlineSettings, MdClose } from "react-icons/md";
 import { useAuth } from "@/utils/authContext";
 import { clearAllPersistedState } from "@/utils/localStorage";
@@ -37,8 +37,19 @@ export function NavBarSettingsPanel({
     navigate({ to: "/login" });
   };
 
+  const loginButton = (
+    <div className="h-full flex items-center justify-center">
+      <button className="text-dark bg-elevated hover:bg-elevated/90 transition-all duration-200 ease-out text-body p-2 px-3 rounded-full w-[5rem]">
+        <CustomLink to="/login" highlight={false}>
+          Login
+        </CustomLink>
+      </button>
+    </div>
+  );
+
   return (
     <div className="flex items-center justify-end gap-1 mr-4 text-sm z-100">
+      <ClientOnly fallback={loginButton}>
       {authState.status ? (
         <>
           <div>
@@ -118,23 +129,9 @@ export function NavBarSettingsPanel({
           </button>
         </>
       ) : (
-        <>
-          {/* <div className="h-full flex items-center justify-center">
-            <button className="border-on-dark border-1 text-on-dark p-2 rounded-none w-[5rem] hover:bg-body/70 transition-all duration-200 ease-out">
-              <CustomLink to="/register" highlight={false}>
-                Register
-              </CustomLink>
-            </button>
-          </div> */}
-          <div className="h-full flex items-center justify-center">
-            <button className="text-dark bg-elevated hover:bg-elevated/90 transition-all duration-200 ease-out text-body p-2 px-3 rounded-full w-[5rem]">
-              <CustomLink to="/login" highlight={false}>
-                Login
-              </CustomLink>
-            </button>
-          </div>
-        </>
+        loginButton
       )}
+      </ClientOnly>
     </div>
   );
 }

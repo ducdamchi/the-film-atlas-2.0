@@ -1,7 +1,7 @@
 /* Libraries */
 import { useEffect, useState } from "react";
 import { getColorSync } from "colorthief";
-import { useParams, useNavigate } from "@tanstack/react-router";
+import { useParams, useNavigate, ClientOnly } from "@tanstack/react-router";
 
 /* Custom functions */
 import {
@@ -409,24 +409,28 @@ export default function FilmLanding() {
 
             {/* Interaction console */}
             <div className="xl:hidden absolute bottom-0 w-full flex items-center justify-center mb-4">
-              <InteractionConsole
-                tmdbId={tmdbId}
-                directors={directors}
-                movieDetails={movieDetails}
-                setIsLoading={setIsLoading}
-                variant="landing-sm"
-                showOverview={false}
-              />
+              <ClientOnly>
+                <InteractionConsole
+                  tmdbId={tmdbId}
+                  directors={directors}
+                  movieDetails={movieDetails}
+                  setIsLoading={setIsLoading}
+                  variant="landing-sm"
+                  showOverview={false}
+                />
+              </ClientOnly>
             </div>
             <div className="hidden xl:block absolute bottom-0 w-full flex items-center justify-center mb-6">
-              <InteractionConsole
-                tmdbId={tmdbId}
-                directors={directors}
-                movieDetails={movieDetails}
-                setIsLoading={setIsLoading}
-                variant="landing-lg"
-                showOverview={false}
-              />
+              <ClientOnly>
+                <InteractionConsole
+                  tmdbId={tmdbId}
+                  directors={directors}
+                  movieDetails={movieDetails}
+                  setIsLoading={setIsLoading}
+                  variant="landing-lg"
+                  showOverview={false}
+                />
+              </ClientOnly>
             </div>
           </div>
 
