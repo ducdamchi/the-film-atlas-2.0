@@ -2,6 +2,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useNavigate } from "@tanstack/react-router";
 import * as Yup from "yup";
 import axios from "axios";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import AuthBg from "./layout/AuthBg";
 
 interface RegisterValues {
@@ -25,19 +27,24 @@ export default function Register() {
     confirmPassword: "",
   };
 
-  const onSubmit = (data: RegisterValues) => {
-    axios
-      .post<RegisterResponse>(
+  const registerMutation = useMutation({
+    mutationFn: (data: RegisterValues) =>
+      axios.post<RegisterResponse>(
         `${import.meta.env.VITE_API_URL}/auth/register`,
         data,
-      )
-      .then((response) => {
-        if (response.data.error) {
-          alert(response.data.error);
-        } else {
-          navigate({ to: "/login" });
-        }
-      });
+      ),
+    onSuccess: (response) => {
+      if (response.data.error) {
+        alert(response.data.error);
+        return;
+      }
+      navigate({ to: "/login" });
+    },
+    onError: () => toast.error("Registration failed. Please try again."),
+  });
+
+  const onSubmit = (data: RegisterValues) => {
+    registerMutation.mutate(data);
   };
 
   const validationSchema = Yup.object({

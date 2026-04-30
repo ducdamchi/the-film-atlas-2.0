@@ -1,59 +1,44 @@
-import { useState, useEffect } from "react"
-import { fetchListByParams } from "@/utils/apiCalls"
-import { getCountryName } from "@/utils/helperFunctions"
-import type { UserFilm } from "@/types/film"
-import type { AuthState } from "@/types/auth"
-import type { FilmsPerCountryData } from "@/types/map"
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { getCountryName } from "@/utils/helperFunctions";
+import { watchedFilmsQueryOptions } from "@/queries/collections.queries";
+import type { AuthState } from "@/types/auth";
+import type { FilmsPerCountryData } from "@/types/map";
 
 interface UseMapFilmDataResult {
-  filmsPerCountryData: FilmsPerCountryData
+  filmsPerCountryData: FilmsPerCountryData;
 }
 
 /**
- * Fetches the user's full watched list on mount and aggregates the count of
- * watched films per country, used to colour the choropleth map layer.
- *
- * The intermediate accumulator type includes `name` (resolved via
- * `getCountryName`) in addition to `num_watched_films`.  `FilmsPerCountryData`
- * (from map.ts) only requires `num_watched_films`, so the accumulator is
- * declared with a wider local type and the state is typed as
- * `FilmsPerCountryData` — the extra `name` field is structurally compatible
- * (TypeScript uses structural typing, not nominal typing).
+ * Fetches the user's watched list and aggregates film counts per country for
+ * the choropleth map layer. Reuses the ['watched-list'] cache key shared with
+ * the Collections page — a single cache entry serves both surfaces.
  */
 export function useMapFilmData(authState: AuthState): UseMapFilmDataResult {
-  const [mapFilmData, setMapFilmData] = useState<UserFilm[]>([])
-  const [filmsPerCountryData, setFilmsPerCountryData] =
-    useState<FilmsPerCountryData>({})
+  const { data: mapFilmData = [] } = useQuery({
+    ...watchedFilmsQueryOptions,
+    enabled: !!authState.status,
+  });
 
-  useEffect(() => {
-    if (!authState.status) return
-    const fetchInitialLikeData = async () => {
-      try {
-        const result = await fetchListByParams({ queryString: "watched" })
-        setMapFilmData(result)
-      } catch (err) {
-        console.log("Error Fetching User Like Data: ", err)
-      }
-    }
-    fetchInitialLikeData()
-  }, [])
-
-  useEffect(() => {
-    const data: Record<string, { name: string | undefined; num_watched_films: number }> = {}
+  const filmsPerCountryData = useMemo<FilmsPerCountryData>(() => {
+    const data: Record<
+      string,
+      { name: string | undefined; num_watched_films: number }
+    > = {};
     mapFilmData.forEach((film) => {
       film.origin_country.forEach((country) => {
         if (country in data) {
-          data[country].num_watched_films++
+          data[country].num_watched_films++;
         } else {
           data[country] = {
             name: getCountryName(country),
             num_watched_films: 1,
-          }
+          };
         }
-      })
-    })
-    setFilmsPerCountryData(data)
-  }, [mapFilmData])
+      });
+    });
+    return data;
+  }, [mapFilmData]);
 
-  return { filmsPerCountryData }
+  return { filmsPerCountryData };
 }

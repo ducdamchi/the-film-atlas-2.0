@@ -1,17 +1,21 @@
 /* Libraries */
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 /* Custom functions */
 import {
-  checkLikeStatus,
-  checkSaveStatus,
   likeFilm,
   unlikeFilm,
   saveFilm,
   unsaveFilm,
   rateFilm,
 } from "@/utils/apiCalls";
+import {
+  likeStatusQueryOptions,
+  saveStatusQueryOptions,
+} from "@/queries/film.queries";
 import { useAuth } from "@/utils/authContext";
 
 import TripleStarRating from "./TripleStarRating";
@@ -26,6 +30,7 @@ import type {
   FilmRateRequest,
   DirectorRef,
 } from "@/types/film";
+import type { LikeStatusResponse, SaveStatusResponse } from "@/types/api";
 
 /**
  * The variants that drive CSS custom property styling via .console-{variant}.
@@ -34,12 +39,10 @@ import type {
 type ConsoleVariant = "card" | "landing-sm" | "landing-lg";
 
 export interface InteractionConsoleProps {
-  tmdbId: number | null | undefined;
+  tmdbId: number | string | null | undefined;
   directors: TMDBCrewMember[];
   /** Full TMDB film detail — may be an empty object `{}` while loading */
   movieDetails: TMDBFilm | Record<string, never>;
-  isLoading: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   /**
    * @param {"card"|"landing-sm"|"landing-lg"} variant
    * Styling is driven by CSS custom properties set on .console-{variant} in styles.css
@@ -52,21 +55,30 @@ export default function InteractionConsole({
   tmdbId,
   directors,
   movieDetails,
-  setIsLoading,
-  isLoading,
   variant,
   showOverview,
 }: InteractionConsoleProps) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
-  const [officialRating, setOfficialRating] = useState<StarRating | null>(null); //0 for liked but unrated; 1, 2, 3 for corresponding stars; null when film unliked
-  const [requestedRating, setRequestedRating] = useState<StarRating | -1>(-1); //-1 when neutral (no requests), 0 for unrated; 1, 2, 3 for stars.
-  const [isStatusLoading, setIsStatusLoading] = useState(false);
+  const [requestedRating, setRequestedRating] = useState<StarRating | -1>(-1);
 
-  const { authState, authLoading } = useAuth();
+  const { authState } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  /* Create the request body for API call to App's DB when user 'like' a film */
+  /* Status queries — enabled only when authenticated and tmdbId is known */
+  const { data: likeStatus, isLoading: isStatusLoading } = useQuery({
+    ...likeStatusQueryOptions(tmdbId ?? 0),
+    enabled: !!authState.status && !!tmdbId,
+  });
+  const { data: saveStatus } = useQuery({
+    ...saveStatusQueryOptions(tmdbId ?? 0),
+    enabled: !!authState.status && !!tmdbId,
+  });
+
+  const isLiked = likeStatus?.liked ?? false;
+  const isSaved = saveStatus?.saved ?? false;
+  const officialRating = (likeStatus?.stars ?? null) as StarRating | null;
+
+  /* Build the request body for API calls */
   function createReqBody(
     requestString: "like" | "save" | "rate",
   ): FilmInteractionRequest | FilmRateRequest {
@@ -79,7 +91,6 @@ export default function InteractionConsole({
       .map((director) => director.name)
       .join(", ");
 
-    // For type narrowing: movieDetails cast to TMDBFilm when used
     const details = movieDetails as TMDBFilm;
 
     if (requestString === "like" || requestString === "save") {
@@ -105,156 +116,169 @@ export default function InteractionConsole({
     }
   }
 
-  async function handleLike() {
-    if (authState.status) {
-      try {
-        if (!isLiked) {
-          const req = createReqBody("like") as FilmInteractionRequest;
-          req.stars =
-            requestedRating !== -1 ? (requestedRating as StarRating) : 0;
-          const result = await likeFilm(req);
-          if ("error" in result) {
-            console.error("Server: ", result.error);
-          } else {
-            setIsLiked(result.liked);
-            setOfficialRating(result.stars as StarRating);
-            setRequestedRating(-1);
-            setIsSaved(false);
-          }
-        } else {
-          const details = movieDetails as TMDBFilm;
-          const result = await unlikeFilm(details.id);
-          if ("error" in result) {
-            console.error("Server: ", result.error);
-          } else {
-            setIsLiked(result.liked);
-            setOfficialRating(result.stars as StarRating | null);
-          }
-        }
-      } catch (err) {
-        alert("Error liking/unliking film, please try again.");
-        console.error("Error in handleLike(): ", err);
+  /* Watch mutation — optimistic: flips liked state immediately, rolls back on error */
+  const watchMutation = useMutation({
+    mutationFn: (shouldLike: boolean) => {
+      if (shouldLike) {
+        const req = createReqBody("like") as FilmInteractionRequest;
+        req.stars =
+          requestedRating !== -1 ? (requestedRating as StarRating) : 0;
+        return likeFilm(req);
       }
-    } else {
+      return unlikeFilm((movieDetails as TMDBFilm).id);
+    },
+    onMutate: async (shouldLike) => {
+      await queryClient.cancelQueries({
+        queryKey: likeStatusQueryOptions(tmdbId ?? 0).queryKey,
+      });
+      await queryClient.cancelQueries({
+        queryKey: saveStatusQueryOptions(tmdbId ?? 0).queryKey,
+      });
+      const previousLike = queryClient.getQueryData(
+        likeStatusQueryOptions(tmdbId ?? 0).queryKey,
+      );
+      const previousSave = queryClient.getQueryData(
+        saveStatusQueryOptions(tmdbId ?? 0).queryKey,
+      );
+      queryClient.setQueryData(
+        likeStatusQueryOptions(tmdbId ?? 0).queryKey,
+        (old: LikeStatusResponse | undefined) => ({
+          ...old,
+          liked: shouldLike,
+          stars: shouldLike
+            ? requestedRating !== -1
+              ? requestedRating
+              : 0
+            : null,
+        }),
+      );
+      if (shouldLike) {
+        // Liking is mutually exclusive with saved — optimistically clear saved
+        queryClient.setQueryData(
+          saveStatusQueryOptions(tmdbId ?? 0).queryKey,
+          (old: SaveStatusResponse | undefined) => ({ ...old, saved: false }),
+        );
+      }
+      return { previousLike, previousSave };
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(
+        likeStatusQueryOptions(tmdbId ?? 0).queryKey,
+        context?.previousLike,
+      );
+      queryClient.setQueryData(
+        saveStatusQueryOptions(tmdbId ?? 0).queryKey,
+        context?.previousSave,
+      );
+      toast.error("Failed to update watch status");
+    },
+    onSuccess: () => {
+      setRequestedRating(-1);
+      queryClient.invalidateQueries({ queryKey: ["watched"] });
+      queryClient.invalidateQueries({ queryKey: ["watched-list"] });
+    },
+  });
+
+  /* Watchlist mutation — optimistic, also clears liked state when saving */
+  const watchlistMutation = useMutation({
+    mutationFn: (shouldSave: boolean) =>
+      shouldSave
+        ? saveFilm(createReqBody("save") as FilmInteractionRequest)
+        : unsaveFilm((movieDetails as TMDBFilm).id),
+    onMutate: async (shouldSave) => {
+      await queryClient.cancelQueries({
+        queryKey: saveStatusQueryOptions(tmdbId ?? 0).queryKey,
+      });
+      await queryClient.cancelQueries({
+        queryKey: likeStatusQueryOptions(tmdbId ?? 0).queryKey,
+      });
+      const previousSave = queryClient.getQueryData(
+        saveStatusQueryOptions(tmdbId ?? 0).queryKey,
+      );
+      const previousLike = queryClient.getQueryData(
+        likeStatusQueryOptions(tmdbId ?? 0).queryKey,
+      );
+      queryClient.setQueryData(
+        saveStatusQueryOptions(tmdbId ?? 0).queryKey,
+        (old: SaveStatusResponse | undefined) => ({ ...old, saved: shouldSave }),
+      );
+      if (shouldSave) {
+        // Saving is mutually exclusive with liked — optimistically clear liked
+        queryClient.setQueryData(
+          likeStatusQueryOptions(tmdbId ?? 0).queryKey,
+          (old: LikeStatusResponse | undefined) => ({
+            ...old,
+            liked: false,
+            stars: null,
+          }),
+        );
+      }
+      return { previousSave, previousLike };
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(
+        saveStatusQueryOptions(tmdbId ?? 0).queryKey,
+        context?.previousSave,
+      );
+      queryClient.setQueryData(
+        likeStatusQueryOptions(tmdbId ?? 0).queryKey,
+        context?.previousLike,
+      );
+      toast.error("Failed to update watchlist");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["watchlisted"] });
+      queryClient.invalidateQueries({ queryKey: ["watchlisted-list"] });
+    },
+  });
+
+  /* Rate mutation — no optimistic update needed; star UI gives immediate feedback */
+  const rateMutation = useMutation({
+    mutationFn: (req: FilmRateRequest) => rateFilm(req),
+    onError: () => toast.error("Failed to update rating"),
+    onSuccess: () => {
+      setRequestedRating(-1);
+      queryClient.invalidateQueries({
+        queryKey: likeStatusQueryOptions(tmdbId ?? 0).queryKey,
+      });
+      queryClient.invalidateQueries({ queryKey: ["watched-list"] });
+    },
+  });
+
+  /* Handlers */
+  function handleLike() {
+    if (!authState.status) {
       alert("Log in to interact with films!");
       return;
     }
+    watchMutation.mutate(!isLiked);
   }
 
-  async function handleSave() {
-    if (authState.status) {
-      try {
-        if (!isSaved) {
-          const req = createReqBody("save") as FilmInteractionRequest;
-          const result = await saveFilm(req);
-          if ("error" in result) {
-            console.error("Server: ", result.error);
-          } else {
-            setIsSaved(result.saved);
-            setIsLiked(false);
-            setOfficialRating(null);
-          }
-        } else {
-          const details = movieDetails as TMDBFilm;
-          const result = await unsaveFilm(details.id);
-          if ("error" in result) {
-            console.log("Server: ", result.error);
-          } else {
-            setIsSaved(result.saved);
-          }
-        }
-      } catch (err) {
-        alert("Error saving/unsaving film, please try again.");
-        console.error("Error in handleSave(): ", err);
-      }
-    } else {
+  function handleSave() {
+    if (!authState.status) {
       alert("Log in to interact with films!");
       return;
     }
+    watchlistMutation.mutate(!isSaved);
   }
 
-  async function handleRate() {
-    if (authState.status) {
-      try {
-        if (requestedRating !== officialRating) {
-          if (requestedRating >= 0 && requestedRating <= 3) {
-            if (!isLiked) {
-              const req = createReqBody("like") as FilmInteractionRequest;
-              req.stars =
-                requestedRating !== -1 ? (requestedRating as StarRating) : 0;
-              const result = await likeFilm(req);
-              if ("error" in result) {
-                console.error("Server: ", result.error);
-              } else {
-                setIsLiked(result.liked);
-                setOfficialRating(result.stars as StarRating);
-                setRequestedRating(-1);
-                setIsSaved(false);
-              }
-            } else {
-              const req = createReqBody("rate") as FilmRateRequest;
-              req.stars = requestedRating as StarRating;
-              const result = await rateFilm(req);
-              if ("error" in result) {
-                console.error("Server: ", result.error);
-              } else {
-                setOfficialRating(result.stars as StarRating);
-                setRequestedRating(-1);
-              }
-            }
-          } else if (requestedRating == -1) {
-            // neutral state, no action
-          } else {
-            console.error("Requested rating out of range.");
-          }
-        }
-      } catch (err) {
-        alert("Error rating/unrating film, please try again.");
-        console.error("Error in handleRate(): ", err);
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      if (requestedRating !== -1 && requestedRating !== null) {
-        alert("Log in to interact with films!");
-        return;
-      }
-    }
-  }
-
+  /* Rate trigger — fires when TripleStarRating changes requestedRating */
   useEffect(() => {
-    handleRate();
+    if (requestedRating === -1 || requestedRating === officialRating) return;
+    if (!authState.status) {
+      alert("Log in to interact with films!");
+      return;
+    }
+
+    if (!isLiked) {
+      // Rating a film that isn't liked yet → like it with the rating
+      watchMutation.mutate(true);
+    } else {
+      const req = createReqBody("rate") as FilmRateRequest;
+      req.stars = requestedRating as StarRating;
+      rateMutation.mutate(req);
+    }
   }, [requestedRating]);
-
-  useEffect(() => {
-    const fetchPageData = async () => {
-      if (authState.status && tmdbId) {
-        setIsStatusLoading(true);
-        try {
-          const likeResult = await checkLikeStatus(tmdbId);
-          const saveResult = await checkSaveStatus(tmdbId);
-
-          if ("error" in likeResult) {
-            console.error("Server: ", likeResult.error);
-          } else {
-            setIsLiked(likeResult.liked);
-            setOfficialRating(likeResult.stars as StarRating | null);
-          }
-
-          if ("error" in saveResult) {
-            console.error("Server: ", saveResult.error);
-          } else {
-            setIsSaved(saveResult.saved);
-          }
-        } catch (err) {
-          console.error("Error loading film data: ", err);
-        } finally {
-          setIsStatusLoading(false);
-        }
-      }
-    };
-    fetchPageData();
-  }, [tmdbId]);
 
   const details = movieDetails as TMDBFilm;
   const showText = variant !== "card";

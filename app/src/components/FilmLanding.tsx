@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { getColorSync } from "colorthief";
 import { useParams, useNavigate, ClientOnly } from "@tanstack/react-router";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 
 /* Custom functions */
 import {
@@ -10,21 +11,19 @@ import {
   darkenColorToOklch,
 } from "../utils/helperFunctions";
 import {
-  fetchFilmFromTMDB,
-  fetchFilmFromYTS,
-  fetchSubtitles,
-  fetchFilmRatingsFromOMDB,
-  fetchFilmAwardsFromWikidata,
-} from "../utils/apiCalls";
+  filmQueryOptions,
+  omdbQueryOptions,
+  wikidataQueryOptions,
+  ytsQueryOptions,
+  subtitlesQueryOptions,
+} from "../queries/film.queries";
 import useCommandKey from "../hooks/useCommandKey";
 import { useApp } from "../utils/appContext";
 
 /* Types */
 import type { TMDBFilm, TMDBCrewMember } from "@/types/tmdb";
-import type { OmdbResponse, WikidataAwardsResponse } from "@/types/api";
 
 /* Components */
-import LoadingPage from "./layout/LoadingPage";
 import InteractionConsole from "./film-interaction/InteractionConsole";
 import PersonList from "./films/PersonList";
 import TrailerModal from "./films/TrailerModal";
@@ -70,10 +69,8 @@ type SecretPanel = "torrents" | "subtitles" | null;
 
 export default function FilmLanding() {
   const imgBaseUrl = "https://image.tmdb.org/t/p/original";
-  const [isLoading, setIsLoading] = useState(false);
-  const [movieDetails, setMovieDetails] = useState<
-    TMDBFilm | Record<string, never>
-  >({});
+
+  // Derived state from credits — not fetches
   const [directors, setDirectors] = useState<TMDBCrewMember[]>([]);
   const [crew, setCrew] = useState<CrewMemberWithJobs[]>([]);
   const [mainCast, setMainCast] = useState<TMDBCrewMember[]>([]);
@@ -81,14 +78,10 @@ export default function FilmLanding() {
   const [backdropColor, setBackdropColor] = useState<[number, number, number]>([
     0, 0, 0,
   ]);
+
+  // UI-only state
   const [openTrailer, setOpenTrailer] = useState(false);
   const [secretPanel, setSecretPanel] = useState<SecretPanel>(null);
-  const [ytsTorrents, setYtsTorrents] = useState<YtsTorrent[]>([]);
-  const [subtitles, setSubtitles] = useState<SubtitleItem[]>([]);
-  const [filmRatings, setFilmRatings] = useState<OmdbResponse | null>(null);
-  const [filmAwards, setFilmAwards] = useState<WikidataAwardsResponse | null>(
-    null,
-  );
 
   const { setSearchModalOpen } = useApp();
   const { tmdbId } = useParams({ strict: false });
@@ -99,38 +92,52 @@ export default function FilmLanding() {
   }
   useCommandKey(toggleSecretPanel, "j");
 
+  // Close search modal and scroll to top on navigation
   useEffect(() => {
-    const timer = setTimeout(() => {
-      window.scrollTo(0, 0);
-    }, 0);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [isLoading]);
-
-  /* Fetch film info for Landing Page */
-  useEffect(() => {
-    const fetchPageData = async () => {
-      if (tmdbId) {
-        try {
-          setSearchModalOpen(false);
-          setYtsTorrents([]);
-          setSubtitles([]);
-          setIsLoading(true);
-          const result = await fetchFilmFromTMDB(tmdbId);
-          setMovieDetails(result);
-        } catch (err) {
-          console.error("Error loading film data: ", err);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-    fetchPageData();
+    setSearchModalOpen(false);
+    window.scrollTo(0, 0);
   }, [tmdbId]);
 
+  // Queries — loader pre-fills cache so these read synchronously on first render
+  const { data: movieDetails } = useSuspenseQuery(filmQueryOptions(tmdbId!));
+  const film = movieDetails as TMDBFilm;
+  const imdbId = film.imdb_id ?? "";
+
+  const { data: filmRatingsRaw } = useQuery({
+    ...omdbQueryOptions(imdbId),
+    enabled: !!imdbId,
+  });
+  const filmRatings =
+    filmRatingsRaw?.Response === "True" ? filmRatingsRaw : null;
+
+  const { data: filmAwardsRaw } = useQuery({
+    ...wikidataQueryOptions(imdbId),
+    enabled: !!imdbId,
+  });
+  const filmAwards =
+    filmAwardsRaw &&
+    (filmAwardsRaw.wins.length > 0 || filmAwardsRaw.nominations.length > 0)
+      ? filmAwardsRaw
+      : null;
+
+  // Non-blocking — rendered only when secretPanel is open
+  const { data: ytsRaw } = useQuery({
+    ...ytsQueryOptions(imdbId),
+    enabled: !!imdbId,
+  });
+  const ytsTorrents =
+    (ytsRaw as { data?: { movie?: { torrents?: YtsTorrent[] } } } | undefined)
+      ?.data?.movie?.torrents ?? [];
+
+  const { data: subtitleRaw } = useQuery({
+    ...subtitlesQueryOptions(imdbId),
+    enabled: !!imdbId,
+  });
+  const subtitles =
+    (subtitleRaw as { data?: SubtitleItem[] } | undefined)?.data ?? [];
+
+  // Transform credits into derived state — pure, no fetch
   useEffect(() => {
-    const film = movieDetails as TMDBFilm;
     if (!film.credits) return;
 
     const directorsList = film.credits.crew.filter(
@@ -157,7 +164,6 @@ export default function FilmLanding() {
       }
     });
 
-    // Filter out cast who does not have profile pic, then take top 15
     const castListFiltered = film.credits.cast.filter(
       (cast) => cast.profile_path !== null,
     );
@@ -166,43 +172,32 @@ export default function FilmLanding() {
       Math.min(15, castListFiltered.length),
     );
 
-    // Filter for Trailer type videos, sort by newest first
-    const trailerLinks = film.videos.results.filter((video) => {
-      return video.type === "Trailer";
-    });
+    const trailerLinks = film.videos.results.filter(
+      (video) => video.type === "Trailer",
+    );
     const sortedTrailerLinks = trailerLinks.sort((a, b) => {
       const dateA = new Date(a.published_at);
       const dateB = new Date(b.published_at);
       return dateB.getTime() - dateA.getTime();
     });
 
-    // console.log("sortedTrailerLinks:", sortedTrailerLinks);
-
     setDirectors(directorsList);
     setCrew(listOfUniqueCrewMembers);
     setMainCast(mainCastList);
-    if (sortedTrailerLinks.length >= 1) {
-      setTrailerLink(sortedTrailerLinks[0].key);
-    } else {
-      setTrailerLink(null);
-    }
+    setTrailerLink(
+      sortedTrailerLinks.length >= 1 ? sortedTrailerLinks[0].key : null,
+    );
 
-    /* Set overlay color based on backdrop dominant color */
     try {
       const backdrop = new Image();
       backdrop.crossOrigin = "anonymous";
-
       if (!film.backdrop_path) return;
-
       const proxyUrl = `${import.meta.env.VITE_API_URL}/proxy/image?url=${encodeURIComponent(`https://image.tmdb.org/t/p/w500${film.backdrop_path}`)}`;
       backdrop.src = proxyUrl;
-
       backdrop.onload = () => {
-        const domColor = getColorSync(backdrop).array() as [
-          number,
-          number,
-          number,
-        ];
+        const color = getColorSync(backdrop!);
+        if (!color) return;
+        const domColor = color.array() as [number, number, number];
         setBackdropColor(darkenColorToOklch(domColor, 0.3));
       };
     } catch (err) {
@@ -210,78 +205,8 @@ export default function FilmLanding() {
     }
   }, [movieDetails]);
 
-  useEffect(() => {
-    const film = movieDetails as TMDBFilm;
-    const fetchRatings = async () => {
-      if (film.imdb_id) {
-        try {
-          const result = await fetchFilmRatingsFromOMDB(film.imdb_id);
-          if (result.Response === "True") {
-            setFilmRatings(result);
-          }
-        } catch (err) {
-          console.error("Error loading ratings: ", err);
-        }
-      }
-    };
-    const fetchAwards = async () => {
-      if (film.imdb_id) {
-        try {
-          const result = await fetchFilmAwardsFromWikidata(film.imdb_id);
-          if (result.wins.length > 0 || result.nominations.length > 0) {
-            setFilmAwards(result);
-          }
-        } catch (err) {
-          console.error("Error loading awards: ", err);
-        }
-      }
-    };
-    fetchRatings();
-    fetchAwards();
-  }, [movieDetails]);
-
-  useEffect(() => {
-    const film = movieDetails as TMDBFilm;
-    if (!secretPanel || !film.imdb_id) return;
-
-    const fetchYTS = async () => {
-      try {
-        const result = await fetchFilmFromYTS(film.imdb_id!);
-        setYtsTorrents(result.data.movie?.torrents ?? []);
-      } catch (err) {
-        console.error("Error loading YTS data:", err);
-        setYtsTorrents([]);
-      }
-    };
-
-    const fetchOpenSubtitles = async () => {
-      try {
-        const result = await fetchSubtitles(film.imdb_id!);
-        setSubtitles(result.data);
-      } catch (err) {
-        console.error("Error loading subtitles:", err);
-      }
-    };
-
-    const fetchPanelData = async () => {
-      setIsLoading(true);
-      await Promise.all([fetchYTS(), fetchOpenSubtitles()]);
-      setIsLoading(false);
-    };
-    fetchPanelData();
-  }, [secretPanel, movieDetails]);
-
-  const film = movieDetails as TMDBFilm;
-
-  if (!movieDetails) {
-    return <div>Error loading film. Please try again.</div>;
-  }
-
   return (
     <div className="font-primary mt-[4.5rem]">
-      {isLoading && <LoadingPage />}
-
-
       {/* Landing Page content */}
       <div className="w-screen h-auto flex flex-col justify-center">
         <div className="w-[100%] h-[90%] top-[5%] text-light">
@@ -382,7 +307,6 @@ export default function FilmLanding() {
                 <div className="absolute w-full h-full border-0 top-0 left-0 flex items-center justify-center">
                   <button
                     onClick={() => {
-                      // console.log("openTrailer:", openTrailer);
                       setOpenTrailer(true);
                     }}
                     className="flex items-center z-40 rounded-full p-3 pt-2 pb-2 drop-shadow-lg bg-elevated text-[var(--backdropColor)] hover:text-light hover:bg-[var(--backdropColor)] transition-all duration-300 ease-out"
@@ -414,7 +338,6 @@ export default function FilmLanding() {
                   tmdbId={tmdbId}
                   directors={directors}
                   movieDetails={movieDetails}
-                  setIsLoading={setIsLoading}
                   variant="landing-sm"
                   showOverview={false}
                 />
@@ -426,7 +349,6 @@ export default function FilmLanding() {
                   tmdbId={tmdbId}
                   directors={directors}
                   movieDetails={movieDetails}
-                  setIsLoading={setIsLoading}
                   variant="landing-lg"
                   showOverview={false}
                 />

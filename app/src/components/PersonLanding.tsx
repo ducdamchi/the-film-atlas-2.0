@@ -1,161 +1,111 @@
 /* Libraries */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams } from "@tanstack/react-router";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 
 /* Custom functions */
 import { useAuth } from "../utils/authContext";
 import { useApp } from "../utils/appContext";
 import { getNiceMonthDateYear, getAge } from "../utils/helperFunctions";
-import { fetchPersonFromTMDB, checkDirectorStatus } from "../utils/apiCalls";
+import { personQueryOptions, directorStatusQueryOptions } from "../queries/person.queries";
 import { usePersistedState } from "../hooks/usePersistedState";
 
 /* Types */
 import type { TMDBPerson, TMDBFilmSummary } from "@/types/tmdb";
 
 /* Components */
-import LoadingPage from "./layout/LoadingPage";
 import TmdbFilmGallery from "./films/TmdbFilmGallery";
 
 export default function PersonLanding() {
   const imgBaseUrl = "https://image.tmdb.org/t/p/original";
-  const [isLoading, setIsLoading] = useState(false);
-  const [personDetails, setPersonDetails] = useState<
-    TMDBPerson | Record<string, never>
-  >({});
-  const [filmography, setFilmography] = useState<TMDBFilmSummary[]>([]);
   const { job, tmdbId } = useParams({ strict: false });
   const [scrollPosition, setScrollPosition] = usePersistedState<number>(
     `${job}Landing-scrollPosition`,
     0,
   );
-  const [numWatched, setNumWatched] = useState(0);
-  const [numStarred, setNumStarred] = useState(0);
-  const [highestStar, setHighestStar] = useState(0);
-  const [score, setScore] = useState(0);
-  const [avgRating, setAvgRating] = useState(0);
 
   const { authState } = useAuth();
   const { setSearchModalOpen } = useApp();
 
-  async function fetchPageData() {
-    try {
-      setSearchModalOpen(false);
-      setIsLoading(true);
-      const result = await fetchPersonFromTMDB(tmdbId);
-      let filmographyList: TMDBFilmSummary[] | undefined;
-
-      if (job === "director") {
-        filmographyList = result.movie_credits.crew.filter(
-          (film) =>
-            (film as TMDBFilmSummary & { job?: string }).job === "Director",
-        );
-      }
-
-      if (job === "actor") {
-        filmographyList = result.movie_credits.cast;
-      }
-
-      if (!filmographyList) {
-        setPersonDetails(result);
-        setFilmography([]);
-        return;
-      }
-
-      // Filter out films without backdrop or poster path
-      let filteredFilmography = filmographyList.filter(
-        (film) => !(film.backdrop_path === null || film.poster_path === null),
-      );
-
-      // If director is deceased, filter out films released after their deathdate
-      if (result.deathday !== null) {
-        const deathDate = new Date(result.deathday);
-        filteredFilmography = filteredFilmography.filter((film) => {
-          if (!film.release_date) return false;
-          const filmDate = new Date(film.release_date);
-          return filmDate <= deathDate;
-        });
-      }
-
-      // Sort by most recent release date -> least recent
-      const sortedFilmography = filteredFilmography.sort((a, b) => {
-        const dateA = parseInt((a.release_date ?? "").replace("-", ""));
-        const dateB = parseInt((b.release_date ?? "").replace("-", ""));
-        return dateB - dateA;
-      });
-
-      setPersonDetails(result);
-      setFilmography(sortedFilmography);
-    } catch (err) {
-      console.error("Error loading film data: ", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function fetchUserInteraction() {
-    try {
-      setIsLoading(true);
-      const result = await checkDirectorStatus(tmdbId);
-      setNumWatched(result.watched);
-      setNumStarred(result.starred);
-      setHighestStar(result.highest_star);
-      setScore(result.score);
-      setAvgRating(result.avg_rating ?? 0);
-    } catch (err) {
-      console.error("Error loading director data: ", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  /* Hook for scroll restoration */
+  // Close search modal on mount/navigation
   useEffect(() => {
-    if (!isLoading) {
-      if (scrollPosition) {
-        setTimeout(() => {
-          window.scrollTo(0, parseInt(String(scrollPosition), 10));
-        }, 50);
-      } else {
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-        }, 0);
-      }
-
-      const handleScroll = () => {
-        setScrollPosition(window.scrollY);
-      };
-
-      const scrollTimer = setTimeout(() => {
-        window.addEventListener("scroll", handleScroll);
-      }, 500);
-
-      return () => {
-        clearTimeout(scrollTimer);
-        window.removeEventListener("scroll", handleScroll);
-      };
-    }
-  }, [isLoading]);
-
-  /* Fetch director's info for Landing Page */
-  useEffect(() => {
-    if (tmdbId) {
-      fetchPageData();
-      if (authState.status && job === "director") {
-        fetchUserInteraction();
-      }
-    }
+    setSearchModalOpen(false);
   }, [tmdbId]);
 
+  // Scroll restoration — runs once on mount (component only renders after loader resolves)
+  useEffect(() => {
+    if (scrollPosition) {
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(String(scrollPosition), 10));
+      }, 50);
+    } else {
+      window.scrollTo(0, 0);
+    }
+
+    const handleScroll = () => {
+      setScrollPosition(window.scrollY);
+    };
+
+    const scrollTimer = setTimeout(() => {
+      window.addEventListener("scroll", handleScroll);
+    }, 500);
+
+    return () => {
+      clearTimeout(scrollTimer);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  // Person data — loader pre-filled cache
+  const { data: personDetails } = useSuspenseQuery(personQueryOptions(tmdbId!));
   const person = personDetails as TMDBPerson;
 
-  if (!personDetails) {
-    return <div>{`Error loading ${job} landing page. Please try again.`}</div>;
-  }
+  // Director interaction stats — auth and job-conditional
+  const { data: directorStatus } = useQuery({
+    ...directorStatusQueryOptions(tmdbId!),
+    enabled: !!authState.status && job === "director",
+  });
+  const numWatched = directorStatus?.watched ?? 0;
+  const numStarred = directorStatus?.starred ?? 0;
+  const score = directorStatus?.score ?? 0;
+  const avgRating = directorStatus?.avg_rating ?? 0;
+
+  // Filmography derivation — pure transform from person data, no async
+  const filmography = useMemo<TMDBFilmSummary[]>(() => {
+    let list: TMDBFilmSummary[] | undefined;
+
+    if (job === "director") {
+      list = person.movie_credits?.crew?.filter(
+        (film) =>
+          (film as TMDBFilmSummary & { job?: string }).job === "Director",
+      );
+    } else if (job === "actor") {
+      list = person.movie_credits?.cast;
+    }
+
+    if (!list) return [];
+
+    let filtered = list.filter(
+      (film) => !(film.backdrop_path === null || film.poster_path === null),
+    );
+
+    if (person.deathday) {
+      const deathDate = new Date(person.deathday);
+      filtered = filtered.filter((film) => {
+        if (!film.release_date) return false;
+        return new Date(film.release_date) <= deathDate;
+      });
+    }
+
+    return filtered.sort((a, b) => {
+      const dateA = parseInt((a.release_date ?? "").replace("-", ""));
+      const dateB = parseInt((b.release_date ?? "").replace("-", ""));
+      return dateB - dateA;
+    });
+  }, [personDetails, job]);
 
   return (
     <div className="font-primary mt-[4.5rem]">
-      {isLoading && <LoadingPage />}
-
       {/* Text over backdrop */}
       <div className="landing-main-img-container">
         <div className="flex w-screen grayscale">

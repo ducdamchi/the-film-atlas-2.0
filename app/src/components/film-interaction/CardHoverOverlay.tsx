@@ -77,8 +77,6 @@ export default function CardHoverOverlay({
                 tmdbId={filmObject.id}
                 directors={directors}
                 movieDetails={movieDetails}
-                isLoading={isLoading}
-                setIsLoading={setIsLoading}
                 variant="card"
                 showOverview={false}
               />

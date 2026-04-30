@@ -1,12 +1,11 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { useNavigate, Link } from "@tanstack/react-router";
+import { useNavigate, useRouter, Link } from "@tanstack/react-router";
 import * as Yup from "yup";
 import axios from "axios";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import AuthBg from "./layout/AuthBg";
-
-import { useAuth } from "../utils/authContext";
-import { decodeToken } from "../utils/decodeToken";
 
 interface LoginValues {
   login: string;
@@ -22,33 +21,32 @@ interface LoginResponse {
 
 export default function LogIn() {
   const navigate = useNavigate();
+  const router = useRouter();
   const initialValues: LoginValues = {
     login: "",
     password: "",
   };
-  const { setAuthState } = useAuth();
+
+  const loginMutation = useMutation({
+    mutationFn: (data: LoginValues) =>
+      axios.post<LoginResponse>(
+        `${import.meta.env.VITE_API_URL}/auth/login`,
+        data,
+      ),
+    onSuccess: (response) => {
+      if (response.data.error) {
+        alert(response.data.error);
+        return;
+      }
+      localStorage.setItem("accessToken", response.data.token!);
+      router.invalidate();
+      navigate({ to: "/" });
+    },
+    onError: () => toast.error("Login failed. Please try again."),
+  });
 
   const onSubmit = (data: LoginValues) => {
-    axios
-      .post<LoginResponse>(`${import.meta.env.VITE_API_URL}/auth/login`, data)
-      .then((response) => {
-        if (response.data.error) {
-          alert(response.data.error);
-        } else {
-          localStorage.setItem("accessToken", response.data.token!);
-          const decoded = decodeToken(response.data.token!);
-          if (decoded) {
-            setAuthState(decoded);
-          } else {
-            setAuthState({
-              username: response.data.username!,
-              id: response.data.id!,
-              status: true,
-            });
-          }
-          navigate({ to: "/" });
-        }
-      });
+    loginMutation.mutate(data);
   };
 
   const validationSchema = Yup.object({
