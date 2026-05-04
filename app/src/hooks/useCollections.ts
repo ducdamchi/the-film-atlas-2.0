@@ -32,6 +32,16 @@ export function useCollections(): CollectionData[] {
     enabled: !!authState.status,
   });
 
+  // Subscribe (not snapshot) so the hook re-renders when either list changes
+  const { data: watchedFilms = [] } = useQuery({
+    ...watchedFilmsQueryOptions,
+    enabled: !!authState.status,
+  });
+  const { data: watchlistedFilms = [] } = useQuery({
+    ...watchlistedFilmsQueryOptions,
+    enabled: !!authState.status,
+  });
+
   return (rawCollections as AppCollection[]).map(
     (col: AppCollection): CollectionData => {
       const shared = {
@@ -46,19 +56,11 @@ export function useCollections(): CollectionData[] {
       };
 
       if (col.collection_type === "watched") {
-        const films =
-          queryClient.getQueryData<UserFilm[]>(
-            watchedFilmsQueryOptions.queryKey,
-          ) ?? [];
-        return { ...shared, queryString: "watched", films };
+        return { ...shared, queryString: "watched", films: watchedFilms };
       }
 
       if (col.collection_type === "watchlist") {
-        const films =
-          queryClient.getQueryData<UserFilm[]>(
-            watchlistedFilmsQueryOptions.queryKey,
-          ) ?? [];
-        return { ...shared, queryString: "watchlisted", films };
+        return { ...shared, queryString: "watchlisted", films: watchlistedFilms };
       }
 
       // Standard collection — read films from per-collection cache

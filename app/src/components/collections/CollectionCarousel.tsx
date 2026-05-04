@@ -75,10 +75,6 @@ export default function CollectionCarousel({
 
   const showArrows = realCount > slidesPerPage;
 
-  useEffect(() => {
-    console.log(collection);
-  }, []);
-
   const carouselWidth =
     slidesPerPage * CARD_WIDTH +
     (slidesPerPage - 1) * GAP +

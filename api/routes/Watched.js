@@ -310,7 +310,7 @@ router.post("/", validateToken, async (req, res) => {
            ("directorId", "userId", num_watched_films, num_starred_films,
             num_stars_total, avg_rating, highest_star)
          VALUES ($1, $2, 1, $3, $4, $5, $6)
-         ON CONFLICT DO NOTHING
+         ON CONFLICT ("directorId", "userId") DO NOTHING
          RETURNING id`,
         [
           director.tmdbId,

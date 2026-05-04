@@ -16,6 +16,7 @@ import {
   watchedFilmsQueryOptions,
   watchlistedFilmsQueryOptions,
 } from "@/queries/collections.queries";
+import { directorsQueryOptions } from "@/queries/directors.queries";
 import { useAuth } from "@/utils/authContext";
 
 import TripleStarRating from "./TripleStarRating";
@@ -71,10 +72,11 @@ export default function InteractionConsole({
     ...watchedFilmsQueryOptions,
     enabled: !!authState.status && !!tmdbId,
   });
-  const { data: watchlistedList = [], isLoading: isWatchlistedLoading } = useQuery({
-    ...watchlistedFilmsQueryOptions,
-    enabled: !!authState.status && !!tmdbId,
-  });
+  const { data: watchlistedList = [], isLoading: isWatchlistedLoading } =
+    useQuery({
+      ...watchlistedFilmsQueryOptions,
+      enabled: !!authState.status && !!tmdbId,
+    });
 
   const isStatusLoading = isWatchedLoading || isWatchlistedLoading;
 
@@ -88,7 +90,10 @@ export default function InteractionConsole({
     requestString: "like" | "save" | "rate",
   ): FilmInteractionRequest | FilmRateRequest {
     const directorsList: DirectorRef[] = directors.map((director) => ({
-      tmdbId: "tmdbId" in director ? director.tmdbId : (director as TMDBCrewMember).id,
+      tmdbId:
+        "tmdbId" in director
+          ? director.tmdbId
+          : (director as TMDBCrewMember).id,
       name: director.name,
       profile_path: director.profile_path,
     }));
@@ -163,37 +168,71 @@ export default function InteractionConsole({
       return unlikeFilm((movieDetails as TMDBFilm).id);
     },
     onMutate: async (shouldLike) => {
-      await queryClient.cancelQueries({ queryKey: watchedFilmsQueryOptions.queryKey });
-      await queryClient.cancelQueries({ queryKey: watchlistedFilmsQueryOptions.queryKey });
-      const previousWatched = queryClient.getQueryData<UserFilm[]>(watchedFilmsQueryOptions.queryKey);
-      const previousWatchlisted = queryClient.getQueryData<UserFilm[]>(watchlistedFilmsQueryOptions.queryKey);
+      await queryClient.cancelQueries({
+        queryKey: watchedFilmsQueryOptions.queryKey,
+      });
+      await queryClient.cancelQueries({
+        queryKey: watchlistedFilmsQueryOptions.queryKey,
+      });
+      const previousWatched = queryClient.getQueryData<UserFilm[]>(
+        watchedFilmsQueryOptions.queryKey,
+      );
+      const previousWatchlisted = queryClient.getQueryData<UserFilm[]>(
+        watchlistedFilmsQueryOptions.queryKey,
+      );
 
       if (shouldLike) {
-        const stars = requestedRating !== -1 ? (requestedRating as StarRating) : 0;
-        queryClient.setQueryData<UserFilm[]>(watchedFilmsQueryOptions.queryKey, (old = []) =>
-          old.some((f) => f.id === filmId) ? old : [buildOptimisticFilm(stars), ...old],
+        const stars =
+          requestedRating !== -1 ? (requestedRating as StarRating) : 0;
+        queryClient.setQueryData<UserFilm[]>(
+          watchedFilmsQueryOptions.queryKey,
+          (old = []) =>
+            old.some((f) => f.id === filmId)
+              ? old
+              : [buildOptimisticFilm(stars), ...old],
         );
         // Liking is mutually exclusive with saved
-        queryClient.setQueryData<UserFilm[]>(watchlistedFilmsQueryOptions.queryKey, (old = []) =>
-          old.filter((f) => f.id !== filmId),
+        queryClient.setQueryData<UserFilm[]>(
+          watchlistedFilmsQueryOptions.queryKey,
+          (old = []) => old.filter((f) => f.id !== filmId),
         );
       } else {
-        queryClient.setQueryData<UserFilm[]>(watchedFilmsQueryOptions.queryKey, (old = []) =>
-          old.filter((f) => f.id !== filmId),
+        queryClient.setQueryData<UserFilm[]>(
+          watchedFilmsQueryOptions.queryKey,
+          (old = []) => old.filter((f) => f.id !== filmId),
         );
       }
 
       return { previousWatched, previousWatchlisted };
     },
     onError: (_err, _vars, context) => {
-      queryClient.setQueryData(watchedFilmsQueryOptions.queryKey, context?.previousWatched);
-      queryClient.setQueryData(watchlistedFilmsQueryOptions.queryKey, context?.previousWatchlisted);
+      queryClient.setQueryData(
+        watchedFilmsQueryOptions.queryKey,
+        context?.previousWatched,
+      );
+      queryClient.setQueryData(
+        watchlistedFilmsQueryOptions.queryKey,
+        context?.previousWatchlisted,
+      );
       toast.error("Failed to update watch status");
     },
-    onSuccess: () => {
+    onSuccess: (_data, shouldLike) => {
+      const title = (movieDetails as TMDBFilm).title;
+      toast.success(
+        shouldLike
+          ? `Added "${title}" to Watched`
+          : `Removed "${title}" from Watched`,
+      );
       setRequestedRating(-1);
-      queryClient.invalidateQueries({ queryKey: watchedFilmsQueryOptions.queryKey });
-      queryClient.invalidateQueries({ queryKey: watchlistedFilmsQueryOptions.queryKey });
+      queryClient.invalidateQueries({
+        queryKey: watchedFilmsQueryOptions.queryKey,
+      });
+      queryClient.invalidateQueries({
+        queryKey: watchlistedFilmsQueryOptions.queryKey,
+      });
+      queryClient.invalidateQueries({
+        queryKey: directorsQueryOptions.queryKey,
+      });
     },
   });
 
@@ -204,35 +243,65 @@ export default function InteractionConsole({
         ? saveFilm(createReqBody("save") as FilmInteractionRequest)
         : unsaveFilm((movieDetails as TMDBFilm).id),
     onMutate: async (shouldSave) => {
-      await queryClient.cancelQueries({ queryKey: watchlistedFilmsQueryOptions.queryKey });
-      await queryClient.cancelQueries({ queryKey: watchedFilmsQueryOptions.queryKey });
-      const previousWatchlisted = queryClient.getQueryData<UserFilm[]>(watchlistedFilmsQueryOptions.queryKey);
-      const previousWatched = queryClient.getQueryData<UserFilm[]>(watchedFilmsQueryOptions.queryKey);
+      await queryClient.cancelQueries({
+        queryKey: watchlistedFilmsQueryOptions.queryKey,
+      });
+      await queryClient.cancelQueries({
+        queryKey: watchedFilmsQueryOptions.queryKey,
+      });
+      const previousWatchlisted = queryClient.getQueryData<UserFilm[]>(
+        watchlistedFilmsQueryOptions.queryKey,
+      );
+      const previousWatched = queryClient.getQueryData<UserFilm[]>(
+        watchedFilmsQueryOptions.queryKey,
+      );
 
       if (shouldSave) {
-        queryClient.setQueryData<UserFilm[]>(watchlistedFilmsQueryOptions.queryKey, (old = []) =>
-          old.some((f) => f.id === filmId) ? old : [buildOptimisticFilm(0), ...old],
+        queryClient.setQueryData<UserFilm[]>(
+          watchlistedFilmsQueryOptions.queryKey,
+          (old = []) =>
+            old.some((f) => f.id === filmId)
+              ? old
+              : [buildOptimisticFilm(0), ...old],
         );
         // Saving is mutually exclusive with liked
-        queryClient.setQueryData<UserFilm[]>(watchedFilmsQueryOptions.queryKey, (old = []) =>
-          old.filter((f) => f.id !== filmId),
+        queryClient.setQueryData<UserFilm[]>(
+          watchedFilmsQueryOptions.queryKey,
+          (old = []) => old.filter((f) => f.id !== filmId),
         );
       } else {
-        queryClient.setQueryData<UserFilm[]>(watchlistedFilmsQueryOptions.queryKey, (old = []) =>
-          old.filter((f) => f.id !== filmId),
+        queryClient.setQueryData<UserFilm[]>(
+          watchlistedFilmsQueryOptions.queryKey,
+          (old = []) => old.filter((f) => f.id !== filmId),
         );
       }
 
       return { previousWatchlisted, previousWatched };
     },
     onError: (_err, _vars, context) => {
-      queryClient.setQueryData(watchlistedFilmsQueryOptions.queryKey, context?.previousWatchlisted);
-      queryClient.setQueryData(watchedFilmsQueryOptions.queryKey, context?.previousWatched);
+      queryClient.setQueryData(
+        watchlistedFilmsQueryOptions.queryKey,
+        context?.previousWatchlisted,
+      );
+      queryClient.setQueryData(
+        watchedFilmsQueryOptions.queryKey,
+        context?.previousWatched,
+      );
       toast.error("Failed to update watchlist");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: watchlistedFilmsQueryOptions.queryKey });
-      queryClient.invalidateQueries({ queryKey: watchedFilmsQueryOptions.queryKey });
+    onSuccess: (_data, shouldSave) => {
+      const title = (movieDetails as TMDBFilm).title;
+      toast.success(
+        shouldSave
+          ? `Added "${title}" to Watchlist`
+          : `Removed "${title}" from Watchlist`,
+      );
+      queryClient.invalidateQueries({
+        queryKey: watchlistedFilmsQueryOptions.queryKey,
+      });
+      queryClient.invalidateQueries({
+        queryKey: watchedFilmsQueryOptions.queryKey,
+      });
     },
   });
 
@@ -240,20 +309,40 @@ export default function InteractionConsole({
   const rateMutation = useMutation({
     mutationFn: (req: FilmRateRequest) => rateFilm(req),
     onMutate: async (req) => {
-      await queryClient.cancelQueries({ queryKey: watchedFilmsQueryOptions.queryKey });
-      const previousWatched = queryClient.getQueryData<UserFilm[]>(watchedFilmsQueryOptions.queryKey);
-      queryClient.setQueryData<UserFilm[]>(watchedFilmsQueryOptions.queryKey, (old = []) =>
-        old.map((f) => (f.id === filmId ? { ...f, stars: req.stars } : f)),
+      await queryClient.cancelQueries({
+        queryKey: watchedFilmsQueryOptions.queryKey,
+      });
+      const previousWatched = queryClient.getQueryData<UserFilm[]>(
+        watchedFilmsQueryOptions.queryKey,
+      );
+      queryClient.setQueryData<UserFilm[]>(
+        watchedFilmsQueryOptions.queryKey,
+        (old = []) =>
+          old.map((f) => (f.id === filmId ? { ...f, stars: req.stars } : f)),
       );
       return { previousWatched };
     },
     onError: (_err, _vars, context) => {
-      queryClient.setQueryData(watchedFilmsQueryOptions.queryKey, context?.previousWatched);
+      queryClient.setQueryData(
+        watchedFilmsQueryOptions.queryKey,
+        context?.previousWatched,
+      );
       toast.error("Failed to update rating");
     },
-    onSuccess: () => {
+    onSuccess: (_data, req) => {
+      const title = (movieDetails as TMDBFilm).title;
+      toast.success(
+        req.stars === 0
+          ? `Cleared rating for "${title}"`
+          : `Set "${title}" rating to ${req.stars} stars`,
+      );
       setRequestedRating(-1);
-      queryClient.invalidateQueries({ queryKey: watchedFilmsQueryOptions.queryKey });
+      queryClient.invalidateQueries({
+        queryKey: watchedFilmsQueryOptions.queryKey,
+      });
+      queryClient.invalidateQueries({
+        queryKey: directorsQueryOptions.queryKey,
+      });
     },
   });
 

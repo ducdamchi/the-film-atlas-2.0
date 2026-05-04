@@ -75,7 +75,7 @@ router.get("/:tmdbId", validateToken, async (req, res) => {
     }
 
     const udsResult = await pool.query(
-      `SELECT num_watched_films, num_starred_films, highest_star, score, avg_rating
+      `SELECT num_watched_films, num_starred_films, highest_star, score, avg_rating, num_stars_total
        FROM "UserDirectorStats"
        WHERE "directorId" = $1 AND "userId" = $2 LIMIT 1`,
       [tmdbId, jwtUserId]

@@ -15,6 +15,8 @@ import {
 import {
   collectionsQueryOptions,
   collectionDetailQueryOptions,
+  watchedFilmsQueryOptions,
+  watchlistedFilmsQueryOptions,
 } from "@/queries/collections.queries";
 import { useCollections } from "@/hooks/useCollections";
 import type { AppCollection } from "@/utils/apiCalls";
@@ -124,8 +126,15 @@ export default function Collections() {
       );
       queryClient.setQueryData<AppCollection[]>(
         collectionsQueryOptions.queryKey,
-        (old = []) =>
-          old.map((c) => (c.id === id ? { ...c, is_pinned: pinned } : c)),
+        (old = []) => {
+          const updated = old.map((c) =>
+            c.id === id ? { ...c, is_pinned: pinned } : c,
+          );
+          return [
+            ...updated.filter((c) => c.is_pinned),
+            ...updated.filter((c) => !c.is_pinned),
+          ];
+        },
       );
       return { previous };
     },
@@ -276,12 +285,23 @@ export default function Collections() {
   /* ── Add / Remove films (API call happens in child, we just sync cache) ── */
 
   function handleAddFilmToCollection(collectionId: string, film: UserFilm) {
-    // Update per-collection film list
-    queryClient.setQueryData<{ collection: AppCollection; films: UserFilm[] }>(
-      collectionDetailQueryOptions(collectionId).queryKey,
-      (old) =>
-        old ? { ...old, films: [film, ...old.films] } : old,
-    );
+    const col = collections.find((c) => c.id === collectionId);
+    if (col?.collectionType === "watched") {
+      queryClient.setQueryData<UserFilm[]>(
+        watchedFilmsQueryOptions.queryKey,
+        (old = []) => [film, ...old],
+      );
+    } else if (col?.collectionType === "watchlist") {
+      queryClient.setQueryData<UserFilm[]>(
+        watchlistedFilmsQueryOptions.queryKey,
+        (old = []) => [film, ...old],
+      );
+    } else {
+      queryClient.setQueryData<{ collection: AppCollection; films: UserFilm[] }>(
+        collectionDetailQueryOptions(collectionId).queryKey,
+        (old) => (old ? { ...old, films: [film, ...old.films] } : old),
+      );
+    }
     // Update main list film_count + total_runtime (triggers useCollections re-render)
     queryClient.setQueryData<AppCollection[]>(
       collectionsQueryOptions.queryKey,
@@ -302,18 +322,38 @@ export default function Collections() {
     collectionId: string,
     filmId: number,
   ) {
-    const cached = queryClient.getQueryData<{
-      collection: AppCollection;
-      films: UserFilm[];
-    }>(collectionDetailQueryOptions(collectionId).queryKey);
-    const removedRuntime =
-      cached?.films.find((f) => f.id === filmId)?.runtime ?? 0;
+    const col = collections.find((c) => c.id === collectionId);
+    let removedRuntime = 0;
 
-    queryClient.setQueryData<{ collection: AppCollection; films: UserFilm[] }>(
-      collectionDetailQueryOptions(collectionId).queryKey,
-      (old) =>
-        old ? { ...old, films: old.films.filter((f) => f.id !== filmId) } : old,
-    );
+    if (col?.collectionType === "watched") {
+      const films =
+        queryClient.getQueryData<UserFilm[]>(watchedFilmsQueryOptions.queryKey) ?? [];
+      removedRuntime = films.find((f) => f.id === filmId)?.runtime ?? 0;
+      queryClient.setQueryData<UserFilm[]>(
+        watchedFilmsQueryOptions.queryKey,
+        (old = []) => old.filter((f) => f.id !== filmId),
+      );
+    } else if (col?.collectionType === "watchlist") {
+      const films =
+        queryClient.getQueryData<UserFilm[]>(watchlistedFilmsQueryOptions.queryKey) ?? [];
+      removedRuntime = films.find((f) => f.id === filmId)?.runtime ?? 0;
+      queryClient.setQueryData<UserFilm[]>(
+        watchlistedFilmsQueryOptions.queryKey,
+        (old = []) => old.filter((f) => f.id !== filmId),
+      );
+    } else {
+      const cached = queryClient.getQueryData<{
+        collection: AppCollection;
+        films: UserFilm[];
+      }>(collectionDetailQueryOptions(collectionId).queryKey);
+      removedRuntime = cached?.films.find((f) => f.id === filmId)?.runtime ?? 0;
+      queryClient.setQueryData<{ collection: AppCollection; films: UserFilm[] }>(
+        collectionDetailQueryOptions(collectionId).queryKey,
+        (old) =>
+          old ? { ...old, films: old.films.filter((f) => f.id !== filmId) } : old,
+      );
+    }
+
     queryClient.setQueryData<AppCollection[]>(
       collectionsQueryOptions.queryKey,
       (old = []) =>

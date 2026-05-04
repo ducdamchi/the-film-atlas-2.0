@@ -7,7 +7,10 @@ import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { useAuth } from "../utils/authContext";
 import { useApp } from "../utils/appContext";
 import { getNiceMonthDateYear, getAge } from "../utils/helperFunctions";
-import { personQueryOptions, directorStatusQueryOptions } from "../queries/person.queries";
+import {
+  personQueryOptions,
+  directorStatusQueryOptions,
+} from "../queries/person.queries";
 import { computeDirectorScore } from "@/utils/directorScore";
 import { usePersistedState } from "../hooks/usePersistedState";
 
@@ -76,6 +79,10 @@ export default function PersonLanding() {
         num_stars_total: directorStatus.num_stars_total ?? 0,
       })
     : 0;
+
+  useEffect(() => {
+    console.log(directorStatus);
+  }, [directorStatus]);
 
   // Filmography derivation — pure transform from person data, no async
   const filmography = useMemo<TMDBFilmSummary[]>(() => {
@@ -207,7 +214,7 @@ export default function PersonLanding() {
             <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Watched: ${numWatched}`}</div>
             <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Starred: ${numStarred}`}</div>
             <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Avg. Stars: ${avgRating}`}</div>
-            <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Score: ${score}`}</div>
+            <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Score: ${score.toFixed(2)}`}</div>
           </div>
         )}
       </div>
