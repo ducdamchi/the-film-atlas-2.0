@@ -8,6 +8,7 @@ import { useAuth } from "../utils/authContext";
 import { useApp } from "../utils/appContext";
 import { getNiceMonthDateYear, getAge } from "../utils/helperFunctions";
 import { personQueryOptions, directorStatusQueryOptions } from "../queries/person.queries";
+import { computeDirectorScore } from "@/utils/directorScore";
 import { usePersistedState } from "../hooks/usePersistedState";
 
 /* Types */
@@ -67,8 +68,14 @@ export default function PersonLanding() {
   });
   const numWatched = directorStatus?.watched ?? 0;
   const numStarred = directorStatus?.starred ?? 0;
-  const score = directorStatus?.score ?? 0;
   const avgRating = directorStatus?.avg_rating ?? 0;
+  const score = directorStatus
+    ? computeDirectorScore({
+        num_watched_films: numWatched,
+        num_starred_films: numStarred,
+        num_stars_total: directorStatus.num_stars_total ?? 0,
+      })
+    : 0;
 
   // Filmography derivation — pure transform from person data, no async
   const filmography = useMemo<TMDBFilmSummary[]>(() => {

@@ -60,6 +60,12 @@ export interface UserFilm {
   origin_country: string[]
   release_date: string
   added_date: string            // ISO 8601 datetime string
+  stars: number | null          // null = legacy; 0 = watched unrated; 1–3 = star rating
+  // Added in migration 006 — populated for all stored films after backfill
+  overview: string | null
+  original_title: string | null
+  spoken_languages: Array<{ iso_639_1: string; name: string; english_name: string }> | null
+  imdb_id: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -76,7 +82,6 @@ export interface DirectorStats {
   num_stars_total: number
   highest_star: number
   avg_rating: number
-  score: string | number   // stored as NUMERIC in DB, returned as string by pg driver
 }
 
 /**
@@ -97,8 +102,8 @@ export interface DirectorStatus {
   watched: number
   starred: number
   highest_star: number
-  score: number
   avg_rating?: number
+  num_stars_total?: number
 }
 
 // ---------------------------------------------------------------------------
@@ -156,6 +161,11 @@ export interface FilmInteractionRequest {
   directors: DirectorRef[]
   directorNamesForSorting: string
   stars?: StarRating
+  genres?: { id: number; name: string }[] | null
+  overview?: string | null
+  original_title?: string | null
+  spoken_languages?: Array<{ iso_639_1: string; name: string; english_name: string }> | null
+  imdb_id?: string | null
 }
 
 /**

@@ -1,22 +1,25 @@
 /* Libraries */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useLocation } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 
 /* Custom functions */
 import { useAuth } from "../utils/authContext";
-import { queryFilmFromTMDB, fetchListByParams } from "../utils/apiCalls";
+import { queryFilmFromTMDB } from "../utils/apiCalls";
 import { usePersistedState } from "../hooks/usePersistedState";
+import {
+  watchedFilmsQueryOptions,
+  watchlistedFilmsQueryOptions,
+} from "@/queries/collections.queries";
 
 /* Types */
 import type { TMDBFilmSummary } from "@/types/tmdb";
-import type { UserFilm } from "@/types/film";
 
 /* Components */
 import SearchBar from "./search/SearchBar";
 import UserFilmGallery from "./films/UserFilmGallery";
 import TmdbFilmGallery from "./films/TmdbFilmGallery";
 import Toggle from "./ui-custom/Toggle";
-import Footer from "./layout/Footer";
 
 /* Icons */
 import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa";
@@ -31,7 +34,6 @@ export default function Films() {
     "",
   );
   const [searchResult, setSearchResult] = useState<TMDBFilmSummary[]>([]);
-  const [userFilmList, setUserFilmList] = useState<UserFilm[]>([]);
   const [isSearching, setIsSearching] = usePersistedState<boolean>(
     "films-isSearching",
     false,
@@ -57,8 +59,36 @@ export default function Films() {
     0,
   );
   const { authState } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
+
+  const { data: watchedList = [], isLoading: watchedLoading } = useQuery({
+    ...watchedFilmsQueryOptions,
+    enabled: !!authState.status,
+  });
+  const { data: watchlistedList = [], isLoading: watchlistedLoading } = useQuery({
+    ...watchlistedFilmsQueryOptions,
+    enabled: !!authState.status,
+  });
+
+  const isLoading = queryString === "watchlisted" ? watchlistedLoading : watchedLoading;
+
+  const displayList = useMemo(() => {
+    const base = queryString === "watchlisted" ? watchlistedList : watchedList;
+    let list = [...base];
+
+    if (queryString === "watched/rated") {
+      list = list.filter((f) => (f.stars ?? 0) > 0);
+      if (numStars > 0) list = list.filter((f) => f.stars === numStars);
+    }
+
+    list.sort((a, b) => {
+      const key = sortBy === "released_date" ? "release_date" : "added_date";
+      const dir = sortDirection === "asc" ? 1 : -1;
+      return a[key] < b[key] ? -dir : a[key] > b[key] ? dir : 0;
+    });
+
+    return list;
+  }, [watchedList, watchlistedList, queryString, numStars, sortBy, sortDirection]);
 
   /* Hook for scroll restoration */
   useEffect(() => {
@@ -133,29 +163,6 @@ export default function Films() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  /* Fetch User's film list (liked, watchlisted or starred) from App's DB */
-  useEffect(() => {
-    if (authState.status) {
-      const fetchUserFilmList = async () => {
-        try {
-          setIsLoading(true);
-          const results = await fetchListByParams({
-            queryString: queryString,
-            sortBy: sortBy,
-            sortDirection: sortDirection,
-            numStars: numStars,
-          });
-          setUserFilmList(results);
-        } catch (err) {
-          console.error("Error Fetching User Film List: ", err);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchUserFilmList();
-    }
-  }, [sortBy, sortDirection, queryString, numStars, authState.status]);
-
   return (
     <div className="font-primary mt-20 min-h-screen">
       {/* Wrapper for entire page */}
@@ -170,7 +177,7 @@ export default function Films() {
 
         {!isSearching && (
           <div className="yourListConsole">
-            <div className="page-subtitle mb-2 md:ml-12 ">Your Films:</div>
+            {/* <div className="page-subtitle mb-2 md:ml-12 ">Your Films:</div> */}
 
             <Toggle<QueryString>
               label="Filter"
@@ -253,7 +260,7 @@ export default function Films() {
           {/* If user logged in and is not searching, show them list of liked films */}
           {!isSearching && authState.status && (
             <UserFilmGallery
-              listOfFilmObjects={userFilmList}
+              listOfFilmObjects={displayList}
               queryString={queryString}
               sortDirection={sortDirection}
               sortBy={sortBy}

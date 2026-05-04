@@ -75,6 +75,10 @@ export default function CollectionCarousel({
 
   const showArrows = realCount > slidesPerPage;
 
+  useEffect(() => {
+    console.log(collection);
+  }, []);
+
   const carouselWidth =
     slidesPerPage * CARD_WIDTH +
     (slidesPerPage - 1) * GAP +
@@ -271,10 +275,18 @@ export default function CollectionCarousel({
               isSystemCollection={isSystemCollection}
               navButtonWidth={NAV_BUTTON_WIDTH}
               onAdd={() => setIsAddModalOpen(true)}
-              onDelete={() => deleteCollection(id).then(() => { onDelete?.(id); })}
+              onDelete={() =>
+                deleteCollection(id).then(() => {
+                  onDelete?.(id);
+                })
+              }
               onTogglePin={onTogglePin ? () => onTogglePin(id) : undefined}
-              onToggleVisibility={onToggleVisibility ? () => onToggleVisibility(id) : undefined}
-              onRename={onRename ? (newTitle) => onRename(id, newTitle) : undefined}
+              onToggleVisibility={
+                onToggleVisibility ? () => onToggleVisibility(id) : undefined
+              }
+              onRename={
+                onRename ? (newTitle) => onRename(id, newTitle) : undefined
+              }
             />
 
             {realCount === 0 ? (
@@ -347,7 +359,11 @@ export default function CollectionCarousel({
               description={collectionHeaderProps.description}
               isSystemCollection={isSystemCollection}
               navButtonWidth={NAV_BUTTON_WIDTH}
-              onUpdateDescription={onUpdateDescription ? (newDesc) => onUpdateDescription(id, newDesc) : undefined}
+              onUpdateDescription={
+                onUpdateDescription
+                  ? (newDesc) => onUpdateDescription(id, newDesc)
+                  : undefined
+              }
             />
           </>
         )}

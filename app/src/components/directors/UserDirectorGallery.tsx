@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 
 import type { Director } from "@/types/film"
+import { computeDirectorScore } from "@/utils/directorScore"
 
 type SortBy = "name" | "score" | "highest_star"
 type SortDirection = "asc" | "desc"
@@ -53,13 +54,8 @@ export default function UserDirectorGallery({
             groupName = targetKey
             break
           case "score": {
-            const score = director.WatchedDirectors.score
-            if (!score) {
-              console.error("Director's Score not found.")
-              return groups
-            }
-            //director.score is a float number (max 4 digits, max 2 decimal points) written as a string. First, split() the string, which will return two parts, the integer and the decimal points. Then, use the integer part as the targetKey
-            const splits = String(score).split(".")
+            const score = computeDirectorScore(director.WatchedDirectors)
+            const splits = score.toFixed(2).split(".")
             targetKey = splits[0]
             groupName = targetKey
             break
@@ -133,10 +129,6 @@ export default function UserDirectorGallery({
     }
   }, [listOfDirectorObjects, sortBy, sortDirection])
 
-  /* Avg_rating: total stars / total films watched. max value = 3
-  watchScore: use logarithm function that rewards a director when a user watches multiple films from them. max value = 1 (when user watches 10 or more films, watchScore = 1)
-  finalScore: max(avg_rating) = 3; max(watchScore) = 1; multiply avg_rating by 2 (max 6); multiply watchScore by 4 (max 4). This will achieve a score on a scale of 10, where avg_rating has 60% weight, and num_watched_films has 40% weight.*/
-
   return (
     <div>
       {listOfDirectorObjects.length === 0 && (
@@ -191,7 +183,7 @@ export default function UserDirectorGallery({
                             {`Starred: ${groupObject.WatchedDirectors.num_starred_films}`}
                           </span>
                           <span>
-                            {`Score: ${groupObject.WatchedDirectors.score}`}
+                            {`Score: ${computeDirectorScore(groupObject.WatchedDirectors).toFixed(2)}`}
                           </span>
                         </div>
                       )}

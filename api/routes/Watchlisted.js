@@ -24,6 +24,7 @@ router.get("/", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
+         f.overview, f.original_title, f.spoken_languages, f.imdb_id,
          wlf."createdAt" AS added_date
        FROM "WatchlistedFilms" wlf
        JOIN "Films" f ON f.id = wlf."filmId"
@@ -58,6 +59,7 @@ router.get("/by_country", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
+         f.overview, f.original_title, f.spoken_languages, f.imdb_id,
          wlf."createdAt" AS added_date
        FROM "WatchlistedFilms" wlf
        JOIN "Films" f ON f.id = wlf."filmId"
@@ -110,15 +112,19 @@ router.post("/", validateToken, async (req, res) => {
     const jwtUserId = req.user.id
     const reqData = req.body
 
-    // Upsert Film (update genres/overview if newly available)
+    // Upsert Film
     await client.query(
       `INSERT INTO "Films"
          (id, title, runtime, directors, "directorNamesForSorting",
-          poster_path, backdrop_path, origin_country, release_date, genres, overview)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+          poster_path, backdrop_path, origin_country, release_date, genres, overview,
+          original_title, spoken_languages, imdb_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
        ON CONFLICT (id) DO UPDATE SET
-         genres = COALESCE(EXCLUDED.genres, "Films".genres),
-         overview = COALESCE(EXCLUDED.overview, "Films".overview)`,
+         genres           = COALESCE(EXCLUDED.genres,           "Films".genres),
+         overview         = COALESCE(EXCLUDED.overview,         "Films".overview),
+         original_title   = COALESCE(EXCLUDED.original_title,   "Films".original_title),
+         spoken_languages = COALESCE(EXCLUDED.spoken_languages, "Films".spoken_languages),
+         imdb_id          = COALESCE(EXCLUDED.imdb_id,          "Films".imdb_id)`,
       [
         reqData.tmdbId,
         reqData.title,
@@ -131,6 +137,9 @@ router.post("/", validateToken, async (req, res) => {
         reqData.release_date,
         reqData.genres ? JSON.stringify(reqData.genres) : null,
         reqData.overview || null,
+        reqData.original_title || null,
+        reqData.spoken_languages ? JSON.stringify(reqData.spoken_languages) : null,
+        reqData.imdb_id || null,
       ]
     )
 

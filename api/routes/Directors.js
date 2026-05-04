@@ -9,8 +9,6 @@ const SORT_COLUMNS = {
   name_asc: `d.name DESC`,
   highest_star_desc: `uds.highest_star DESC`,
   highest_star_asc: `uds.highest_star ASC`,
-  score_desc: `uds.score DESC`,
-  score_asc: `uds.score ASC`,
 }
 
 /* GET: Fetch all directors whose films a user has watched */
@@ -30,8 +28,7 @@ router.get("/", validateToken, async (req, res) => {
          uds.num_starred_films  AS "UserDirectorStats.num_starred_films",
          uds.num_stars_total    AS "UserDirectorStats.num_stars_total",
          uds.highest_star       AS "UserDirectorStats.highest_star",
-         uds.avg_rating         AS "UserDirectorStats.avg_rating",
-         uds.score              AS "UserDirectorStats.score"
+         uds.avg_rating         AS "UserDirectorStats.avg_rating"
        FROM "UserDirectorStats" uds
        JOIN "Directors" d ON d.id = uds."directorId"
        WHERE uds."userId" = $1
@@ -50,7 +47,6 @@ router.get("/", validateToken, async (req, res) => {
         num_stars_total: row["UserDirectorStats.num_stars_total"],
         highest_star: row["UserDirectorStats.highest_star"],
         avg_rating: row["UserDirectorStats.avg_rating"],
-        score: row["UserDirectorStats.score"],
       },
     }))
 
@@ -75,7 +71,7 @@ router.get("/:tmdbId", validateToken, async (req, res) => {
     if (directorResult.rows.length === 0) {
       return res
         .status(200)
-        .json({ watched: 0, starred: 0, highest_star: 0, score: 0 })
+        .json({ watched: 0, starred: 0, highest_star: 0 })
     }
 
     const udsResult = await pool.query(
@@ -88,7 +84,7 @@ router.get("/:tmdbId", validateToken, async (req, res) => {
     if (udsResult.rows.length === 0) {
       return res
         .status(200)
-        .json({ watched: 0, starred: 0, highest_star: 0, score: 0 })
+        .json({ watched: 0, starred: 0, highest_star: 0 })
     }
 
     const row = udsResult.rows[0]
@@ -96,8 +92,8 @@ router.get("/:tmdbId", validateToken, async (req, res) => {
       watched: row.num_watched_films,
       starred: row.num_starred_films,
       highest_star: row.highest_star,
-      score: row.score,
       avg_rating: row.avg_rating,
+      num_stars_total: row.num_stars_total,
     })
   } catch (err) {
     console.error(err)

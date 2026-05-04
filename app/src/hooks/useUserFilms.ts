@@ -1,5 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchListByParams } from "@/utils/apiCalls";
+import { useMemo } from "react";
+import {
+  watchedFilmsQueryOptions,
+  watchlistedFilmsQueryOptions,
+} from "@/queries/collections.queries";
 import type { UserFilm } from "@/types/film";
 import type { AuthState } from "@/types/auth";
 import type { PopupInfo } from "@/types/map";
@@ -23,31 +27,38 @@ export function useUserFilms({
   sortDirection,
   numStars,
 }: UseUserFilmsParams) {
-  const enabled =
-    !!authState.status &&
-    !isDiscoverMode &&
-    !!popupInfo?.iso_a2;
+  const enabled = !!authState.status && !isDiscoverMode && !!popupInfo?.iso_a2;
+  const country = popupInfo?.iso_a2 ?? null;
 
-  const { data, isLoading } = useQuery<UserFilm[]>({
-    queryKey: [
-      "user-films",
-      queryString,
-      popupInfo?.iso_a2,
-      sortBy,
-      sortDirection,
-      numStars,
-    ],
-    queryFn: () =>
-      fetchListByParams({
-        queryString,
-        countryCode: popupInfo!.iso_a2,
-        sortBy,
-        sortDirection,
-        numStars,
-      }),
-    enabled,
-    staleTime: 0,
+  const isWatchlisted = queryString === "watchlisted/by_country";
+  const isRated = queryString === "watched/rated/by_country";
+
+  const { data: watchedList = [], isLoading: watchedLoading } = useQuery({
+    ...watchedFilmsQueryOptions,
+    enabled: enabled && !isWatchlisted,
+  });
+  const { data: watchlistedList = [], isLoading: watchlistedLoading } = useQuery({
+    ...watchlistedFilmsQueryOptions,
+    enabled: enabled && isWatchlisted,
   });
 
-  return { userFilmList: data ?? [], isLoading };
+  const isLoading = isWatchlisted ? watchlistedLoading : watchedLoading;
+
+  const userFilmList = useMemo<UserFilm[]>(() => {
+    if (!country) return [];
+    const base = isWatchlisted ? watchlistedList : watchedList;
+
+    let list = base.filter((f) => f.origin_country.includes(country));
+
+    if (isRated) list = list.filter((f) => (f.stars ?? 0) > 0);
+    if (numStars && numStars > 0) list = list.filter((f) => f.stars === numStars);
+
+    return [...list].sort((a, b) => {
+      const key = sortBy === "released_date" ? "release_date" : "added_date";
+      const dir = sortDirection === "asc" ? 1 : -1;
+      return a[key] < b[key] ? -dir : a[key] > b[key] ? dir : 0;
+    });
+  }, [watchedList, watchlistedList, country, isWatchlisted, isRated, numStars, sortBy, sortDirection]);
+
+  return { userFilmList, isLoading };
 }

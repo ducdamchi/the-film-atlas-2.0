@@ -6,20 +6,6 @@ const { sql } = require("kysely")
 const { validateToken } = require("../middlewares/AuthMiddleware")
 const { updateAggregates, getSystemCollectionId } = require("../utils/collectionAggregates")
 
-/* Avg_rating: total stars / total films watched. max value = 3
-  watchScore: logarithm function that rewards watching multiple films. max value = 1 (at 10+ films)
-  finalScore: avg_rating * 2 (max 6) + watchScore * 4 (max 4) = score on scale of 10 */
-function calculateScore(num_stars_total, num_starred_films, num_watched_films) {
-  const watchScore = Math.min(1, Math.log(num_watched_films + 1) / Math.log(10))
-  if (parseInt(num_starred_films) === 0) {
-    return Number(watchScore * 4).toFixed(2)
-  } else {
-    return Number(
-      (num_stars_total / num_starred_films) * 2 + watchScore * 4
-    ).toFixed(2)
-  }
-}
-
 // ORDER BY whitelist — never interpolate user input directly into SQL
 const WATCHED_SORT_COLUMNS = {
   added_date: `wf."createdAt"`,
@@ -44,7 +30,9 @@ router.get("/", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
-         wf."createdAt" AS added_date
+         f.overview, f.original_title, f.spoken_languages, f.imdb_id,
+         wf."createdAt" AS added_date,
+         wf.stars
        FROM "WatchedFilms" wf
        JOIN "Films" f ON f.id = wf."filmId"
        WHERE wf."userId" = $1
@@ -84,6 +72,7 @@ router.get("/rated", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
+         f.overview, f.original_title, f.spoken_languages, f.imdb_id,
          wf."updatedAt" AS added_date
        FROM "WatchedFilms" wf
        JOIN "Films" f ON f.id = wf."filmId"
@@ -129,6 +118,7 @@ router.get("/by_country", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
+         f.overview, f.original_title, f.spoken_languages, f.imdb_id,
          wf."createdAt" AS added_date
        FROM "WatchedFilms" wf
        JOIN "Films" f ON f.id = wf."filmId"
@@ -174,6 +164,7 @@ router.get("/rated/by_country", validateToken, async (req, res) => {
       `SELECT
          f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
          f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
+         f.overview, f.original_title, f.spoken_languages, f.imdb_id,
          wf."updatedAt" AS added_date
        FROM "WatchedFilms" wf
        JOIN "Films" f ON f.id = wf."filmId"
@@ -231,15 +222,19 @@ router.post("/", validateToken, async (req, res) => {
     const jwtUserId = req.user.id
     const reqData = req.body
 
-    // Upsert Film (update genres/overview if newly available)
+    // Upsert Film
     await client.query(
       `INSERT INTO "Films"
          (id, title, runtime, directors, "directorNamesForSorting",
-          poster_path, backdrop_path, origin_country, release_date, genres, overview)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+          poster_path, backdrop_path, origin_country, release_date, genres, overview,
+          original_title, spoken_languages, imdb_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
        ON CONFLICT (id) DO UPDATE SET
-         genres = COALESCE(EXCLUDED.genres, "Films".genres),
-         overview = COALESCE(EXCLUDED.overview, "Films".overview)`,
+         genres           = COALESCE(EXCLUDED.genres,           "Films".genres),
+         overview         = COALESCE(EXCLUDED.overview,         "Films".overview),
+         original_title   = COALESCE(EXCLUDED.original_title,   "Films".original_title),
+         spoken_languages = COALESCE(EXCLUDED.spoken_languages, "Films".spoken_languages),
+         imdb_id          = COALESCE(EXCLUDED.imdb_id,          "Films".imdb_id)`,
       [
         reqData.tmdbId,
         reqData.title,
@@ -252,6 +247,9 @@ router.post("/", validateToken, async (req, res) => {
         reqData.release_date,
         reqData.genres ? JSON.stringify(reqData.genres) : null,
         reqData.overview || null,
+        reqData.original_title || null,
+        reqData.spoken_languages ? JSON.stringify(reqData.spoken_languages) : null,
+        reqData.imdb_id || null,
       ]
     )
 
@@ -310,8 +308,8 @@ router.post("/", validateToken, async (req, res) => {
       const udsResult = await client.query(
         `INSERT INTO "UserDirectorStats"
            ("directorId", "userId", num_watched_films, num_starred_films,
-            num_stars_total, avg_rating, highest_star, score)
-         VALUES ($1, $2, 1, $3, $4, $5, $6, $7)
+            num_stars_total, avg_rating, highest_star)
+         VALUES ($1, $2, 1, $3, $4, $5, $6)
          ON CONFLICT DO NOTHING
          RETURNING id`,
         [
@@ -321,9 +319,6 @@ router.post("/", validateToken, async (req, res) => {
           reqData.stars,
           reqData.stars === 0 ? 0 : reqData.stars,
           reqData.stars,
-          reqData.stars === 0
-            ? calculateScore(reqData.stars, 0, 1)
-            : calculateScore(reqData.stars, 1, 1),
         ]
       )
 
@@ -366,9 +361,8 @@ router.post("/", validateToken, async (req, res) => {
              num_stars_total   = $3,
              avg_rating        = $4,
              highest_star      = $5,
-             score             = $6,
              "updatedAt"       = now()
-           WHERE id = $7`,
+           WHERE id = $6`,
           [
             agg.num_watched_films,
             agg.num_starred_films,
@@ -377,11 +371,6 @@ router.post("/", validateToken, async (req, res) => {
               ? 0
               : agg.num_stars_total / agg.num_starred_films,
             agg.highest_star,
-            calculateScore(
-              agg.num_stars_total,
-              agg.num_starred_films,
-              agg.num_watched_films
-            ),
             directorStatsId,
           ]
         )
@@ -494,9 +483,8 @@ router.delete("/", validateToken, async (req, res) => {
              num_stars_total   = $3,
              avg_rating        = $4,
              highest_star      = $5,
-             score             = $6,
              "updatedAt"       = now()
-           WHERE id = $7`,
+           WHERE id = $6`,
           [
             agg.num_watched_films,
             agg.num_starred_films,
@@ -505,11 +493,6 @@ router.delete("/", validateToken, async (req, res) => {
               ? 0
               : agg.num_stars_total / agg.num_starred_films,
             agg.highest_star,
-            calculateScore(
-              agg.num_stars_total,
-              agg.num_starred_films,
-              agg.num_watched_films
-            ),
             directorStatsId,
           ]
         )
@@ -600,9 +583,8 @@ router.put("/", validateToken, async (req, res) => {
            num_stars_total   = $3,
            avg_rating        = $4,
            highest_star      = $5,
-           score             = $6,
            "updatedAt"       = now()
-         WHERE id = $7`,
+         WHERE id = $6`,
         [
           agg.num_watched_films,
           agg.num_starred_films,
@@ -611,11 +593,6 @@ router.put("/", validateToken, async (req, res) => {
             ? 0
             : agg.num_stars_total / agg.num_starred_films,
           agg.highest_star,
-          calculateScore(
-            agg.num_stars_total,
-            agg.num_starred_films,
-            agg.num_watched_films
-          ),
           directorStatsId,
         ]
       )

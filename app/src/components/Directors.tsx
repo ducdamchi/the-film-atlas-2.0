@@ -1,17 +1,13 @@
 /* Libraries */
 import { useEffect, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 
 /* Custom functions */
 import { useAuth } from "../utils/authContext";
-import {
-  queryPersonFromTMDB,
-  fetchDirectorListByParams,
-} from "../utils/apiCalls";
+import { queryPersonFromTMDB } from "../utils/apiCalls";
 import { usePersistedState } from "../hooks/usePersistedState";
-
-/* Types */
-import type { Director } from "@/types/film";
+import { directorsQueryOptions } from "@/queries/directors.queries";
 
 /**
  * TMDB /search/person result shape — includes `known_for` which the
@@ -54,15 +50,9 @@ export default function Directors() {
     "",
   );
   const [searchResult, setSearchResult] = useState<DirectorSearchResult[]>([]);
-  const [userDirectorList, setUserDirectorList] = useState<Director[]>([]);
   const [isSearching, setIsSearching] = usePersistedState<boolean>(
     "directors-isSearching",
     false,
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [numStars, setNumStars] = usePersistedState<number>(
-    "directors-numStars",
-    0,
   );
   const [sortBy, setSortBy] = usePersistedState<DirectorSortBy>(
     "directors-sortBy",
@@ -78,6 +68,11 @@ export default function Directors() {
   );
   const { authState } = useAuth();
   const location = useLocation();
+
+  const { data: directorData = [], isLoading } = useQuery({
+    ...directorsQueryOptions,
+    enabled: !!authState.status,
+  });
 
   /* Hook for scroll restoration */
   useEffect(() => {
@@ -150,28 +145,6 @@ export default function Directors() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  /* Fetch User's Directors list from App's DB */
-  useEffect(() => {
-    if (authState.status) {
-      const fetchUserDirectorList = async () => {
-        try {
-          setIsLoading(true);
-          const result = await fetchDirectorListByParams({
-            sortBy: sortBy,
-            sortDirection: sortDirection,
-            numStars: numStars,
-          });
-          setUserDirectorList(result);
-        } catch (err) {
-          console.error("Error Fetching Directors List: ", err);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchUserDirectorList();
-    }
-  }, [sortDirection, sortBy, numStars]);
-
   return (
     <div className="font-primary mt-20 min-h-screen">
       {/* Wrapper for entire page */}
@@ -186,7 +159,7 @@ export default function Directors() {
 
         {!isSearching && (
           <div className="yourListConsole">
-            <span className="page-subtitle mb-2 md:ml-12">Your Directors:</span>
+            {/* <span className="page-subtitle mb-2 md:ml-12">Your Directors:</span> */}
             <Toggle<DirectorSortBy>
               label="Sort By"
               value={sortBy}
@@ -241,7 +214,7 @@ export default function Directors() {
         {!isSearching && !isLoading && authState.status && (
           <div className="mt-10">
             <UserDirectorGallery
-              listOfDirectorObjects={userDirectorList}
+              listOfDirectorObjects={directorData}
               sortDirection={sortDirection}
               sortBy={sortBy}
             />

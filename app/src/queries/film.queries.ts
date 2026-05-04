@@ -5,8 +5,6 @@ import {
   fetchFilmAwardsFromWikidata,
   fetchFilmFromYTS,
   fetchSubtitles,
-  checkLikeStatus,
-  checkSaveStatus,
 } from "@/utils/apiCalls"
 
 export const filmQueryOptions = (tmdbId: string | number) =>
@@ -45,18 +43,3 @@ export const subtitlesQueryOptions = (imdbId: string) =>
     staleTime: 1000 * 60 * 5,
   })
 
-export const likeStatusQueryOptions = (tmdbId: number | string) =>
-  queryOptions({
-    queryKey: ["watched", String(tmdbId)],
-    queryFn: () => checkLikeStatus(tmdbId),
-    staleTime: 0,
-    retry: false,
-  })
-
-export const saveStatusQueryOptions = (tmdbId: number | string) =>
-  queryOptions({
-    queryKey: ["watchlisted", String(tmdbId)],
-    queryFn: () => checkSaveStatus(tmdbId),
-    staleTime: 0,
-    retry: false,
-  })

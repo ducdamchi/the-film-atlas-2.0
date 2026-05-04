@@ -1,85 +1,54 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchFilmFromTMDB } from "@/utils/apiCalls";
-import type { TMDBFilm, TMDBCrewMember } from "@/types/tmdb";
+import { useQuery } from "@tanstack/react-query";
+import { filmQueryOptions } from "@/queries/film.queries";
+import type { TMDBCrewMember } from "@/types/tmdb";
 
+/**
+ * Used only by TmdbFilmCard (Map/discover mode).
+ * Fetches full TMDB details on hover (debounced 1s) and caches the result
+ * under ["film", id] for 10 minutes via TanStack Query.
+ * UserFilmCard no longer uses this hook — its overlay data comes from the
+ * stored filmObject returned by the watched/watchlisted/collections list query.
+ */
 export function useFilmCardFetch(filmId: number) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [fetchError, setFetchError] = useState(false);
-  const [movieDetails, setMovieDetails] = useState<TMDBFilm | Record<string, never>>({});
-  const [directors, setDirectors] = useState<TMDBCrewMember[]>([]);
+  const [shouldFetch, setShouldFetch] = useState(false);
   const [isPosterHovered, setIsPosterHovered] = useState(false);
-
-  const hasFetchedRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchData = async () => {
-    if (hasFetchedRef.current) return;
-    hasFetchedRef.current = true;
-    try {
-      setIsLoading(true);
-      const result = await fetchFilmFromTMDB(filmId);
-      const directorsList = result.credits.crew.filter(
-        (crewMember: TMDBCrewMember) => crewMember.job === "Director",
-      );
-      setMovieDetails(result);
-      setDirectors(directorsList);
-    } catch (err) {
-      console.error("Error loading film data: ", err);
-      setFetchError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Fetch on mount if already mobile
   useEffect(() => {
-    if (window.innerWidth < 768) fetchData();
-  }, []);
-
-  // Fetch when resizing into mobile
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) fetchData();
+    if (window.innerWidth < 768) setShouldFetch(true);
+    const onResize = () => {
+      if (window.innerWidth < 768) setShouldFetch(true);
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  const { data, isError } = useQuery({
+    ...filmQueryOptions(filmId),
+    enabled: shouldFetch,
+  });
+
+  const directors = (data?.credits?.crew ?? []).filter(
+    (c: TMDBCrewMember) => c.job === "Director",
+  );
 
   const handleCardHoverEnter = () => {
-    if (hasFetchedRef.current || window.innerWidth < 768) return;
-    setIsLoading(true);
-    debounceRef.current = setTimeout(async () => {
-      if (hasFetchedRef.current) return;
-      hasFetchedRef.current = true;
-      try {
-        const result = await fetchFilmFromTMDB(filmId);
-        const directorsList = result.credits.crew.filter(
-          (crewMember: TMDBCrewMember) => crewMember.job === "Director",
-        );
-        setMovieDetails(result);
-        setDirectors(directorsList);
-      } catch (err) {
-        console.error("Error loading film data: ", err);
-        setFetchError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 1000);
+    if (shouldFetch || window.innerWidth < 768) return;
+    debounceRef.current = setTimeout(() => setShouldFetch(true), 1000);
   };
 
   const handleCardHoverLeave = () => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
-      if (!hasFetchedRef.current) setIsLoading(false);
     }
   };
 
   return {
-    isLoading,
-    setIsLoading,
-    fetchError,
-    movieDetails,
+    isLoading: !data && !isError,
+    fetchError: isError,
+    movieDetails: data ?? {},
     directors,
     isPosterHovered,
     setIsPosterHovered,

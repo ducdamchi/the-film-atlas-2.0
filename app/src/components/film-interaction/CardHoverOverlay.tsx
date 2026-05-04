@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import InteractionConsole from "./InteractionConsole";
 import SkeletonBlock from "@/components/ui-custom/SkeletonBlock";
@@ -8,11 +7,10 @@ import type {
   TMDBCrewMember,
   TMDBSpokenLanguage,
 } from "@/types/tmdb";
-import type { UserFilm } from "@/types/film";
+import type { UserFilm, DirectorRef } from "@/types/film";
 import type { DiscoverPageState } from "@/types/map";
 import { IoIosTimer } from "react-icons/io";
 import { IoLanguageSharp, IoWarning } from "react-icons/io5";
-import { BiPlus } from "react-icons/bi";
 
 // function useOverlayVariant(): "overlay-sm" | "overlay-lg" {
 //   const [isLg, setIsLg] = useState(
@@ -31,11 +29,10 @@ interface CardHoverOverlayProps {
   hoverId: number | null;
   /** Either a TMDB film summary (from the discover gallery) or a user's saved film */
   filmObject: TMDBFilmSummary | UserFilm;
-  directors: TMDBCrewMember[];
-  /** Full TMDB film detail — may be an empty object `{}` while loading */
-  movieDetails: TMDBFilm | Record<string, never>;
+  directors: TMDBCrewMember[] | DirectorRef[];
+  /** Full TMDB detail, stored UserFilm, or empty object while loading */
+  movieDetails: TMDBFilm | UserFilm | Record<string, never>;
   isLoading: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   fetchError?: boolean;
   showOverview: boolean;
   setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>;
@@ -50,7 +47,6 @@ export default function CardHoverOverlay({
   directors,
   movieDetails,
   isLoading,
-  setIsLoading,
   fetchError = false,
   showOverview,
   setPage,
@@ -88,54 +84,55 @@ export default function CardHoverOverlay({
             </div> */}
           </div>
           <div className="z-50 w-full" onClick={handleNavigate}>
-            {isLoading ? (
-              <div className="w-full flex flex-col gap-2 z-50">
-                <SkeletonBlock className="h-4 w-1/2" />
-                <div className="flex flex-col gap-1.5 w-full">
-                  <SkeletonBlock className="h-3 w-full" />
-                  <SkeletonBlock className="h-3 w-[90%]" />
-                  <SkeletonBlock className="h-3 w-[65%]" />
-                </div>
-                <div className="flex items-center gap-3 w-full">
-                  <SkeletonBlock className="h-3 w-16" />
-                  <SkeletonBlock className="h-3 w-28" />
-                </div>
-              </div>
-            ) : fetchError ? (
+            {fetchError ? (
               <span className="text-sm @7xl:text-base font-light text-muted flex items-start justify-center gap-1 z-50">
                 <IoWarning className="text-lg @7xl:text-xl" /> Details
                 unavailable.
               </span>
             ) : (
               <div className="flex flex-col items-start justify-center gap-1 w-full z-50">
-                {details?.original_language !== "en" && (
-                  <span className="text-sm @7xl:text-base font-bold">
-                    {details?.original_title}
-                  </span>
+                {/* Original title — skeleton while fetch pending, data or nothing once ready */}
+                {isLoading ? (
+                  <SkeletonBlock className="h-4 w-1/2" />
+                ) : (
+                  details?.original_title &&
+                  details.original_title !== filmObject.title && (
+                    <span className="text-sm @7xl:text-base font-bold">
+                      {details.original_title}
+                    </span>
+                  )
                 )}
+                {/* Overview — always visible from filmObject immediately */}
                 <span className="text-sm @7xl:text-base font-light line-clamp-4">
                   {details?.overview ||
                     (filmObject as TMDBFilmSummary).overview}
                 </span>
-                <span className="flex items-center gap-3 w-full min-w-0 text-sm @7xl:text-base font-light">
-                  {details?.runtime && (
-                    <span className="flex items-center gap-1 shrink-0">
-                      <IoIosTimer className="text-lg @7xl:text-xl" />
-                      <span>{details.runtime} min</span>
-                    </span>
-                  )}
-                  {details?.spoken_languages && (
-                    <span className="flex items-center gap-1 min-w-0 max-w-[85%]">
-                      <IoLanguageSharp className="text-lg @7xl:text-xl shrink-0" />
-
-                      <span className="truncate">
-                        {details?.spoken_languages
-                          ?.map((l: TMDBSpokenLanguage) => l.english_name)
-                          .join(", ")}
+                {/* Runtime + languages — skeleton pair while fetch pending */}
+                {isLoading ? (
+                  <div className="flex items-center gap-3 w-full">
+                    <SkeletonBlock className="h-3 w-16" />
+                    <SkeletonBlock className="h-3 w-28" />
+                  </div>
+                ) : (
+                  <span className="flex items-center gap-3 w-full min-w-0 text-sm @7xl:text-base font-light">
+                    {details?.runtime && (
+                      <span className="flex items-center gap-1 shrink-0">
+                        <IoIosTimer className="text-lg @7xl:text-xl" />
+                        <span>{details.runtime} min</span>
                       </span>
-                    </span>
-                  )}
-                </span>
+                    )}
+                    {details?.spoken_languages && (
+                      <span className="flex items-center gap-1 min-w-0 max-w-[85%]">
+                        <IoLanguageSharp className="text-lg @7xl:text-xl shrink-0" />
+                        <span className="truncate">
+                          {details?.spoken_languages
+                            ?.map((l: TMDBSpokenLanguage) => l.english_name)
+                            .join(", ")}
+                        </span>
+                      </span>
+                    )}
+                  </span>
+                )}
               </div>
             )}
           </div>

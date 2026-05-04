@@ -5,6 +5,7 @@ import {
   HeadContent,
   Scripts,
   ClientOnly,
+  useRouter,
 } from "@tanstack/react-router";
 import type { RouterContext, AuthUser } from "../router";
 import type { ReactNode } from "react";
@@ -93,8 +94,12 @@ function RootDocument({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
+  const router = useRouter();
+
   useEffect(() => {
     runMigrations();
+
+    router.invalidate();
   }, []);
 
   const { auth } = Route.useRouteContext();

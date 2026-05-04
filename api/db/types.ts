@@ -45,6 +45,10 @@ export interface DB {
     // Added in migration 003
     genres: unknown | null // JSONB
     overview: string | null
+    // Added in migration 006
+    original_title: string | null
+    spoken_languages: unknown | null // JSONB — array of { iso_639_1, name, english_name }
+    imdb_id: string | null
   }
   // Records each film a user has marked as watched, along with their star rating.
   // filmId → Films.id, userId → Users.id.

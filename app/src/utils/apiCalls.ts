@@ -587,6 +587,11 @@ export function fetchCollectionById(id: string): Promise<{ collection: AppCollec
           origin_country: f.origin_country,
           release_date: f.release_date,
           added_date: f.added_at as string,
+          stars: (f.stars as number | null) ?? null,
+          overview: (f.overview as string | null) ?? null,
+          original_title: (f.original_title as string | null) ?? null,
+          spoken_languages: (f.spoken_languages as UserFilm["spoken_languages"]) ?? null,
+          imdb_id: (f.imdb_id as string | null) ?? null,
         }),
       )
       return { collection: collection as AppCollection, films }
@@ -677,8 +682,11 @@ export function addFilmToCollection(
     backdrop_path: string | null
     origin_country: string[]
     release_date: string
-    genres?: { id: number; name: string }[]
-    overview?: string
+    genres?: { id: number; name: string }[] | null
+    overview?: string | null
+    original_title?: string | null
+    spoken_languages?: Array<{ iso_639_1: string; name: string; english_name: string }> | null
+    imdb_id?: string | null
   },
 ): Promise<{ collection_film_id: string; film_count: number }> {
   return axios

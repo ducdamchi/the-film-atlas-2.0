@@ -4,5 +4,5 @@ import { fetchDirectorListByParams } from "@/utils/apiCalls"
 export const directorsQueryOptions = queryOptions({
   queryKey: ["directors"],
   queryFn: () => fetchDirectorListByParams(),
-  staleTime: 0,
+  staleTime: 1000 * 60,
 })

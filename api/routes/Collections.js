@@ -136,7 +136,8 @@ router.get("/:id", optionalAuth, async (req, res) => {
     const { rows: films } = await pool.query(
       `SELECT cf.id AS collection_film_id, cf.position, cf.note, cf."createdAt" AS added_at,
               f.id, f.title, f.runtime, f.directors, f."directorNamesForSorting",
-              f.poster_path, f.backdrop_path, f.origin_country, f.release_date, f.genres, f.overview
+              f.poster_path, f.backdrop_path, f.origin_country, f.release_date,
+              f.genres, f.overview, f.original_title, f.spoken_languages, f.imdb_id
        FROM "CollectionFilms" cf
        JOIN "Films" f ON f.id = cf."filmId"
        WHERE cf."collectionId" = $1
@@ -228,11 +229,15 @@ router.post("/:id/films", validateToken, async (req, res) => {
     await client.query(
       `INSERT INTO "Films"
          (id, title, runtime, directors, "directorNamesForSorting",
-          poster_path, backdrop_path, origin_country, release_date, genres, overview)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+          poster_path, backdrop_path, origin_country, release_date, genres, overview,
+          original_title, spoken_languages, imdb_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
        ON CONFLICT (id) DO UPDATE SET
-         genres = COALESCE(EXCLUDED.genres, "Films".genres),
-         overview = COALESCE(EXCLUDED.overview, "Films".overview)`,
+         genres           = COALESCE(EXCLUDED.genres,           "Films".genres),
+         overview         = COALESCE(EXCLUDED.overview,         "Films".overview),
+         original_title   = COALESCE(EXCLUDED.original_title,   "Films".original_title),
+         spoken_languages = COALESCE(EXCLUDED.spoken_languages, "Films".spoken_languages),
+         imdb_id          = COALESCE(EXCLUDED.imdb_id,          "Films".imdb_id)`,
       [
         film.tmdbId,
         film.title,
@@ -245,6 +250,9 @@ router.post("/:id/films", validateToken, async (req, res) => {
         film.release_date || null,
         film.genres ? JSON.stringify(film.genres) : null,
         film.overview || null,
+        film.original_title || null,
+        film.spoken_languages ? JSON.stringify(film.spoken_languages) : null,
+        film.imdb_id || null,
       ]
     )
 

@@ -27,7 +27,6 @@ export default function TmdbFilmCard({
 
   const {
     isLoading,
-    setIsLoading,
     fetchError,
     movieDetails,
     directors,
@@ -127,7 +126,6 @@ export default function TmdbFilmCard({
         directors={directors}
         movieDetails={movieDetails}
         isLoading={isLoading}
-        setIsLoading={setIsLoading}
         fetchError={fetchError}
         showOverview={true}
         slideDown={true}

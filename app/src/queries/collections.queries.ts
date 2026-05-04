@@ -22,11 +22,11 @@ export const collectionDetailQueryOptions = (id: string) =>
 export const watchedFilmsQueryOptions = queryOptions({
   queryKey: ["watched-list"],
   queryFn: () => fetchListByParams({ queryString: "watched" }),
-  staleTime: 0,
+  staleTime: 1000 * 60,
 })
 
 export const watchlistedFilmsQueryOptions = queryOptions({
   queryKey: ["watchlisted-list"],
   queryFn: () => fetchListByParams({ queryString: "watchlisted" }),
-  staleTime: 0,
+  staleTime: 1000 * 60,
 })

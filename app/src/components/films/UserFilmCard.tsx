@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import {
@@ -8,15 +8,12 @@ import {
   extractBorderColor,
 } from "@/utils/helperFunctions";
 import { useMarquee } from "@/hooks/useMarquee";
-import { useFilmCardFetch } from "@/hooks/useFilmCardFetch";
 
 import InteractionConsole from "../film-interaction/InteractionConsole";
 import CardHoverOverlay from "../film-interaction/CardHoverOverlay";
 import FilmCardPoster from "./FilmCardPoster";
-import SkeletonBlock from "@/components/ui-custom/SkeletonBlock";
 
 import type { UserFilm } from "@/types/film";
-import type { TMDBFilm } from "@/types/tmdb";
 
 const imgBaseUrl = "https://image.tmdb.org/t/p/original";
 
@@ -31,25 +28,10 @@ export default function UserFilmCard({
 }: FilmUser_CardProps) {
   const navigate = useNavigate();
 
-  const {
-    isLoading,
-    setIsLoading,
-    fetchError,
-    movieDetails,
-    directors,
-    isPosterHovered,
-    setIsPosterHovered,
-    handleCardHoverEnter,
-    handleCardHoverLeave,
-  } = useFilmCardFetch(filmObject.id);
+  const [isPosterHovered, setIsPosterHovered] = useState(false);
 
   const titleSpanRef = useMarquee(filmObject.title);
   const countrySpanRef = useMarquee(filmObject.origin_country);
-
-  const trailerKey =
-    (movieDetails as TMDBFilm).videos?.results.find(
-      (v) => v.site === "YouTube" && v.type === "Trailer",
-    )?.key ?? null;
 
   // Dynamic border color from backdrop (used on mobile always, on desktop on hover)
   useEffect(() => {
@@ -67,15 +49,13 @@ export default function UserFilmCard({
     <div
       id={`film-card-${filmObject.id}`}
       className="filmCard-width md:aspect-16/10 flex flex-col justify-center items-center gap-0 text-dark rounded-none pt-0 relative group/card hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-[0_10px_15px_rgba(0,0,0,0.55)] border-1 md:border-0"
-      onMouseEnter={handleCardHoverEnter}
-      onMouseLeave={handleCardHoverLeave}
     >
       {/* Poster + title overlay — relative wrapper keeps bottom-0 anchored to poster */}
       <div className="relative w-full">
         <FilmCardPoster
           backdropPath={filmObject.backdrop_path}
           filmId={filmObject.id}
-          trailerKey={trailerKey}
+          trailerKey={null}
           isPosterHovered={isPosterHovered}
           onPosterHoverEnter={() => setIsPosterHovered(true)}
           onPosterHoverLeave={() => setIsPosterHovered(false)}
@@ -159,11 +139,10 @@ export default function UserFilmCard({
       <CardHoverOverlay
         hoverId={null}
         filmObject={filmObject}
-        directors={directors}
-        movieDetails={movieDetails}
-        isLoading={isLoading}
-        setIsLoading={setIsLoading}
-        fetchError={fetchError}
+        directors={filmObject.directors}
+        movieDetails={filmObject}
+        isLoading={false}
+        fetchError={false}
         showOverview={true}
         slideDown={true}
       />

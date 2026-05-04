@@ -198,7 +198,10 @@ export default function CollectionSearchModal({
         origin_country: fullFilm.origin_country,
         release_date: fullFilm.release_date,
         genres: fullFilm.genres,
-        overview: fullFilm.overview,
+        overview: fullFilm.overview ?? null,
+        original_title: fullFilm.original_title ?? null,
+        spoken_languages: fullFilm.spoken_languages ?? null,
+        imdb_id: fullFilm.imdb_id ?? null,
         stars: 0 as StarRating,
       };
 
@@ -221,6 +224,11 @@ export default function CollectionSearchModal({
         origin_country: fullFilm.origin_country,
         release_date: fullFilm.release_date,
         added_date: new Date().toISOString(),
+        stars: null,
+        overview: fullFilm.overview ?? null,
+        original_title: fullFilm.original_title ?? null,
+        spoken_languages: fullFilm.spoken_languages ?? null,
+        imdb_id: fullFilm.imdb_id ?? null,
       };
 
       toast.success(`Added "${film.title}" to ${collection.title}`);
