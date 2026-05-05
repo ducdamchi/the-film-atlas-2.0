@@ -1,0 +1,481 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-atlas-blue: var(--color-atlas-blue);
+  --color-atlas-green: var(--color-atlas-green);
+  --color-atlas-pink: var(--color-atlas-pink);
+  --color-liked: var(--color-liked);
+  --color-saved: var(--color-saved);
+  --color-star: var(--color-star);
+  --color-hover-light: var(--color-hover-light);
+  --color-hover-dark: var(--color-hover-dark);
+
+  --color-dark: var(--color-text-dark); /* text-dark, border-dark */
+  --color-muted: var(--color-text-muted); /* text-muted */
+  --color-light: var(--color-text-light); /* text-light */
+  --color-page: var(--color-bg-page); /* bg-page */
+  --color-elevated: var(--color-bg-elevated); /* bg-elevated */
+  --color-control: var(--color-bg-control); /* bg-control, border-control */
+  --color-void: var(--color-bg-dark); /* bg-void */
+
+  --color-muted-light: var(--color-text-muted-light); /* text-muted-light */
+  --color-muted-dark: var(--color-text-muted-dark); /* text-muted-dark */
+  --color-label: var(--color-text-control); /* text-label */
+  --color-error: var(--color-status-error); /* text-error, bg-error */
+  --color-success: var(--color-status-success); /* text-success, bg-success */
+}
+
+:root {
+  --radius: 0.625rem;
+
+  --skeleton-base: oklch(88% 0 0);
+  --skeleton-peak: oklch(94% 0 0);
+
+  --font-primary: "Outfit", "Optima", "Helvetica", sans-serif;
+  --font-logo: "Rammetto One", "Optima", "Helvetica", sans-serif;
+
+  /* --- Brand accent trio ---
+     These three pastels are the visual signature of the app: used as decorative
+     border accents on the navbar's animated slide-in panels and as the map border.
+     Pulled from L~85% to L~72% for more presence against the black nav without
+     losing the editorial pastel character. */
+  --color-atlas-blue: oklch(72% 0.07 220);
+  --color-atlas-green: oklch(72% 0.08 140);
+  --color-atlas-pink: oklch(72% 0.07 340);
+
+  /* --- Interaction state colors ---
+     Semantic, not decorative. Each has one job. --color-star is the canonical
+     value; components must reference the token rather than the raw oklch literal. */
+  --color-liked: oklch(44% 0.177 27); /* *-liked */
+  --color-saved: oklch(45% 0.119 151); /* *-saved */
+  --color-star: oklch(65% 0.241 354); /* *-star */
+  --color-hover-light: oklch(71% 0.165 255); /* *-hover-light */
+  --color-hover-dark: oklch(39% 0.195 269); /* *-hover-dark */
+
+  /* --- Text scale --- */
+  --color-text-dark: oklch(18% 0.005 56); /* *-dark */
+  --color-text-light: oklch(93% 0.003 48); /* *-light */
+  /* --color-text-muted: oklch(52% 0.006 56); */
+  --color-text-muted-light: oklch(55.2% 0.016 285.938); /* *-muted-light */
+  --color-text-muted-dark: oklch(70.5% 0.015 286.067); /* *-muted-dark */
+  --color-text-control: oklch(44.6% 0.03 256.802); /* *-label */
+
+  /* --- Status colors --- */
+  --color-status-error: oklch(55% 0.22 29); /* *-error */
+  --color-status-success: oklch(55% 0.15 145); /* *-success */
+
+  /* --- Rating service brand colors (not Tailwind tokens — use var()) --- */
+  --color-rating-imdb: #f5c518; /* var(--color-rating-imdb) */
+  --color-rating-rt: #fa320a; /* var(--color-rating-rt) */
+  --color-rating-mc: #1a4575; /* var(--color-rating-mc) */
+  --color-rating-awards: oklch(87% 0.2 132); /* var(--color-rating-awards) */
+
+  /* --- Surface scale (4 stops: page < surface < control < void) --- */
+  --color-bg-page: oklch(96% 0.003 48); /* *-page */
+  --color-bg-elevated: oklch(100% 0 0); /* *-elevated */
+  --color-bg-control: oklch(92.8% 0.006 264.531); /* *-control */
+  --color-bg-dark: oklch(0% 0 0); /* *-void */
+
+  /* --- Slider component border (not a Tailwind token — use var()) --- */
+  --slider-border: oklch(86% 0.007 269); /* var(--slider-border) */
+
+  --color-modal-border: oklch(21% 0.006 285.885);
+}
+
+.dark {
+  --skeleton-base: oklch(25% 0 0);
+  --skeleton-peak: oklch(33% 0 0);
+
+  /* --- Dark mode surface scale ---
+     Warm-neutral dark (hue 56) keeps the cinematic feel rather than the cold
+     blue-grey that shadcn defaults ship with. Three stops give enough hierarchy
+     without multiplying tokens. */
+  --color-text-dark: oklch(93% 0.003 49);
+  --color-text-light: oklch(18% 0.005 56);
+  --color-text-muted: oklch(62% 0.006 56);
+  --color-bg-page: oklch(14% 0.003 56);
+  --color-bg-elevated: oklch(19% 0.003 56);
+  --color-bg-control: oklch(27% 0.004 56);
+}
+
+@layer base {
+  * {
+    @apply border-control;
+  }
+  body {
+    @apply bg-elevated text-dark;
+  }
+}
+
+@layer utilities {
+  .font-logo {
+    font-family: var(--font-logo);
+  }
+  .font-primary,
+  .font-heading {
+    font-family: var(--font-primary);
+  }
+}
+
+@layer components {
+  .page-title,
+  .page-title-map {
+    @apply uppercase font-bold text-xl @3xl:text-2xl @5xl:text-3xl flex items-center justify-center w-full;
+  }
+  .page-title {
+    @apply mt-5 md:mt-10;
+  }
+
+  .page-subtitle {
+    @apply font-bold text-base @3xl:text-xl @5xl:text-2xl w-auto;
+  }
+
+  .yourListConsole {
+    @apply @container overflow-visible w-full flex flex-col items-start justify-center mt-10 md:mr-5 lg:mr-8;
+  }
+
+  .toggleButton-whole {
+    @apply flex flex-col items-center p-2 w-full gap-2 @3xl:flex-row @3xl:justify-center @3xl:gap-5 @3xl:mr-20;
+  }
+
+  .toggleButton-label {
+    @apply w-[7rem] flex self-center mr-45 @3xl:mr-0 @3xl:ml-0 @3xl:justify-end uppercase text-xs @5xl:text-sm;
+  }
+
+  .toggleButton-buttonsContainer {
+    @apply relative bg-control rounded-full w-[20rem] h-[2.5rem] text-sm @5xl:text-base @5xl:w-[25rem];
+  }
+
+  .filterButton-container {
+    @apply w-[20rem] text-xs @5xl:text-sm @5xl:w-[25rem];
+  }
+
+  .toggleButton-bg {
+    @apply absolute h-full bg-elevated rounded-full shadow-md transition-all duration-400 ease-in-out;
+  }
+
+  .toggleButton-button {
+    @apply flex-1 text-center py-2 rounded-full transition-colors duration-300 z-10 flex items-center justify-center text-label;
+  }
+
+  .toggleButton-buttonActive {
+    @apply text-dark font-semibold;
+  }
+
+  .auth-whole {
+    @apply flex flex-col items-center w-screen h-screen overflow-hidden bg-void;
+  }
+
+  .auth-svgContainer {
+    @apply fixed z-0 top-0 h-screen bg-void overflow-hidden flex flex-row gap-0 scale-200;
+  }
+
+  .auth-svg {
+    @apply scale-100 z-0 border-blue-500 animate-[moveHorizontal_30s_linear_infinite];
+  }
+
+  .auth-formContainer {
+    @apply mt-35 z-100 bg-elevated text-dark border-atlas-blue border-5 w-auto min-w-[20rem] relative md:p-5 rounded-none;
+  }
+
+  .auth-form {
+    @apply flex flex-col gap-3 w-full items-center text-[16px];
+  }
+
+  .auth-formField {
+    @apply border-1 p-2 pl-3 w-[18rem] border-control rounded-none;
+  }
+
+  .auth-formSubmitButton {
+    @apply w-[18rem] p-2 text-stone-900 font-light border-1 border-dark hover:text-light hover:bg-void transition-all ease-out duration-300 rounded-none;
+  }
+
+  .auth-formErrorMessage {
+    @apply text-error self-start ml-2;
+  }
+
+  .accountSettings-formSubmitButton {
+    @apply w-[18rem] p-2 text-light bg-dark font-light hover:bg-dark/90 transition-all ease-out duration-300 rounded-none;
+  }
+
+  .console-button {
+    @apply flex items-center gap-1 border-1 border-current rounded-full max-h-[2.5rem] backdrop-blur-2xl;
+  }
+
+  .landing-main-img-container {
+    @apply overflow-hidden relative text-light;
+  }
+
+  .landing-main-img {
+    @apply max-h-screen object-cover brightness-80;
+  }
+
+  .landing-transparent-layer {
+    @apply absolute top-0 left-0 h-[5rem] sm:h-[10rem] lg:h-[15rem] w-full;
+  }
+
+  .landing-transparent-layer-bottom {
+    @apply absolute bottom-0 left-0 h-[2rem] sm:h-[3rem] lg:h-[7rem] w-full;
+  }
+
+  .landing-page-title {
+    @apply uppercase font-black text-2xl/8 mt-0 md:text-3xl/8 2xl:text-4xl/8 md:mt-5 md:ml-5 lg:ml-7 lg:mb-2;
+  }
+
+  .landing-img-text-belowTitle {
+    @apply flex mb-0 mt-1 text-sm md:text-base lg:text-lg font-extralight md:ml-5 lg:ml-7 rounded-lg backdrop-blur-2xl border-1 p-2;
+  }
+
+  .landing-img-text-container {
+    @apply absolute top-0 left-0 h-[25rem] p-5 w-full;
+  }
+
+  .landing-img-text-right {
+    @apply text-sm md:text-base lg:text-lg font-extralight mb-0 text-left md:mr-5 lg:mr-7 z-100 md:ml-5 lg:ml-7 rounded-lg backdrop-blur-2xl border-1 p-2;
+  }
+
+  .landing-img-text-right-title {
+    @apply font-thin text-xs md:text-sm lg:text-base mr-1;
+  }
+
+  .landing-img-text-right-content {
+    @apply inline-block decoration-3;
+  }
+
+  .landing-belowBackdropPadding {
+    @apply p-4 md:p-8 lg:pl-12 2xl:pl-20;
+  }
+
+  .landing-sectionTitle {
+    @apply uppercase font-extralight text-[12px] text-dark lg:text-base;
+  }
+
+  .landing-sectionContent {
+    @apply text-xl/6 lg:text-2xl/9 font-semibold text-balance max-w-[60rem];
+  }
+
+  .landing-ratingsTitle {
+    @apply text-base lg:text-lg uppercase text-dark font-semibold;
+  }
+
+  .filmGallery-grid {
+    @apply grid gap-3 grid-cols-1 @3xl:grid-cols-2 @6xl:grid-cols-3 @min-[90rem]:grid-cols-4;
+  }
+
+  .filmCard-width {
+    @apply w-[22rem] min-w-[22rem];
+  }
+
+  .docs-sectionTitle {
+    @apply inline-block text-3xl font-bold;
+  }
+
+  .docs-sectionCategory {
+    @apply font-thin text-sm border-t-1 pt-5;
+  }
+
+  .docs-subtitle {
+    @apply font-bold text-xl;
+  }
+
+  .docs-img {
+    @apply border-2 w-full object-cover mt-4 mb-4;
+  }
+
+  .docs-list {
+    @apply m-2 font-light flex flex-col gap-4;
+  }
+
+  .docs-menu-heading {
+    @apply hover:text-hover-dark uppercase font-extralight text-sm md:text-base;
+  }
+
+  .docs-menu-content {
+    @apply flex flex-col pl-4 justify-center items-start gap-1 border-l-1 border-dark/30;
+  }
+
+  .console-card,
+  .console-landing-sm,
+  .console-landing-lg {
+    --console-hover-bg: none;
+  }
+
+  .console-card {
+    --console-text: var(--color-text-dark);
+    --console-font-size: 13px;
+    --console-like-size: 1.1rem;
+    --console-save-size: 1.5rem;
+    --console-star-size: 1.3rem;
+    --console-gap: 2px;
+    --console-height: auto;
+    --console-button-padding: 2px;
+    --console-padding-tb: 0;
+    --console-padding-lr: 10px;
+    --console-button-height: 2rem;
+    --console-hover-text: var(--color-hover-dark);
+  }
+
+  .console-landing-sm {
+    --console-text: var(--color-text-light);
+    --console-font-size: 14px;
+    --console-like-size: 1.1rem;
+    --console-save-size: 1.6rem;
+    --console-star-size: 1.4rem;
+    --console-gap: 10px;
+    --console-height: auto;
+    --console-button-padding: 0;
+    --console-padding-tb: 0;
+    --console-padding-lr: 10px;
+    --console-button-height: 2.5rem;
+    --console-hover-text: var(--color-hover-light);
+  }
+
+  .console-landing-lg {
+    --console-text: var(--color-text-light);
+    --console-font-size: 16px;
+    --console-like-size: 1.3rem;
+    --console-save-size: 1.8rem;
+    --console-star-size: 1.6rem;
+    --console-gap: 15px;
+    --console-height: auto;
+    --console-button-padding: 0;
+    --console-padding-tb: 10px;
+    --console-padding-lr: 15px;
+    --console-button-height: 3rem;
+    --console-hover-text: var(--color-hover-light);
+  }
+}
+
+@keyframes footer-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes spin-y {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(180deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes moveHorizontal {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.maplibregl-popup-close-button {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+#slider-simple {
+  height: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--slider-border);
+  background: var(--color-bg-elevated);
+}
+
+#slider-simple .range-slider__range {
+  border-radius: 0.75rem;
+  background: var(--color-text-dark);
+}
+
+#slider-simple .range-slider__thumb {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--slider-border);
+  background: var(--color-bg-elevated);
+  filter: drop-shadow(-1px 3px 3px rgba(0, 0, 0, 0.3));
+}
+
+#slider-simple .range-slider__thumb[data-lower] {
+  width: 0;
+  border: none;
+}
+
+[data-sonner-toast] {
+  background: var(--color-bg-elevated) !important;
+  color: var(--color-text-dark) !important;
+  border-color: var(--color-bg-muted-dark) !important;
+  border-radius: 2px !important;
+  font-size: 14px !important;
+}
+
+[data-sonner-toast] [data-description] {
+  color: var(--color-text-muted-dark) !important;
+}
+
+.swal2-popup {
+  border-radius: 0;
+  font-family: var(--font-primary);
+}
+
+.swal2-html-container {
+  color: var(--color-text-dark);
+  font-size: clamp(0.8rem, calc(1.5vw + 0.4rem), 1rem);
+  text-align: left;
+}
+
+.swal2-title {
+  color: var(--color-text-dark);
+  font-size: clamp(1.3rem, calc(1.5vw + 0.4rem), 1.4rem);
+  text-align: left;
+}
+
+.swal2-actions {
+  margin-right: 2rem;
+}
+
+.swal2-actions button {
+  font-size: clamp(0.8rem, calc(1.5vw + 0.4rem), 1rem);
+}
+
+.swal2-actions:hover button {
+  scale: 1.03;
+}
+
+.swal2-confirm {
+  transition: 200ms ease-in-out;
+  border: 1px solid black !important;
+  border-radius: 0;
+  background-color: var(--color-bg-elevated);
+  padding: 0.4rem;
+  width: 5rem;
+  color: var(--color-text-dark);
+  font-size: clamp(0.8rem, calc(1.5vw + 0.4rem), 1rem);
+}
+
+.swal2-confirm:hover {
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-light);
+}

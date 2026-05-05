@@ -1,1 +1,7 @@
 .old-client/
+**/.env.local
+**/.env.production
+**/node_modules/
+.env
+/.claude
+**/.DS_Store
