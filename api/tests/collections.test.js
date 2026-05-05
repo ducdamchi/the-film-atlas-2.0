@@ -1,4 +1,4 @@
-const { get, post, put, del } = require("./helpers")
+import { get, post, put, del } from "./helpers.js"
 
 let tokenA, tokenB, userIdA, userIdB, usernameB
 let collectionId

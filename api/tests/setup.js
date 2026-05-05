@@ -3,16 +3,20 @@
  * Reads the token file written by globalSetup and sets globals.
  */
 
-const fs = require("fs")
-const path = require("path")
+import { readFileSync, existsSync } from "fs"
+import { join, dirname } from "path"
+import { fileURLToPath } from "url"
 
-const TOKENS_FILE = path.join(__dirname, ".tokens.json")
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
-if (!fs.existsSync(TOKENS_FILE)) {
+const TOKENS_FILE = join(__dirname, ".tokens.json")
+
+if (!existsSync(TOKENS_FILE)) {
   throw new Error("Token file not found — did globalSetup run?")
 }
 
-const tokens = JSON.parse(fs.readFileSync(TOKENS_FILE, "utf8"))
+const tokens = JSON.parse(readFileSync(TOKENS_FILE, "utf8"))
 
 global.__TOKEN_A__ = tokens.tokenA
 global.__USER_ID_A__ = tokens.userIdA

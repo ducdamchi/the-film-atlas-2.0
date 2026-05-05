@@ -5,7 +5,7 @@ import { routeTree } from "./routeTree.gen";
 
 export interface AuthUser {
   username: string;
-  id: number;
+  id: string;
   status: boolean;
   email: string | null;
   locationCountry: string | null;
@@ -34,6 +34,7 @@ export function getRouter() {
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
     context: { queryClient, auth: null },
+    defaultNotFoundComponent: () => null,
   });
 
   setupRouterSsrQueryIntegration({

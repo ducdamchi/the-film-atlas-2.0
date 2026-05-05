@@ -1,8 +1,8 @@
 import { type RefObject } from "react";
 import { useNavigate, ClientOnly } from "@tanstack/react-router";
-import { MdOutlineSettings, MdClose } from "react-icons/md";
 import { useAuth } from "@/utils/authContext";
 import { clearAllPersistedState } from "@/utils/localStorage";
+import { authClient, clearAuthToken } from "@/lib/authClient";
 import { CustomLink } from "./CustomLink";
 import type { MenuState } from "./navTypes";
 import { IoIosSettings, IoIosCloseCircle } from "react-icons/io";
@@ -28,12 +28,13 @@ export function NavBarSettingsPanel({
   navbarHeight,
   borderWidth,
 }: NavBarSettingsPanelProps) {
-  const { authState, setAuthState } = useAuth();
+  const { authState } = useAuth();
   const navigate = useNavigate();
 
-  const logOut = () => {
+  const logOut = async () => {
     clearAllPersistedState();
-    setAuthState({ username: "", id: 0, status: false });
+    clearAuthToken();
+    await authClient.signOut();
     navigate({ to: "/login" });
   };
 

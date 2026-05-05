@@ -1,10 +1,10 @@
-const pool = require("../db/pool")
+import pool from "../db/pool.js"
 
 /**
  * Fire-and-forget location detection on login.
  * Skipped for manual location, loopback IPs, and missing IPs.
  */
-async function detectLocationFromIP(req, user) {
+export async function detectLocationFromIP(req, user) {
   if (user.location_source === "manual") return
 
   const ip =
@@ -21,7 +21,7 @@ async function detectLocationFromIP(req, user) {
  * Shared detection logic — used by login auto-detect and the explicit endpoint.
  * Returns the ipapi.co response data on success, null on failure.
  */
-async function runIPDetection(ip, userId) {
+export async function runIPDetection(ip, userId) {
   try {
     const res = await fetch(`https://ipapi.co/${ip}/json/`)
     const data = await res.json()
@@ -48,5 +48,3 @@ async function runIPDetection(ip, userId) {
     return null
   }
 }
-
-module.exports = { detectLocationFromIP, runIPDetection }

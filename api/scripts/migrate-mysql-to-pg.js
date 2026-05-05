@@ -16,8 +16,10 @@
  * We read them as-is and insert them into PostgreSQL UUID columns.
  */
 
-const mysql = require("mysql2/promise")
-const { Pool } = require("pg")
+import mysql from "mysql2/promise"
+import pg from "pg"
+
+const { Pool } = pg
 
 const mysqlConfig = {
   host: "localhost",

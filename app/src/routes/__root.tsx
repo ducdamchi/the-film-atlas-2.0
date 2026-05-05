@@ -8,9 +8,10 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 import type { RouterContext, AuthUser } from "../router";
+import type { AuthState } from "../types/auth";
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { authClient } from "../lib/authClient";
 import "../styles.css";
 
 import { AuthContext } from "../utils/authContext";
@@ -31,30 +32,24 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async (): Promise<{ auth: AuthUser | null }> => {
     if (typeof window === "undefined") return { auth: null };
 
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) return { auth: null };
-
     try {
-      const { data } = await axios.get("/auth/verify", {
-        headers: { accessToken },
-      });
-      if (!data.error) {
-        return {
-          auth: {
-            username: data.username,
-            id: data.id,
-            status: true,
-            email: data.email ?? null,
-            locationCountry: data.location_country ?? null,
-            locationCity: data.location_city ?? null,
-            locationSource: data.location_source ?? null,
-          },
-        };
-      }
+      const { data: session } = await authClient.getSession();
+      if (!session) return { auth: null };
+
+      return {
+        auth: {
+          username: session.user.username ?? "",
+          id: session.user.id,
+          status: true,
+          email: session.user.email ?? null,
+          locationCountry: (session.user as any).locationCountry ?? null,
+          locationCity: (session.user as any).locationCity ?? null,
+          locationSource: (session.user as any).locationSource ?? null,
+        },
+      };
     } catch {
-      localStorage.removeItem("accessToken");
+      return { auth: null };
     }
-    return { auth: null };
   },
   head: () => ({
     meta: [
@@ -93,6 +88,16 @@ function RootDocument({ children }: { children: ReactNode }) {
   );
 }
 
+const loggedOutState: AuthState = {
+  username: "",
+  id: "",
+  status: false,
+  email: null,
+  locationCountry: null,
+  locationCity: null,
+  locationSource: null,
+};
+
 function RootComponent() {
   const router = useRouter();
 
@@ -103,6 +108,7 @@ function RootComponent() {
   }, []);
 
   const { auth } = Route.useRouteContext();
+  const { data: liveSession, isPending: sessionPending } = authClient.useSession();
   const { pathname, isRouterPending } = useRouterState({
     select: (s) => ({
       pathname: s.location.pathname,
@@ -114,15 +120,19 @@ function RootComponent() {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   useCommandKey(() => setSearchModalOpen((s) => !s), "k");
 
-  const authState = auth ?? {
-    username: "",
-    id: 0,
-    status: false,
-    email: null,
-    locationCountry: null,
-    locationCity: null,
-    locationSource: null,
-  };
+  const authState: AuthState = sessionPending
+    ? (auth ?? loggedOutState)
+    : liveSession
+      ? {
+          username: liveSession.user.username ?? "",
+          id: liveSession.user.id,
+          status: true,
+          email: liveSession.user.email ?? null,
+          locationCountry: (liveSession.user as any).locationCountry ?? null,
+          locationCity: (liveSession.user as any).locationCity ?? null,
+          locationSource: (liveSession.user as any).locationSource ?? null,
+        }
+      : loggedOutState;
 
   return (
     <RootDocument>

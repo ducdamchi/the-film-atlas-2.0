@@ -1,6 +1,7 @@
-const express = require("express")
+import express from "express"
+import axios from "axios"
+
 const router = express.Router()
-const axios = require("axios")
 
 const OPENSUBTITLES_HEADERS = {
   "Api-Key": process.env.OPENSUBTITLES_API_KEY,
@@ -10,7 +11,6 @@ const OPENSUBTITLES_HEADERS = {
 
 router.get("/subtitles/:imdbId", async (req, res) => {
   const { imdbId } = req.params
-  // console.log("OpenSubtitles API key loaded:", !!process.env.OPENSUBTITLES_API_KEY)
   try {
     const response = await axios.get(
       "https://api.opensubtitles.com/api/v1/subtitles",
@@ -97,4 +97,4 @@ router.get("/yts/:imdbId", async (req, res) => {
     .json({ error: "Failed to fetch YTS data from all mirrors" })
 })
 
-module.exports = router
+export default router

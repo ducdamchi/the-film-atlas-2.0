@@ -1,4 +1,4 @@
-const { sql } = require("kysely")
+import { sql } from "kysely"
 
 /**
  * Migration 005 — System collection data integrity backfill
@@ -76,7 +76,7 @@ async function backfillCollectionType(db, collectionType, filmTable, userIdColum
   return collections.length
 }
 
-exports.up = async (db) => {
+export async function up(db) {
   // 1. Set is_public = true for all system collections
   await sql`
     UPDATE "Collections" SET is_public = true
@@ -100,7 +100,7 @@ exports.up = async (db) => {
   console.log(`Backfilled aggregates for ${watchlistCount} watchlist collection(s).`)
 }
 
-exports.down = async (db) => {
+export async function down(db) {
   // Revert is_public for system collections
   await sql`
     UPDATE "Collections" SET is_public = false

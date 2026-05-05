@@ -1,10 +1,12 @@
-const express = require("express")
+import express from "express"
+import pool from "../db/pool.js"
+import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
+const { sign } = jwt
+import { validateToken } from "../middlewares/AuthMiddleware.js"
+import { runIPDetection } from "../utils/location.js"
+
 const router = express.Router()
-const pool = require("../db/pool")
-const bcrypt = require("bcrypt")
-const { sign } = require("jsonwebtoken")
-const { validateToken } = require("../middlewares/AuthMiddleware")
-const { runIPDetection } = require("../utils/location")
 
 /* Shared helper — re-issue a JWT with current user data merged with overrides */
 function reissueToken(base, overrides) {
@@ -220,4 +222,4 @@ router.patch("/complete", validateToken, async (req, res) => {
   }
 })
 
-module.exports = router
+export default router

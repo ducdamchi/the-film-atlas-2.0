@@ -1,16 +1,16 @@
-const envFile =
-  process.env.NODE_ENV === "production" ? ".env.production"
-  : process.env.NODE_ENV === "test" ? ".env.test"
-  : ".env.local"
-require("dotenv").config({ path: envFile })
-const express = require("express")
-const app = express()
-const pool = require("./db/pool")
-const cors = require("cors")
-
-/* Automatically parses JSON data from incoming requests and makes it available in req.body. */
-app.use(express.json())
-app.use(cors())
+import "./env.js"
+import express from "express"
+import cors from "cors"
+import { toNodeHandler } from "better-auth/node"
+import pool from "./db/pool.js"
+import { auth } from "./lib/auth.js"
+import authRouter from "./routes/Auth.js"
+import watchedRouter from "./routes/Watched.js"
+import watchlistedRouter from "./routes/Watchlisted.js"
+import directorsRouter from "./routes/Directors.js"
+import proxyRouter from "./routes/Proxy.js"
+import settingsRouter from "./routes/Settings.js"
+import collectionsRouter from "./routes/Collections.js"
 
 /* IMPORTANT:
 These terms are used interchangeably to adapt to different logic in frontend and backend:
@@ -18,13 +18,19 @@ These terms are used interchangeably to adapt to different logic in frontend and
 "Watchlisted" router interacts with "WatchlistedFilms" table (was "Saves")
 */
 
-const authRouter = require("./routes/Auth.js")
-const watchedRouter = require("./routes/Watched.js")
-const watchlistedRouter = require("./routes/Watchlisted.js")
-const directorsRouter = require("./routes/Directors.js")
-const proxyRouter = require("./routes/Proxy.js")
-const settingsRouter = require("./routes/Settings.js")
-const collectionsRouter = require("./routes/Collections.js")
+const app = express()
+
+// CORS before BetterAuth handler
+app.use(cors({
+  origin: process.env.FRONTEND_URL ?? "http://localhost:3001",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+}))
+
+// BetterAuth handler must come before express.json()
+app.all("/api/auth/{*splat}", toNodeHandler(auth))
+
+app.use(express.json())
 
 app.use("/auth", authRouter)
 app.use("/profile/me/watched", watchedRouter)
@@ -35,9 +41,8 @@ app.use("/collections", collectionsRouter)
 app.use("/profile/me", settingsRouter)
 app.use("/proxy", proxyRouter)
 
-module.exports = app
+export default app
 
-// Connect to PostgreSQL then start server
 if (process.env.NODE_ENV !== "test") {
   pool.connect()
     .then((client) => {

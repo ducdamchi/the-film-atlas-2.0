@@ -1,8 +1,9 @@
-const express = require("express")
+import express from "express"
+import pool from "../db/pool.js"
+import { validateToken } from "../middlewares/AuthMiddleware.js"
+import { updateAggregates, getSystemCollectionId } from "../utils/collectionAggregates.js"
+
 const router = express.Router()
-const pool = require("../db/pool")
-const { validateToken } = require("../middlewares/AuthMiddleware")
-const { updateAggregates, getSystemCollectionId } = require("../utils/collectionAggregates")
 
 // ORDER BY whitelist — never interpolate user input directly into SQL
 const SORT_COLUMNS = {
@@ -359,4 +360,4 @@ router.delete("/", validateToken, async (req, res) => {
   }
 })
 
-module.exports = router
+export default router

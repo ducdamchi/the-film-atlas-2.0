@@ -1,12 +1,14 @@
-const express = require("express")
+import express from "express"
+import pool from "../db/pool.js"
+import bcrypt from "bcrypt"
+import crypto from "crypto"
+import jwt from "jsonwebtoken"
+const { sign } = jwt
+import { validateToken } from "../middlewares/AuthMiddleware.js"
+import { detectLocationFromIP } from "../utils/location.js"
+import { sendPasswordResetEmail } from "../email/templates.js"
+
 const router = express.Router()
-const pool = require("../db/pool")
-const bcrypt = require("bcrypt")
-const crypto = require("crypto")
-const { sign } = require("jsonwebtoken")
-const { validateToken } = require("../middlewares/AuthMiddleware")
-const { detectLocationFromIP } = require("../utils/location")
-const { sendPasswordResetEmail } = require("../email/templates")
 
 /* Register */
 router.post("/register", async (req, res) => {
@@ -202,4 +204,4 @@ router.post("/reset-password", async (req, res) => {
   }
 })
 
-module.exports = router
+export default router

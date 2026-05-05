@@ -1,4 +1,4 @@
-const { sql } = require("kysely")
+import { sql } from "kysely"
 
 /**
  * Migration 002 — Auth essentials + location columns
@@ -14,7 +14,7 @@ const { sql } = require("kysely")
  *   - email_verified = true (trusted accounts)
  */
 
-exports.up = async (db) => {
+export async function up(db) {
   await db.schema
     .alterTable("Users")
     // Core identity
@@ -50,7 +50,7 @@ exports.up = async (db) => {
   await sql`UPDATE "Users" SET email_verified = true`.execute(db)
 }
 
-exports.down = async (db) => {
+export async function down(db) {
   // Restore password from password_hash before removing it
   await sql`UPDATE "Users" SET password = password_hash`.execute(db)
 

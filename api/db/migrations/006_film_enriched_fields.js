@@ -1,4 +1,4 @@
-const { sql } = require("kysely")
+import { sql } from "kysely"
 
 /**
  * Migration 006 — Film enriched fields
@@ -19,7 +19,7 @@ const { sql } = require("kysely")
  * populate NULL rows for films already in the database.
  */
 
-exports.up = async (db) => {
+export async function up(db) {
   await sql`
     ALTER TABLE "Films"
       ADD COLUMN IF NOT EXISTS original_title TEXT,
@@ -30,7 +30,7 @@ exports.up = async (db) => {
   console.log("Migration 006 up: added original_title, spoken_languages, imdb_id to Films.")
 }
 
-exports.down = async (db) => {
+export async function down(db) {
   await sql`
     ALTER TABLE "Films"
       DROP COLUMN IF EXISTS original_title,

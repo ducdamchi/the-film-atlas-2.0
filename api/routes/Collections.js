@@ -1,9 +1,11 @@
-const express = require("express")
+import express from "express"
+import pool from "../db/pool.js"
+import jwt from "jsonwebtoken"
+const { verify } = jwt
+import { validateToken } from "../middlewares/AuthMiddleware.js"
+import { updateAggregates } from "../utils/collectionAggregates.js"
+
 const router = express.Router()
-const pool = require("../db/pool")
-const { verify } = require("jsonwebtoken")
-const { validateToken } = require("../middlewares/AuthMiddleware")
-const { updateAggregates } = require("../utils/collectionAggregates")
 
 // Auth optional — sets req.user if token is valid, continues either way
 const optionalAuth = (req, res, next) => {
@@ -592,4 +594,4 @@ router.delete("/:id/owners/:userId", validateToken, async (req, res) => {
   }
 })
 
-module.exports = router
+export default router

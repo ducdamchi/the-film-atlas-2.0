@@ -1,21 +1,16 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useNavigate } from "@tanstack/react-router";
 import * as Yup from "yup";
-import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import AuthBg from "./layout/AuthBg";
+import { authClient } from "@/lib/authClient";
 
 interface RegisterValues {
   email: string;
   username: string;
   password: string;
   confirmPassword: string;
-}
-
-interface RegisterResponse {
-  error?: string;
-  message?: string;
 }
 
 export default function Register() {
@@ -28,19 +23,20 @@ export default function Register() {
   };
 
   const registerMutation = useMutation({
-    mutationFn: (data: RegisterValues) =>
-      axios.post<RegisterResponse>(
-        `${import.meta.env.VITE_API_URL}/auth/register`,
-        data,
-      ),
-    onSuccess: (response) => {
-      if (response.data.error) {
-        alert(response.data.error);
-        return;
-      }
+    mutationFn: async (data: RegisterValues) => {
+      const result = await authClient.signUp.email({
+        email: data.email,
+        name: data.username,
+        password: data.password,
+        username: data.username,
+      });
+      if (result.error) throw new Error(result.error.message ?? "Registration failed.");
+      return result;
+    },
+    onSuccess: () => {
       navigate({ to: "/login" });
     },
-    onError: () => toast.error("Registration failed. Please try again."),
+    onError: (err: Error) => toast.error(err.message ?? "Registration failed. Please try again."),
   });
 
   const onSubmit = (data: RegisterValues) => {

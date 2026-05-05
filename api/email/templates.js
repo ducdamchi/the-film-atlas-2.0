@@ -1,6 +1,6 @@
-const { getClient } = require("./client")
+import { getClient } from "./client.js"
 
-async function sendPasswordResetEmail(toEmail, token) {
+export async function sendPasswordResetEmail(toEmail, token) {
   const url = `${process.env.APP_URL}/reset-password?token=${token}`
   const resend = getClient()
   await resend.emails.send({
@@ -14,5 +14,3 @@ async function sendPasswordResetEmail(toEmail, token) {
     `,
   })
 }
-
-module.exports = { sendPasswordResetEmail }

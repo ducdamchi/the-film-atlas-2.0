@@ -1,22 +1,15 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useNavigate, useRouter, Link } from "@tanstack/react-router";
 import * as Yup from "yup";
-import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import AuthBg from "./layout/AuthBg";
+import { authClient } from "@/lib/authClient";
 
 interface LoginValues {
   login: string;
   password: string;
-}
-
-interface LoginResponse {
-  error?: string;
-  token?: string;
-  username?: string;
-  id?: number;
 }
 
 export default function LogIn() {
@@ -28,21 +21,19 @@ export default function LogIn() {
   };
 
   const loginMutation = useMutation({
-    mutationFn: (data: LoginValues) =>
-      axios.post<LoginResponse>(
-        `${import.meta.env.VITE_API_URL}/auth/login`,
-        data,
-      ),
-    onSuccess: (response) => {
-      if (response.data.error) {
-        alert(response.data.error);
-        return;
-      }
-      localStorage.setItem("accessToken", response.data.token!);
+    mutationFn: async (data: LoginValues) => {
+      const isEmail = data.login.includes("@");
+      const result = isEmail
+        ? await authClient.signIn.email({ email: data.login, password: data.password })
+        : await authClient.signIn.username({ username: data.login, password: data.password });
+      if (result.error) throw new Error(result.error.message ?? "Login failed.");
+      return result;
+    },
+    onSuccess: () => {
       router.invalidate();
       navigate({ to: "/" });
     },
-    onError: () => toast.error("Login failed. Please try again."),
+    onError: (err: Error) => toast.error(err.message ?? "Login failed. Please try again."),
   });
 
   const onSubmit = (data: LoginValues) => {
@@ -95,10 +86,6 @@ export default function LogIn() {
               <button type="submit" className="auth-formSubmitButton">
                 Log In
               </button>
-
-              {/* <CustomLink to="/register" highlight={false}>
-                Register
-                </CustomLink> */}
             </Form>
           </Formik>
           <div className="flex flex-col items-center justify-center mt-5">
