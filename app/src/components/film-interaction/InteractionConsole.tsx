@@ -5,13 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 /* Custom functions */
-import {
-  likeFilm,
-  unlikeFilm,
-  saveFilm,
-  unsaveFilm,
-  rateFilm,
-} from "@/utils/apiCalls";
+import { likeFilmFn, unlikeFilmFn, rateFilmFn } from "@/server/watched";
+import { saveFilmFn, unsaveFilmFn } from "@/server/watchlisted";
 import {
   watchedFilmsQueryOptions,
   watchlistedFilmsQueryOptions,
@@ -163,9 +158,9 @@ export default function InteractionConsole({
         const req = createReqBody("like") as FilmInteractionRequest;
         req.stars =
           requestedRating !== -1 ? (requestedRating as StarRating) : 0;
-        return likeFilm(req);
+        return likeFilmFn({ data: req });
       }
-      return unlikeFilm((movieDetails as TMDBFilm).id);
+      return unlikeFilmFn({ data: (movieDetails as TMDBFilm).id });
     },
     onMutate: async (shouldLike) => {
       await queryClient.cancelQueries({
@@ -240,8 +235,8 @@ export default function InteractionConsole({
   const watchlistMutation = useMutation({
     mutationFn: (shouldSave: boolean) =>
       shouldSave
-        ? saveFilm(createReqBody("save") as FilmInteractionRequest)
-        : unsaveFilm((movieDetails as TMDBFilm).id),
+        ? saveFilmFn({ data: createReqBody("save") as FilmInteractionRequest })
+        : unsaveFilmFn({ data: (movieDetails as TMDBFilm).id }),
     onMutate: async (shouldSave) => {
       await queryClient.cancelQueries({
         queryKey: watchlistedFilmsQueryOptions.queryKey,
@@ -307,7 +302,7 @@ export default function InteractionConsole({
 
   /* Rate mutation — optimistic: updates stars on the film in the watched list */
   const rateMutation = useMutation({
-    mutationFn: (req: FilmRateRequest) => rateFilm(req),
+    mutationFn: (req: FilmRateRequest) => rateFilmFn({ data: req }),
     onMutate: async (req) => {
       await queryClient.cancelQueries({
         queryKey: watchedFilmsQueryOptions.queryKey,

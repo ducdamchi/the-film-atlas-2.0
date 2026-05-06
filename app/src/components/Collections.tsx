@@ -6,12 +6,12 @@ import { toast } from "sonner";
 /* Custom functions */
 import { useAuth } from "@/utils/authContext";
 import {
-  createCollection,
-  patchCollectionPin,
-  patchCollectionVisibility,
-  putCollectionTitle,
-  putCollectionDescription,
-} from "@/utils/apiCalls";
+  createCollectionFn,
+  patchCollectionPinFn,
+  patchCollectionVisibilityFn,
+  putCollectionTitleFn,
+  putCollectionDescriptionFn,
+} from "@/server/collections";
 import {
   collectionsQueryOptions,
   collectionDetailQueryOptions,
@@ -19,7 +19,7 @@ import {
   watchlistedFilmsQueryOptions,
 } from "@/queries/collections.queries";
 import { useCollections } from "@/hooks/useCollections";
-import type { AppCollection } from "@/utils/apiCalls";
+import type { AppCollection } from "@/types/api";
 import type { UserFilm } from "@/types/film";
 
 /* Components */
@@ -49,7 +49,7 @@ export default function Collections() {
 
   const createMutation = useMutation({
     mutationFn: (params: { id: string; title: string; description: string }) =>
-      createCollection(params),
+      createCollectionFn({ data: params }),
     onMutate: async (newColParams) => {
       await queryClient.cancelQueries({ queryKey: ["collections"] });
       const previous = queryClient.getQueryData<AppCollection[]>(
@@ -118,7 +118,7 @@ export default function Collections() {
 
   const pinMutation = useMutation({
     mutationFn: ({ id, pinned }: { id: string; pinned: boolean }) =>
-      patchCollectionPin(id, pinned),
+      patchCollectionPinFn({ data: { id, pinned } }),
     onMutate: async ({ id, pinned }) => {
       await queryClient.cancelQueries({ queryKey: ["collections"] });
       const previous = queryClient.getQueryData<AppCollection[]>(
@@ -159,7 +159,7 @@ export default function Collections() {
 
   const renameMutation = useMutation({
     mutationFn: ({ id, title }: { id: string; title: string }) =>
-      putCollectionTitle(id, title),
+      putCollectionTitleFn({ data: { id, title } }),
     onMutate: async ({ id, title }) => {
       await queryClient.cancelQueries({ queryKey: ["collections"] });
       const previous = queryClient.getQueryData<AppCollection[]>(
@@ -201,7 +201,7 @@ export default function Collections() {
 
   const descriptionMutation = useMutation({
     mutationFn: ({ id, description }: { id: string; description: string }) =>
-      putCollectionDescription(id, description),
+      putCollectionDescriptionFn({ data: { id, description } }),
     onMutate: async ({ id, description }) => {
       await queryClient.cancelQueries({ queryKey: ["collections"] });
       const previous = queryClient.getQueryData<AppCollection[]>(
@@ -249,7 +249,7 @@ export default function Collections() {
 
   const visibilityMutation = useMutation({
     mutationFn: ({ id, is_public }: { id: string; is_public: boolean }) =>
-      patchCollectionVisibility(id, is_public),
+      patchCollectionVisibilityFn({ data: { id, is_public } }),
     onMutate: async ({ id, is_public }) => {
       await queryClient.cancelQueries({ queryKey: ["collections"] });
       const previous = queryClient.getQueryData<AppCollection[]>(

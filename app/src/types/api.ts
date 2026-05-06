@@ -169,3 +169,22 @@ export interface CountryDefaults {
   voteCount: number
   rating: number
 }
+
+// ---------------------------------------------------------------------------
+// Collections
+// ---------------------------------------------------------------------------
+
+export interface AppCollection {
+  id: string
+  title: string
+  description: string
+  cover_photo: string | null
+  is_public: boolean
+  collection_type: string // 'standard' | 'watched' | 'watchlist'
+  film_count: number
+  total_runtime: number
+  is_pinned: boolean
+  display_position: string | null
+  createdAt: string
+  updatedAt: string
+}

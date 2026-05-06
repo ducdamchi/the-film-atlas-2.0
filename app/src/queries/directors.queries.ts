@@ -1,8 +1,8 @@
 import { queryOptions } from "@tanstack/react-query"
-import { fetchDirectorListByParams } from "@/utils/apiCalls"
+import { fetchDirectorsFn } from "@/server/directors"
 
 export const directorsQueryOptions = queryOptions({
   queryKey: ["directors"],
-  queryFn: () => fetchDirectorListByParams(),
+  queryFn: () => fetchDirectorsFn(),
   staleTime: 1000 * 60,
 })

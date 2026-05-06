@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "@/utils/authContext";
-import { decodeToken } from "@/utils/decodeToken";
 import { COUNTRIES } from "@/utils/countries";
 import { LocationPicker } from "./LocationPicker";
+import { authClient } from "@/lib/authClient";
 
 function LocationChangeModal({ onClose }: { onClose: () => void }) {
-  const { authState, setAuthState } = useAuth();
+  const { authState } = useAuth();
   const [country, setCountry] = useState(authState.locationCountry ?? "");
   const [city, setCity] = useState("");
   const [error, setError] = useState("");
@@ -15,22 +15,15 @@ function LocationChangeModal({ onClose }: { onClose: () => void }) {
     if (!country) return;
     setLoading(true);
     try {
-      const res = await fetch("/profile/me/location", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          accesstoken: localStorage.getItem("accessToken") ?? "",
-        },
-        body: JSON.stringify({ country, city }),
-      });
-      const data = await res.json();
-      if (data.error) {
-        setError(data.error);
+      const { error: updateError } = await authClient.updateUser({
+        locationCountry: country,
+        locationCity: city,
+        locationSource: "manual",
+      } as any);
+      if (updateError) {
+        setError(updateError.message);
         return;
       }
-      localStorage.setItem("accessToken", data.token);
-      const decoded = decodeToken(data.token);
-      if (decoded) setAuthState(decoded);
       onClose();
     } catch {
       setError("Something went wrong. Please try again.");

@@ -1,19 +1,15 @@
 import express from "express"
 import pool from "../db/pool.js"
-import jwt from "jsonwebtoken"
-const { verify } = jwt
+import { auth } from "../lib/auth.js"
+import { fromNodeHeaders } from "better-auth/node"
 import { validateToken } from "../middlewares/AuthMiddleware.js"
 import { updateAggregates } from "../utils/collectionAggregates.js"
 
 const router = express.Router()
 
-// Auth optional — sets req.user if token is valid, continues either way
-const optionalAuth = (req, res, next) => {
-  const token = req.headers.accesstoken
-  if (!token) return next()
-  try {
-    req.user = verify(token, process.env.JWT_SECRET)
-  } catch {}
+const optionalAuth = async (req, res, next) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (session) req.user = session.user
   next()
 }
 
@@ -149,7 +145,7 @@ router.get("/:id", optionalAuth, async (req, res) => {
 
     const { rows: owners } = await pool.query(
       `SELECT u.id, u.username, co.role FROM "CollectionOwners" co
-       JOIN "Users" u ON u.id = co."userId"
+       JOIN "user" u ON u.id = co."userId"
        WHERE co."collectionId" = $1`,
       [id]
     )
@@ -547,7 +543,7 @@ router.post("/:id/owners", validateToken, async (req, res) => {
     if (!username) return res.status(400).json({ error: "username is required" })
 
     const { rows: [targetUser] } = await pool.query(
-      `SELECT id FROM "Users" WHERE username = $1 LIMIT 1`,
+      `SELECT id FROM "user" WHERE username = $1 LIMIT 1`,
       [username]
     )
     if (!targetUser) return res.status(404).json({ error: "User not found" })

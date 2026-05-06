@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import { useAuth } from "@/utils/authContext";
-import { decodeToken } from "@/utils/decodeToken";
 import NavBar from "@/components/layout/navbar/NavBar";
 import { useNavigate } from "@tanstack/react-router";
 import { LocationPicker } from "./LocationPicker";
+import { authClient } from "@/lib/authClient";
 
 function Section({
   title,
@@ -28,7 +27,7 @@ function StatusMessage({ success, error }: { success: string; error: string }) {
 }
 
 function ChangeUsername() {
-  const { authState, setAuthState } = useAuth();
+  const { authState } = useAuth();
   const [username, setUsername] = useState(authState.username);
   const [isEditing, setIsEditing] = useState(false);
   const [success, setSuccess] = useState("");
@@ -67,23 +66,17 @@ function ChangeUsername() {
     setError("");
     setLoading(true);
     try {
-      const { data } = await axios.patch<{ token?: string; error?: string }>(
-        "/profile/me/username",
-        { username },
-        { headers: { accesstoken: localStorage.getItem("accessToken") ?? "" } },
+      const { error: updateError } = await authClient.updateUser(
+        { username } as any,
       );
-      if (data.error) {
-        setError(data.error);
+      if (updateError) {
+        setError(updateError.message);
         return;
       }
-      localStorage.setItem("accessToken", data.token!);
-      const decoded = decodeToken(data.token!);
-      if (decoded) setAuthState(decoded);
       setSuccess("Username updated.");
       setIsEditing(false);
-    } catch (err: unknown) {
-      const msg = axios.isAxiosError(err) ? err.response?.data?.error : null;
-      setError(msg ?? "Error updating username.");
+    } catch {
+      setError("Error updating username.");
     } finally {
       setLoading(false);
     }
@@ -155,22 +148,20 @@ function ChangePassword() {
     }
     setLoading(true);
     try {
-      const { data } = await axios.patch<{ message?: string; error?: string }>(
-        "/profile/me/password",
-        { currentPassword: current, newPassword: next },
-        { headers: { accesstoken: localStorage.getItem("accessToken") ?? "" } },
-      );
-      if (data.error) {
-        setError(data.error);
+      const { error: changeError } = await authClient.changePassword({
+        currentPassword: current,
+        newPassword: next,
+      });
+      if (changeError) {
+        setError(changeError.message);
         return;
       }
       setSuccess("Password updated.");
       setCurrent("");
       setNext("");
       setConfirm("");
-    } catch (err: unknown) {
-      const msg = axios.isAxiosError(err) ? err.response?.data?.error : null;
-      setError(msg ?? "Error updating password.");
+    } catch {
+      setError("Error updating password.");
     } finally {
       setLoading(false);
     }
@@ -213,7 +204,7 @@ function ChangePassword() {
 }
 
 function ChangeRegion() {
-  const { authState, setAuthState } = useAuth();
+  const { authState } = useAuth();
   const [country, setCountry] = useState(authState.locationCountry ?? "");
   const [city, setCity] = useState(authState.locationCity ?? "");
   const [success, setSuccess] = useState("");
@@ -226,22 +217,15 @@ function ChangeRegion() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/profile/me/location", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          accesstoken: localStorage.getItem("accessToken") ?? "",
-        },
-        body: JSON.stringify({ country, city }),
-      });
-      const data = await res.json();
-      if (data.error) {
-        setError(data.error);
+      const { error: updateError } = await authClient.updateUser({
+        locationCountry: country,
+        locationCity: city,
+        locationSource: "manual",
+      } as any);
+      if (updateError) {
+        setError(updateError.message);
         return;
       }
-      localStorage.setItem("accessToken", data.token);
-      const decoded = decodeToken(data.token);
-      if (decoded) setAuthState(decoded);
       setSuccess("Region updated.");
     } catch {
       setError("Something went wrong. Please try again.");

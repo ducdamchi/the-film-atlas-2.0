@@ -7,7 +7,7 @@ import {
 } from "@/queries/collections.queries"
 import Collections from "../components/Collections"
 import LoadingPage from "../components/layout/LoadingPage"
-import type { AppCollection } from "@/utils/apiCalls"
+import type { AppCollection } from "@/types/api"
 
 export const Route = createFileRoute("/collections")({
   loader: async ({ context: { queryClient, auth } }) => {

@@ -4,12 +4,10 @@ import cors from "cors"
 import { toNodeHandler } from "better-auth/node"
 import pool from "./db/pool.js"
 import { auth } from "./lib/auth.js"
-import authRouter from "./routes/Auth.js"
 import watchedRouter from "./routes/Watched.js"
 import watchlistedRouter from "./routes/Watchlisted.js"
 import directorsRouter from "./routes/Directors.js"
 import proxyRouter from "./routes/Proxy.js"
-import settingsRouter from "./routes/Settings.js"
 import collectionsRouter from "./routes/Collections.js"
 
 /* IMPORTANT:
@@ -32,13 +30,11 @@ app.all("/api/auth/{*splat}", toNodeHandler(auth))
 
 app.use(express.json())
 
-app.use("/auth", authRouter)
 app.use("/profile/me/watched", watchedRouter)
 app.use("/profile/me/watchlisted", watchlistedRouter)
 app.use("/profile/me/directors", directorsRouter)
 app.use("/profile/me/collections", collectionsRouter)
 app.use("/collections", collectionsRouter)
-app.use("/profile/me", settingsRouter)
 app.use("/proxy", proxyRouter)
 
 export default app

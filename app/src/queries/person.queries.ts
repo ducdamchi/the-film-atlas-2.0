@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query"
-import { fetchPersonFromTMDB, checkDirectorStatus } from "@/utils/apiCalls"
+import { fetchPersonFromTMDB } from "@/utils/apiCalls"
+import { checkDirectorStatusFn } from "@/server/directors"
 
 export const personQueryOptions = (tmdbId: string | number) =>
   queryOptions({
@@ -11,7 +12,7 @@ export const personQueryOptions = (tmdbId: string | number) =>
 export const directorStatusQueryOptions = (tmdbId: string | number) =>
   queryOptions({
     queryKey: ["directorStatus", String(tmdbId)],
-    queryFn: () => checkDirectorStatus(tmdbId),
+    queryFn: () => checkDirectorStatusFn({ data: tmdbId }),
     staleTime: 0,
     retry: false,
   })
