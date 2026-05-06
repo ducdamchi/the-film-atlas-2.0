@@ -74,10 +74,6 @@ export default function Directors() {
     enabled: !!authState.status,
   });
 
-  useEffect(() => {
-    console.log(directorData);
-  }, [directorData]);
-
   /* Hook for scroll restoration */
   useEffect(() => {
     if (!isLoading) {

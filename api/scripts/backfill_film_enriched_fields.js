@@ -13,8 +13,16 @@
  * batches to stay within TMDB's 40 req/10s free-tier limit.
  */
 
-require("dotenv").config({ path: require("path").join(__dirname, "../.env.local") })
-const pool = require("../db/pool")
+import { fileURLToPath } from "url"
+import { dirname, join } from "path"
+import dotenv from "dotenv"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+dotenv.config({ path: join(__dirname, "../.env.local") })
+
+const { default: pool } = await import("../db/pool.js")
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY
 if (!TMDB_API_KEY) {

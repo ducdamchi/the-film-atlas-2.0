@@ -19,7 +19,7 @@
  */
 export interface AuthState {
   username: string
-  id: number
+  id: string
   status: boolean
   email: string | null
   locationCountry: string | null

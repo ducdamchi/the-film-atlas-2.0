@@ -1,4 +1,6 @@
-const { Pool } = require("pg")
+import pg from "pg"
+
+const { Pool } = pg
 
 const pool = new Pool({
   host: process.env.DB_HOST || "localhost",
@@ -11,4 +13,4 @@ const pool = new Pool({
       : false,
 })
 
-module.exports = pool
+export default pool

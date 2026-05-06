@@ -27,6 +27,7 @@
     "@tanstack/react-start": "latest",
     "@tanstack/router-plugin": "^1.132.0",
     "axios": "^1.13.6",
+    "better-auth": "^1.6.9",
     "better-react-mathjax": "^3.0.0",
     "class-variance-authority": "^0.7.1",
     "colorthief": "^3.3.1",

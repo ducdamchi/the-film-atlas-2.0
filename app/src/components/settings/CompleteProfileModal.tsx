@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { useAuth } from "@/utils/authContext";
-import { decodeToken } from "@/utils/decodeToken";
 import { LocationPicker } from "./LocationPicker";
+import { authClient } from "@/lib/authClient";
 
 export function CompleteProfileModal() {
-  const { setAuthState } = useAuth();
   const [email, setEmail] = useState("");
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
@@ -16,23 +14,17 @@ export function CompleteProfileModal() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/profile/me/complete", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          accesstoken: localStorage.getItem("accessToken") ?? "",
-        },
-        body: JSON.stringify({ email, country, city }),
-      });
-      const data = await res.json();
-      if (data.error) {
-        setError(data.error);
+      const { error: updateError } = await authClient.updateUser({
+        email,
+        locationCountry: country,
+        locationCity: city,
+        locationSource: "manual",
+      } as any);
+      if (updateError) {
+        setError(updateError.message);
         return;
       }
-      localStorage.setItem("accessToken", data.token);
-      const decoded = decodeToken(data.token);
-      if (decoded) setAuthState(decoded);
-      // authState now has email + locationCountry — modal condition is no longer true
+      // useSession() updates automatically — modal unmounts when authState.email becomes truthy
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

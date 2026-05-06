@@ -1,4 +1,4 @@
-const { sql } = require("kysely")
+import { sql } from "kysely"
 
 /**
  * Migration 003 — Collections feature schema
@@ -8,7 +8,7 @@ const { sql } = require("kysely")
  * - Creates UserFilmProfile for denormalized taste queries
  */
 
-exports.up = async (db) => {
+export async function up(db) {
   // --- Extend Films table ---
   await db.schema
     .alterTable("Films")
@@ -154,7 +154,7 @@ exports.up = async (db) => {
   `.execute(db)
 }
 
-exports.down = async (db) => {
+export async function down(db) {
   await db.schema.dropTable("UserFilmProfile").ifExists().execute()
   await db.schema.dropTable("CollectionSaves").ifExists().execute()
   await db.schema.dropTable("CollectionFilms").ifExists().execute()

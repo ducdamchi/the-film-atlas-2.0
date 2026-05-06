@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
-import axios from "axios"
 import NavBar from "@/components/layout/navbar/NavBar"
 import AuthBg from "@/components/layout/AuthBg"
+import { authClient } from "@/lib/authClient"
 
 export const Route = createFileRoute("/reset-password")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -32,18 +32,14 @@ function ResetPassword() {
     }
     setLoading(true)
     try {
-      const { data } = await axios.post<{ message?: string; error?: string }>(
-        "/auth/reset-password",
-        { token, newPassword: password },
-      )
-      if (data.error) {
-        setError(data.error)
+      const result = await authClient.resetPassword({ newPassword: password, token })
+      if (result.error) {
+        setError(result.error.message ?? "Error resetting password.")
         return
       }
       navigate({ to: "/login" })
-    } catch (err: unknown) {
-      const msg = axios.isAxiosError(err) ? err.response?.data?.error : null
-      setError(msg ?? "Error resetting password.")
+    } catch {
+      setError("Error resetting password.")
     } finally {
       setLoading(false)
     }

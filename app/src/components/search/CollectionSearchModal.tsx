@@ -6,13 +6,10 @@ import { getReleaseYear } from "@/utils/helperFunctions";
 import {
   queryFilmFromTMDBPaged,
   fetchFilmFromTMDB,
-  addFilmToCollection,
-  removeFilmFromCollection,
-  likeFilm,
-  unlikeFilm,
-  saveFilm,
-  unsaveFilm,
 } from "@/utils/apiCalls";
+import { likeFilmFn, unlikeFilmFn } from "@/server/watched";
+import { saveFilmFn, unsaveFilmFn } from "@/server/watchlisted";
+import { addFilmToCollectionFn, removeFilmFromCollectionFn } from "@/server/collections";
 import useClickOutside from "@/hooks/useClickOutside";
 import { useModalKeyboardNav } from "@/hooks/useModalKeyboardNav";
 import { usePagedSearch } from "@/hooks/usePagedSearch";
@@ -206,11 +203,11 @@ export default function CollectionSearchModal({
       };
 
       if (collection.collectionType === "watched") {
-        await likeFilm(filmBody);
+        await likeFilmFn({ data: filmBody });
       } else if (collection.collectionType === "watchlist") {
-        await saveFilm(filmBody);
+        await saveFilmFn({ data: filmBody });
       } else {
-        await addFilmToCollection(collection.id, filmBody);
+        await addFilmToCollectionFn({ data: { collectionId: collection.id, film: filmBody } });
       }
 
       const userFilm: UserFilm = {
@@ -240,11 +237,8 @@ export default function CollectionSearchModal({
         next.delete(film.id);
         return next;
       });
-      const isConflict =
-        typeof err === "object" &&
-        err !== null &&
-        "response" in err &&
-        (err as { response?: { status?: number } }).response?.status === 409;
+      // addFilmToCollectionFn throws Error("CONFLICT") when Express returns 409
+      const isConflict = err instanceof Error && err.message === "CONFLICT";
       toast.error(
         isConflict ? "Film is already in this collection" : "Action failed",
       );
@@ -290,21 +284,18 @@ export default function CollectionSearchModal({
 
     try {
       if (collection.collectionType === "watched") {
-        await unlikeFilm(film.id);
+        await unlikeFilmFn({ data: film.id });
       } else if (collection.collectionType === "watchlist") {
-        await unsaveFilm(film.id);
+        await unsaveFilmFn({ data: film.id });
       } else {
-        await removeFilmFromCollection(collection.id, film.id);
+        await removeFilmFromCollectionFn({ data: { collectionId: collection.id, filmId: film.id } });
       }
       toast.success(`Removed "${film.title}" from ${collection.title}`);
       onFilmRemoved(film.id);
     } catch (err: unknown) {
       setCollectionFilmIds((prev) => new Set(prev).add(film.id));
-      const isConflict =
-        typeof err === "object" &&
-        err !== null &&
-        "response" in err &&
-        (err as { response?: { status?: number } }).response?.status === 409;
+      // addFilmToCollectionFn throws Error("CONFLICT") when Express returns 409
+      const isConflict = err instanceof Error && err.message === "CONFLICT";
       toast.error(
         isConflict ? "Film is already in this collection" : "Action failed",
       );

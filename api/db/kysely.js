@@ -1,8 +1,8 @@
-const { Kysely, PostgresDialect } = require("kysely")
-const pool = require("./pool")
+import { Kysely, PostgresDialect } from "kysely"
+import pool from "./pool.js"
 
 const db = new Kysely({
   dialect: new PostgresDialect({ pool }),
 })
 
-module.exports = db
+export default db

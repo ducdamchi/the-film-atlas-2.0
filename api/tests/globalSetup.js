@@ -9,23 +9,29 @@
  * Returns a teardown function that deletes test users and cleans up.
  */
 
-const path = require("path")
-const fs = require("fs")
-const dotenv = require("dotenv")
+import { join, dirname } from "path"
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs"
+import { fileURLToPath } from "url"
+import dotenv from "dotenv"
 
-const TOKENS_FILE = path.join(__dirname, ".tokens.json")
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+const TOKENS_FILE = join(__dirname, ".tokens.json")
 
 // Vitest 4: globalSetup must export a default function.
 // Returning a function from it registers that function as teardown.
-module.exports = async () => {
+export default async function () {
   // Load test env before any DB or app modules are imported
-  dotenv.config({ path: path.join(__dirname, "../.env.test") })
+  dotenv.config({ path: join(__dirname, "../.env.test") })
 
-  const bcrypt = require("bcrypt")
-  const { Pool } = require("pg")
-  const { Kysely, PostgresDialect, Migrator, FileMigrationProvider } = require("kysely")
-  const request = require("supertest")
-  const app = require("../index")
+  const bcrypt = (await import("bcrypt")).default
+  const { Pool } = (await import("pg")).default
+  const { Kysely, PostgresDialect, Migrator, FileMigrationProvider } = await import("kysely")
+  const { promises: fs } = await import("fs")
+  const path = await import("path")
+  const { default: request } = await import("supertest")
+  const { default: app } = await import("../index.js")
 
   const dbConfig = {
     host: process.env.DB_HOST || "localhost",
@@ -40,9 +46,9 @@ module.exports = async () => {
   const migrator = new Migrator({
     db,
     provider: new FileMigrationProvider({
-      fs: require("fs/promises"),
+      fs,
       path,
-      migrationFolder: path.join(__dirname, "../db/migrations"),
+      migrationFolder: join(__dirname, "../db/migrations"),
     }),
   })
   const { error, results } = await migrator.migrateToLatest()
@@ -91,7 +97,7 @@ module.exports = async () => {
     .send({ username: usernameB, password: passwordB })
   if (resB.status !== 200) throw new Error(`Login B failed: ${JSON.stringify(resB.body)}`)
 
-  fs.writeFileSync(TOKENS_FILE, JSON.stringify({
+  writeFileSync(TOKENS_FILE, JSON.stringify({
     tokenA: resA.body.token,
     userIdA: resA.body.id,
     usernameA,
@@ -111,7 +117,7 @@ module.exports = async () => {
     )
     await teardownPool.end()
 
-    if (fs.existsSync(TOKENS_FILE)) fs.unlinkSync(TOKENS_FILE)
+    if (existsSync(TOKENS_FILE)) unlinkSync(TOKENS_FILE)
     console.log("[test] Teardown complete")
   }
 }

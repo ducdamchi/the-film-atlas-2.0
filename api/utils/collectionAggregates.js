@@ -3,7 +3,7 @@
 
 // delta = +1 (add) or -1 (remove)
 // film must have: runtime, genres (array of {id}), origin_country (array of strings), release_date
-async function updateAggregates(client, collectionId, film, delta) {
+export async function updateAggregates(client, collectionId, film, delta) {
   const { rows } = await client.query(
     `SELECT genres_aggregate, countries_aggregate, decades_aggregate
      FROM "Collections" WHERE id = $1`,
@@ -55,7 +55,7 @@ async function updateAggregates(client, collectionId, film, delta) {
 
 // Returns the collection id for a user's system collection ('watched' | 'watchlist').
 // Accepts a transaction client so it runs within the same transaction as the caller.
-async function getSystemCollectionId(client, userId, type) {
+export async function getSystemCollectionId(client, userId, type) {
   const { rows } = await client.query(
     `SELECT c.id FROM "Collections" c
      JOIN "CollectionOwners" co ON co."collectionId" = c.id
@@ -64,5 +64,3 @@ async function getSystemCollectionId(client, userId, type) {
   )
   return rows[0]?.id || null
 }
-
-module.exports = { updateAggregates, getSystemCollectionId }

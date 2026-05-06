@@ -7,7 +7,7 @@ import {
   watchedFilmsQueryOptions,
   watchlistedFilmsQueryOptions,
 } from "@/queries/collections.queries";
-import type { AppCollection } from "@/utils/apiCalls";
+import type { AppCollection } from "@/types/api";
 import type { UserFilm } from "@/types/film";
 
 export interface CollectionData {

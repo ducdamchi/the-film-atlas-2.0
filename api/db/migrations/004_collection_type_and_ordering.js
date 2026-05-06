@@ -1,4 +1,4 @@
-const { sql } = require("kysely")
+import { sql } from "kysely"
 
 /**
  * Migration 004 — Collection type, ordering, and pinning
@@ -9,7 +9,7 @@ const { sql } = require("kysely")
  * Phase 7: Change CollectionFilms.position from integer to text (fractional index)
  */
 
-exports.up = async (db) => {
+export async function up(db) {
   // --- Phase 1: collection_type ---
   await sql`
     ALTER TABLE "Collections"
@@ -77,7 +77,7 @@ exports.up = async (db) => {
   }
 }
 
-exports.down = async (db) => {
+export async function down(db) {
   // Remove system collections (CASCADE removes their CollectionOwners rows)
   await sql`DELETE FROM "Collections" WHERE collection_type IN ('watched', 'watchlist')`.execute(db)
 

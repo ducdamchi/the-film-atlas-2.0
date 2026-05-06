@@ -1,4 +1,4 @@
-const { sql } = require("kysely")
+import { sql } from "kysely"
 
 /**
  * Baseline migration — creates all tables from scratch.
@@ -11,7 +11,7 @@ const { sql } = require("kysely")
  * To use on a fresh database, this migration creates all tables.
  */
 
-exports.up = async (db) => {
+export async function up(db) {
   await db.schema
     .createTable("Users")
     .ifNotExists()
@@ -134,7 +134,7 @@ exports.up = async (db) => {
     .execute()
 }
 
-exports.down = async (db) => {
+export async function down(db) {
   await db.schema.dropTable("UserDirectorFilms").ifExists().execute()
   await db.schema.dropTable("UserDirectorStats").ifExists().execute()
   await db.schema.dropTable("WatchlistedFilms").ifExists().execute()

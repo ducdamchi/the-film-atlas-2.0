@@ -1,6 +1,6 @@
-const { sql } = require("kysely")
+import { sql } from "kysely"
 
-exports.up = async (db) => {
+export async function up(db) {
   // Remove duplicate (userId, directorId) rows, keeping the lowest id
   await sql`
     DELETE FROM "UserDirectorStats"
@@ -17,7 +17,7 @@ exports.up = async (db) => {
     .execute()
 }
 
-exports.down = async (db) => {
+export async function down(db) {
   await db.schema
     .alterTable("UserDirectorStats")
     .dropConstraint("uds_user_director_unique")

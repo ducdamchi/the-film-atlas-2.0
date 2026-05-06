@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import axios from "axios";
 import NavBar from "@/components/layout/navbar/NavBar";
 import AuthBg from "@/components/layout/AuthBg";
+import { authClient } from "@/lib/authClient";
 
 export const Route = createFileRoute("/forgot-password")({
   component: ForgotPassword,
@@ -17,9 +17,12 @@ function ForgotPassword() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post("/auth/forgot-password", { email });
+      await authClient.forgetPassword({
+        email,
+        redirectTo: `${import.meta.env.VITE_APP_URL ?? ""}/reset-password`,
+      });
     } catch {
-      // Always show the success message (prevents email enumeration)
+      // Always show success message to prevent email enumeration
     } finally {
       setLoading(false);
       setSubmitted(true);

@@ -15,7 +15,16 @@
  *   node api/scripts/backfill_user_film_profile.js
  */
 
-const pool = require("../db/pool")
+import { fileURLToPath } from "url"
+import { dirname, join } from "path"
+import dotenv from "dotenv"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+dotenv.config({ path: join(__dirname, "../.env.local") })
+
+const { default: pool } = await import("../db/pool.js")
 
 async function main() {
   const client = await pool.connect()
@@ -90,10 +99,6 @@ async function main() {
     console.log(`Step 3: Upserted ${fromWatchlisted} row(s) from WatchlistedFilms`)
 
     // ── Step 4: Backfill collection_ids from CollectionFilms ─────────────────
-    // Only standard collections (system watched/watchlist collections are tracked
-    // via is_watched/is_watchlisted flags, not collection_ids).
-    // Uses addedBy as the owning userId. Films only in collections (not
-    // watched/watchlisted) are also inserted here.
     const { rowCount: fromCollections } = await client.query(`
       INSERT INTO "UserFilmProfile"
         ("userId", "filmId", is_watched, stars, is_watchlisted, collection_ids,

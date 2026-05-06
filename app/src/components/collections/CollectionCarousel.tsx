@@ -14,7 +14,7 @@ import CollectionSearchModal from "../search/CollectionSearchModal";
 import CollectionFooter from "./CollectionFooter";
 import type { UserFilm } from "@/types/film";
 import type { CollectionData } from "@/hooks/useCollections";
-import { deleteCollection } from "@/utils/apiCalls";
+import { deleteCollectionFn } from "@/server/collections";
 import { CirclePlus } from "lucide-react";
 
 interface CollectionCarouselProps {
@@ -272,7 +272,7 @@ export default function CollectionCarousel({
               navButtonWidth={NAV_BUTTON_WIDTH}
               onAdd={() => setIsAddModalOpen(true)}
               onDelete={() =>
-                deleteCollection(id).then(() => {
+                deleteCollectionFn({ data: id }).then(() => {
                   onDelete?.(id);
                 })
               }
