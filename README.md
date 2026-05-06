@@ -3,5 +3,5 @@ Visit live site at: [thefilmatlas.org](https://thefilmatlas.org)\
 Documentation: [thefilmatlas.org/docs](https://thefilmatlas.org/docs)
 
 Two-server architecture for BetterAuth Integration (Signing in)
-<img width="278" height="418" alt="image" src="https://github.com/user-attachments/assets/ac449eac-a224-418f-a43e-cfd2e97f5c2e" />
+<img width="556" height="836" alt="image" src="https://github.com/user-attachments/assets/ac449eac-a224-418f-a43e-cfd2e97f5c2e" />
 
