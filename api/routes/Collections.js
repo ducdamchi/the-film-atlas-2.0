@@ -8,7 +8,9 @@ import { updateAggregates } from "../utils/collectionAggregates.js"
 const router = express.Router()
 
 const optionalAuth = async (req, res, next) => {
-  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  const session = await auth.api.getSession({
+    headers: fromNodeHeaders(req.headers),
+  })
   if (session) req.user = session.user
   next()
 }
@@ -19,7 +21,7 @@ async function getOwner(collectionId, userId) {
     `SELECT co.id, c.collection_type FROM "CollectionOwners" co
      JOIN "Collections" c ON c.id = co."collectionId"
      WHERE co."collectionId" = $1 AND co."userId" = $2 LIMIT 1`,
-    [collectionId, userId]
+    [collectionId, userId],
   )
   return rows[0] || null
 }
@@ -33,18 +35,19 @@ router.post("/", validateToken, async (req, res) => {
 
     if (!id) return res.status(400).json({ error: "id is required" })
     if (!title) return res.status(400).json({ error: "title is required" })
-    if (!description) return res.status(400).json({ error: "description is required" })
+    if (!description)
+      return res.status(400).json({ error: "description is required" })
 
     const { rows } = await pool.query(
       `INSERT INTO "Collections" (id, title, description, cover_photo, is_public)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [id, title, description, cover_photo || null, is_public ?? true]
+      [id, title, description, cover_photo || null, is_public ?? true],
     )
     const collection = rows[0]
 
     await pool.query(
       `INSERT INTO "CollectionOwners" ("collectionId", "userId") VALUES ($1,$2)`,
-      [collection.id, req.user.id]
+      [collection.id, req.user.id],
     )
 
     return res.status(201).json(collection)
@@ -77,7 +80,7 @@ router.get("/", validateToken, async (req, res) => {
        JOIN "CollectionOwners" co ON co."collectionId" = c.id
        WHERE co."userId" = $1
        ORDER BY co.is_pinned DESC, co.display_position ASC NULLS LAST, c."createdAt" DESC`,
-      [req.user.id]
+      [req.user.id],
     )
     return res.status(200).json(rows)
   } catch (err) {
@@ -94,7 +97,7 @@ router.get("/saved", validateToken, async (req, res) => {
        JOIN "CollectionSaves" cs ON cs."collectionId" = c.id
        WHERE cs."userId" = $1
        ORDER BY cs."createdAt" DESC`,
-      [req.user.id]
+      [req.user.id],
     )
     return res.status(200).json(rows)
   } catch (err) {
@@ -111,11 +114,11 @@ router.get("/:id", optionalAuth, async (req, res) => {
     const { id } = req.params
     const userId = req.user?.id
 
-    const { rows: [collection] } = await pool.query(
-      `SELECT * FROM "Collections" WHERE id = $1`,
-      [id]
-    )
-    if (!collection) return res.status(404).json({ error: "Collection not found" })
+    const {
+      rows: [collection],
+    } = await pool.query(`SELECT * FROM "Collections" WHERE id = $1`, [id])
+    if (!collection)
+      return res.status(404).json({ error: "Collection not found" })
 
     // Private collections: only owners and savers may view
     if (!collection.is_public) {
@@ -126,7 +129,7 @@ router.get("/:id", optionalAuth, async (req, res) => {
          UNION
          SELECT 1 FROM "CollectionSaves" WHERE "collectionId" = $1 AND "userId" = $2
          LIMIT 1`,
-        [id, userId]
+        [id, userId],
       )
       if (!access.length) return res.status(403).json({ error: "Forbidden" })
     }
@@ -140,14 +143,15 @@ router.get("/:id", optionalAuth, async (req, res) => {
        JOIN "Films" f ON f.id = cf."filmId"
        WHERE cf."collectionId" = $1
        ORDER BY cf."createdAt" DESC`,
-      [id]
+      [id],
     )
 
+    // casting u.id as uuid because BetterAuth defined the id field as text instead of uuid
     const { rows: owners } = await pool.query(
       `SELECT u.id, u.username, co.role FROM "CollectionOwners" co
-       JOIN "user" u ON u.id = co."userId"
+       JOIN "user" u ON u.id::uuid = co."userId"
        WHERE co."collectionId" = $1`,
-      [id]
+      [id],
     )
 
     return res.status(200).json({ ...collection, films, owners })
@@ -163,10 +167,15 @@ router.put("/:id", validateToken, async (req, res) => {
     const { id } = req.params
     const owner = await getOwner(id, req.user.id)
     if (!owner) return res.status(403).json({ error: "Forbidden" })
-    if (owner.collection_type !== "standard") return res.status(403).json({ error: "Cannot modify a system collection" })
+    if (owner.collection_type !== "standard")
+      return res
+        .status(403)
+        .json({ error: "Cannot modify a system collection" })
 
     const { title, description, cover_photo, is_public } = req.body
-    const { rows: [updated] } = await pool.query(
+    const {
+      rows: [updated],
+    } = await pool.query(
       `UPDATE "Collections" SET
          title = COALESCE($1, title),
          description = COALESCE($2, description),
@@ -174,7 +183,13 @@ router.put("/:id", validateToken, async (req, res) => {
          is_public = COALESCE($4, is_public),
          "updatedAt" = now()
        WHERE id = $5 RETURNING *`,
-      [title || null, description || null, cover_photo || null, is_public ?? null, id]
+      [
+        title || null,
+        description || null,
+        cover_photo || null,
+        is_public ?? null,
+        id,
+      ],
     )
     if (!updated) return res.status(404).json({ error: "Collection not found" })
 
@@ -191,13 +206,17 @@ router.delete("/:id", validateToken, async (req, res) => {
     const { id } = req.params
     const owner = await getOwner(id, req.user.id)
     if (!owner) return res.status(403).json({ error: "Forbidden" })
-    if (owner.collection_type !== "standard") return res.status(403).json({ error: "Cannot delete a system collection" })
+    if (owner.collection_type !== "standard")
+      return res
+        .status(403)
+        .json({ error: "Cannot delete a system collection" })
 
     const { rowCount } = await pool.query(
       `DELETE FROM "Collections" WHERE id = $1`,
-      [id]
+      [id],
     )
-    if (!rowCount) return res.status(404).json({ error: "Collection not found" })
+    if (!rowCount)
+      return res.status(404).json({ error: "Collection not found" })
 
     return res.status(200).json({ deleted: true })
   } catch (err) {
@@ -216,10 +235,14 @@ router.post("/:id/films", validateToken, async (req, res) => {
     const userId = req.user.id
     const owner = await getOwner(collectionId, userId)
     if (!owner) return res.status(403).json({ error: "Forbidden" })
-    if (owner.collection_type !== "standard") return res.status(403).json({ error: "Cannot add films to a system collection" })
+    if (owner.collection_type !== "standard")
+      return res
+        .status(403)
+        .json({ error: "Cannot add films to a system collection" })
 
     const film = req.body
-    if (!film.tmdbId) return res.status(400).json({ error: "tmdbId is required" })
+    if (!film.tmdbId)
+      return res.status(400).json({ error: "tmdbId is required" })
 
     await client.query("BEGIN")
 
@@ -251,7 +274,7 @@ router.post("/:id/films", validateToken, async (req, res) => {
         film.original_title || null,
         film.spoken_languages ? JSON.stringify(film.spoken_languages) : null,
         film.imdb_id || null,
-      ]
+      ],
     )
 
     // Insert into CollectionFilms (reject duplicate)
@@ -260,7 +283,7 @@ router.post("/:id/films", validateToken, async (req, res) => {
        VALUES ($1,$2,$3,$4)
        ON CONFLICT ("collectionId", "filmId") DO NOTHING
        RETURNING id`,
-      [collectionId, film.tmdbId, userId, film.note || null]
+      [collectionId, film.tmdbId, userId, film.note || null],
     )
     if (!rowCount) {
       await client.query("ROLLBACK")
@@ -295,17 +318,20 @@ router.post("/:id/films", validateToken, async (req, res) => {
         JSON.stringify(film.origin_country || []),
         film.release_date || null,
         film.runtime || 0,
-      ]
+      ],
     )
 
     await client.query("COMMIT")
 
-    const { rows: [updated] } = await pool.query(
-      `SELECT film_count FROM "Collections" WHERE id = $1`,
-      [collectionId]
-    )
+    const {
+      rows: [updated],
+    } = await pool.query(`SELECT film_count FROM "Collections" WHERE id = $1`, [
+      collectionId,
+    ])
 
-    return res.status(201).json({ collection_film_id: rows[0].id, film_count: updated.film_count })
+    return res
+      .status(201)
+      .json({ collection_film_id: rows[0].id, film_count: updated.film_count })
   } catch (err) {
     await client.query("ROLLBACK")
     console.error(err)
@@ -322,15 +348,20 @@ router.delete("/:id/films/:filmId", validateToken, async (req, res) => {
     const { id: collectionId, filmId } = req.params
     const owner = await getOwner(collectionId, req.user.id)
     if (!owner) return res.status(403).json({ error: "Forbidden" })
-    if (owner.collection_type !== "standard") return res.status(403).json({ error: "Cannot remove films from a system collection" })
+    if (owner.collection_type !== "standard")
+      return res
+        .status(403)
+        .json({ error: "Cannot remove films from a system collection" })
 
     // Get the film record and addedBy before deleting
-    const { rows: [cfRow] } = await pool.query(
+    const {
+      rows: [cfRow],
+    } = await pool.query(
       `SELECT cf."addedBy", f.runtime, f.genres, f.origin_country, f.release_date
        FROM "CollectionFilms" cf
        JOIN "Films" f ON f.id = cf."filmId"
        WHERE cf."collectionId" = $1 AND cf."filmId" = $2`,
-      [collectionId, filmId]
+      [collectionId, filmId],
     )
     if (!cfRow) return res.status(404).json({ error: "Film not in collection" })
 
@@ -338,16 +369,21 @@ router.delete("/:id/films/:filmId", validateToken, async (req, res) => {
 
     await client.query(
       `DELETE FROM "CollectionFilms" WHERE "collectionId" = $1 AND "filmId" = $2`,
-      [collectionId, filmId]
+      [collectionId, filmId],
     )
 
     // Update aggregates
-    await updateAggregates(client, collectionId, {
-      genres: cfRow.genres,
-      origin_country: cfRow.origin_country,
-      release_date: cfRow.release_date,
-      runtime: cfRow.runtime,
-    }, -1)
+    await updateAggregates(
+      client,
+      collectionId,
+      {
+        genres: cfRow.genres,
+        origin_country: cfRow.origin_country,
+        release_date: cfRow.release_date,
+        runtime: cfRow.runtime,
+      },
+      -1,
+    )
 
     // Update UserFilmProfile for the addedBy user — remove this collection from collection_ids
     await client.query(
@@ -360,7 +396,7 @@ router.delete("/:id/films/:filmId", validateToken, async (req, res) => {
          ),
          "updatedAt" = now()
        WHERE "userId" = $2 AND "filmId" = $3`,
-      [JSON.stringify(collectionId), cfRow.addedBy, filmId]
+      [JSON.stringify(collectionId), cfRow.addedBy, filmId],
     )
     // Delete profile row if no interactions remain
     await client.query(
@@ -368,21 +404,26 @@ router.delete("/:id/films/:filmId", validateToken, async (req, res) => {
        WHERE "userId" = $1 AND "filmId" = $2
          AND is_watched = false AND is_watchlisted = false
          AND collection_ids = '[]'::jsonb`,
-      [cfRow.addedBy, filmId]
+      [cfRow.addedBy, filmId],
     )
 
     await client.query("COMMIT")
 
-    const { rows: [updated] } = await pool.query(
-      `SELECT film_count FROM "Collections" WHERE id = $1`,
-      [collectionId]
-    )
+    const {
+      rows: [updated],
+    } = await pool.query(`SELECT film_count FROM "Collections" WHERE id = $1`, [
+      collectionId,
+    ])
 
-    return res.status(200).json({ deleted: true, film_count: updated.film_count })
+    return res
+      .status(200)
+      .json({ deleted: true, film_count: updated.film_count })
   } catch (err) {
     await client.query("ROLLBACK")
     console.error(err)
-    return res.status(500).json({ error: "Error removing film from collection" })
+    return res
+      .status(500)
+      .json({ error: "Error removing film from collection" })
   } finally {
     client.release()
   }
@@ -394,17 +435,24 @@ router.put("/:id/films/:filmId", validateToken, async (req, res) => {
     const { id: collectionId, filmId } = req.params
     const owner = await getOwner(collectionId, req.user.id)
     if (!owner) return res.status(403).json({ error: "Forbidden" })
-    if (owner.collection_type !== "standard") return res.status(403).json({ error: "Cannot modify films in a system collection" })
+    if (owner.collection_type !== "standard")
+      return res
+        .status(403)
+        .json({ error: "Cannot modify films in a system collection" })
 
     const { note, position } = req.body
-    const { rows: [updated], rowCount } = await pool.query(
+    const {
+      rows: [updated],
+      rowCount,
+    } = await pool.query(
       `UPDATE "CollectionFilms" SET
          note = COALESCE($1, note),
          position = COALESCE($2, position)
        WHERE "collectionId" = $3 AND "filmId" = $4 RETURNING *`,
-      [note ?? null, position ?? null, collectionId, filmId]
+      [note ?? null, position ?? null, collectionId, filmId],
     )
-    if (!rowCount) return res.status(404).json({ error: "Film not in collection" })
+    if (!rowCount)
+      return res.status(404).json({ error: "Film not in collection" })
 
     return res.status(200).json(updated)
   } catch (err) {
@@ -430,7 +478,7 @@ router.patch("/:id/pin", validateToken, async (req, res) => {
       `UPDATE "CollectionOwners" SET is_pinned = $1
        WHERE "collectionId" = $2 AND "userId" = $3
        RETURNING is_pinned`,
-      [pinned, id, req.user.id]
+      [pinned, id, req.user.id],
     )
     if (!rowCount) return res.status(403).json({ error: "Forbidden" })
 
@@ -454,10 +502,12 @@ router.patch("/:id/visibility", validateToken, async (req, res) => {
     const owner = await getOwner(id, req.user.id)
     if (!owner) return res.status(403).json({ error: "Forbidden" })
 
-    const { rows: [updated] } = await pool.query(
+    const {
+      rows: [updated],
+    } = await pool.query(
       `UPDATE "Collections" SET is_public = $1, "updatedAt" = now()
        WHERE id = $2 RETURNING is_public`,
-      [is_public, id]
+      [is_public, id],
     )
 
     return res.status(200).json({ is_public: updated.is_public })
@@ -475,7 +525,7 @@ router.get("/:id/save", validateToken, async (req, res) => {
     const { id } = req.params
     const { rows } = await pool.query(
       `SELECT id FROM "CollectionSaves" WHERE "collectionId" = $1 AND "userId" = $2 LIMIT 1`,
-      [id, req.user.id]
+      [id, req.user.id],
     )
     return res.status(200).json({ saved: rows.length > 0 })
   } catch (err) {
@@ -492,20 +542,23 @@ router.post("/:id/save", validateToken, async (req, res) => {
 
     // Cannot save own collection
     const ownRow = await getOwner(id, userId)
-    if (ownRow) return res.status(400).json({ error: "Cannot save your own collection" })
+    if (ownRow)
+      return res.status(400).json({ error: "Cannot save your own collection" })
 
     // Collection must exist and be public (or user has access)
-    const { rows: [col] } = await pool.query(
-      `SELECT is_public FROM "Collections" WHERE id = $1`,
-      [id]
-    )
+    const {
+      rows: [col],
+    } = await pool.query(`SELECT is_public FROM "Collections" WHERE id = $1`, [
+      id,
+    ])
     if (!col) return res.status(404).json({ error: "Collection not found" })
-    if (!col.is_public) return res.status(403).json({ error: "Collection is private" })
+    if (!col.is_public)
+      return res.status(403).json({ error: "Collection is private" })
 
     await pool.query(
       `INSERT INTO "CollectionSaves" ("collectionId", "userId")
        VALUES ($1,$2) ON CONFLICT DO NOTHING`,
-      [id, userId]
+      [id, userId],
     )
 
     return res.status(200).json({ saved: true })
@@ -521,7 +574,7 @@ router.delete("/:id/save", validateToken, async (req, res) => {
     const { id } = req.params
     await pool.query(
       `DELETE FROM "CollectionSaves" WHERE "collectionId" = $1 AND "userId" = $2`,
-      [id, req.user.id]
+      [id, req.user.id],
     )
     return res.status(200).json({ saved: false })
   } catch (err) {
@@ -540,18 +593,20 @@ router.post("/:id/owners", validateToken, async (req, res) => {
     if (!owner) return res.status(403).json({ error: "Forbidden" })
 
     const { username } = req.body
-    if (!username) return res.status(400).json({ error: "username is required" })
+    if (!username)
+      return res.status(400).json({ error: "username is required" })
 
-    const { rows: [targetUser] } = await pool.query(
-      `SELECT id FROM "user" WHERE username = $1 LIMIT 1`,
-      [username]
-    )
+    const {
+      rows: [targetUser],
+    } = await pool.query(`SELECT id FROM "user" WHERE username = $1 LIMIT 1`, [
+      username,
+    ])
     if (!targetUser) return res.status(404).json({ error: "User not found" })
 
     await pool.query(
       `INSERT INTO "CollectionOwners" ("collectionId", "userId")
        VALUES ($1,$2) ON CONFLICT DO NOTHING`,
-      [collectionId, targetUser.id]
+      [collectionId, targetUser.id],
     )
 
     return res.status(200).json({ added: true, userId: targetUser.id })
@@ -571,7 +626,7 @@ router.delete("/:id/owners/:userId", validateToken, async (req, res) => {
     // Guard: cannot remove the last owner
     const { rows: allOwners } = await pool.query(
       `SELECT id FROM "CollectionOwners" WHERE "collectionId" = $1`,
-      [collectionId]
+      [collectionId],
     )
     if (allOwners.length <= 1) {
       return res.status(400).json({ error: "Cannot remove the last owner" })
@@ -579,7 +634,7 @@ router.delete("/:id/owners/:userId", validateToken, async (req, res) => {
 
     const { rowCount } = await pool.query(
       `DELETE FROM "CollectionOwners" WHERE "collectionId" = $1 AND "userId" = $2`,
-      [collectionId, targetUserId]
+      [collectionId, targetUserId],
     )
     if (!rowCount) return res.status(404).json({ error: "Owner not found" })
 

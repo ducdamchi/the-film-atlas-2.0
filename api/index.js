@@ -19,11 +19,13 @@ These terms are used interchangeably to adapt to different logic in frontend and
 const app = express()
 
 // CORS before BetterAuth handler
-app.use(cors({
-  origin: process.env.FRONTEND_URL ?? "http://localhost:3001",
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-}))
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL ?? "http://localhost:3001",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  }),
+)
 
 // BetterAuth handler must come before express.json()
 app.all("/api/auth/{*splat}", toNodeHandler(auth))
@@ -40,15 +42,17 @@ app.use("/proxy", proxyRouter)
 export default app
 
 if (process.env.NODE_ENV !== "test") {
-  pool.connect()
+  pool
+    .connect()
     .then((client) => {
       client.release()
       app.listen(3002, () => {
-        console.log("Server running on port 3002 (PostgreSQL, pure API)")
+        console.log("Server running on port 3002. DB connection successful.")
       })
     })
     .catch((err) => {
-      console.error("Failed to connect to PostgreSQL:", err)
+      console.log(process.env.NODE_ENV)
+      console.error("Failed to connect to PostgreSQL", err)
       process.exit(1)
     })
 }
