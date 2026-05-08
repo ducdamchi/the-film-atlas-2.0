@@ -1,9 +1,9 @@
-import UserFilmCard from "../films/UserFilmCard";
-import type { UserFilm } from "@/types/film";
+import UserFilmCard from "../films/UserFilmCard"
+import type { UserFilm } from "@/types/film"
 
 interface CollectionGridProps {
-  films: UserFilm[];
-  queryString: string | null;
+  films: UserFilm[]
+  queryString: string | null
 }
 
 export default function CollectionGrid({
@@ -24,7 +24,7 @@ export default function CollectionGrid({
           ))}
         </div>
       </div>
-      <div className="sticky bottom-0 h-12 bg-gradient-to-t from-elevated to-transparent pointer-events-none" />
+      <div className="sticky bottom-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
     </div>
-  );
+  )
 }

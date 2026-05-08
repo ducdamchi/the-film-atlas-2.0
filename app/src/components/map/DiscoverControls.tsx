@@ -1,20 +1,20 @@
-import type { Dispatch, SetStateAction } from "react";
-import Toggle from "../ui-custom/Toggle";
-import CustomSlider from "../ui-custom/CustomSlider";
+import type { Dispatch, SetStateAction } from "react"
+import Toggle from "../ui-custom/Toggle"
+import CustomSlider from "../ui-custom/CustomSlider"
 
-type DiscoverBy = string;
+type DiscoverBy = string
 
 interface DiscoverControlsProps {
-  discoverBy: DiscoverBy;
-  setDiscoverBy: Dispatch<SetStateAction<DiscoverBy>>;
-  ratingRange: [number, number];
-  setRatingRange: Dispatch<SetStateAction<[number, number]>>;
-  tempRatingRange: [number, number];
-  setTempRatingRange: Dispatch<SetStateAction<[number, number]>>;
-  voteCountRange: [number, number];
-  setVoteCountRange: Dispatch<SetStateAction<[number, number]>>;
-  tempVoteCountRange: [number, number];
-  setTempVoteCountRange: Dispatch<SetStateAction<[number, number]>>;
+  discoverBy: DiscoverBy
+  setDiscoverBy: Dispatch<SetStateAction<DiscoverBy>>
+  ratingRange: [number, number]
+  setRatingRange: Dispatch<SetStateAction<[number, number]>>
+  tempRatingRange: [number, number]
+  setTempRatingRange: Dispatch<SetStateAction<[number, number]>>
+  voteCountRange: [number, number]
+  setVoteCountRange: Dispatch<SetStateAction<[number, number]>>
+  tempVoteCountRange: [number, number]
+  setTempVoteCountRange: Dispatch<SetStateAction<[number, number]>>
 }
 
 export default function DiscoverControls({
@@ -43,8 +43,8 @@ export default function DiscoverControls({
       />
       <div className="toggleButton-whole">
         <div className="toggleButton-label">Filter</div>
-        <div className="flex flex-col items-center justify-center gap-6 p-6 rounded-3xl bg-control filterButton-container">
-          <div className="w-full flex flex-col items-center justify-center gap-2 uppercase font-semibold text-label">
+        <div className="flex flex-col items-center justify-center gap-6 p-6 rounded-3xl bg-muted filterButton-container">
+          <div className="w-full flex flex-col items-center justify-center gap-2 uppercase font-semibold text-muted-foreground">
             <div>Average Rating &#x2265; {`${tempRatingRange[1]}`}</div>
             <CustomSlider
               width="15rem"
@@ -60,7 +60,7 @@ export default function DiscoverControls({
               rangeSlideDisabled={true}
             />
           </div>
-          <div className="w-full flex flex-col items-center justify-center gap-2 uppercase font-semibold text-label">
+          <div className="w-full flex flex-col items-center justify-center gap-2 uppercase font-semibold text-muted-foreground">
             <div>Vote Count &#x2265; {`${tempVoteCountRange[1]}`}</div>
             <CustomSlider
               width="15rem"
@@ -79,5 +79,5 @@ export default function DiscoverControls({
         </div>
       </div>
     </div>
-  );
+  )
 }

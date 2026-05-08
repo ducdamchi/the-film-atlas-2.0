@@ -1,29 +1,29 @@
-import { useEffect, useRef, useState } from "react";
-import { Map, Popup, NavigationControl } from "react-map-gl/maplibre";
+import { useEffect, useRef, useState } from "react"
+import { Map, Popup, NavigationControl } from "react-map-gl/maplibre"
 
-import "@maptiler/sdk/dist/maptiler-sdk.css";
-import "react-range-slider-input/dist/style.css";
+import "@maptiler/sdk/dist/maptiler-sdk.css"
+import "react-range-slider-input/dist/style.css"
 
-import { useAuth } from "../utils/authContext";
-import { getCountryName } from "../utils/helperFunctions";
-import { MAPTILER_API_KEY, MAPTILER_STYLE_URL } from "../utils/mapConstants";
-import { usePersistedState } from "../hooks/usePersistedState";
-import { useMapFilmData } from "../hooks/useMapFilmData";
-import { useMapInteraction } from "../hooks/useMapInteraction";
-import { useDiscoverFilms } from "../hooks/useDiscoverFilms";
-import { useUserFilms } from "../hooks/useUserFilms";
-import { useMapPanel } from "../hooks/useMapPanel";
+import { useAuth } from "../utils/authContext"
+import { getCountryName } from "../utils/helperFunctions"
+import { MAPTILER_API_KEY, MAPTILER_STYLE_URL } from "../utils/mapConstants"
+import { usePersistedState } from "../hooks/usePersistedState"
+import { useMapFilmData } from "../hooks/useMapFilmData"
+import { useMapInteraction } from "../hooks/useMapInteraction"
+import { useDiscoverFilms } from "../hooks/useDiscoverFilms"
+import { useUserFilms } from "../hooks/useUserFilms"
+import { useMapPanel } from "../hooks/useMapPanel"
 
-import UserFilmGallery from "./films/UserFilmGallery";
-import TmdbFilmGallery from "./films/TmdbFilmGallery";
-import Toggle from "./ui-custom/Toggle";
-import LoadingPage from "./layout/LoadingPage";
-import MapCountriesLayer from "./map/MapCountriesLayer";
-import DiscoverControls from "./map/DiscoverControls";
-import MyFilmsControls from "./map/MyFilmsControls";
+import UserFilmGallery from "./films/UserFilmGallery"
+import TmdbFilmGallery from "./films/TmdbFilmGallery"
+import Toggle from "./ui-custom/Toggle"
+import LoadingPage from "./layout/LoadingPage"
+import MapCountriesLayer from "./map/MapCountriesLayer"
+import DiscoverControls from "./map/DiscoverControls"
+import MyFilmsControls from "./map/MyFilmsControls"
 
-import { FaGripLines } from "react-icons/fa6";
-import { GripVertical } from "lucide-react";
+import { FaGripLines } from "react-icons/fa6"
+import { GripVertical } from "lucide-react"
 
 /**
  * The full set of queryString values used by the map page.
@@ -34,67 +34,67 @@ type MapQueryString =
   | "discover"
   | "watched/by_country"
   | "watchlisted/by_country"
-  | "watched/rated/by_country";
+  | "watched/rated/by_country"
 
-type MapFilmQueryString = Exclude<MapQueryString, "discover">;
+type MapFilmQueryString = Exclude<MapQueryString, "discover">
 
-type SortBy = "added_date" | "released_date";
-type SortDirection = "asc" | "desc";
+type SortBy = "added_date" | "released_date"
+type SortDirection = "asc" | "desc"
 
-type BrowseMode = "discover" | "my_films";
+type BrowseMode = "discover" | "my_films"
 
 function checkWebGLSupport(): boolean {
   try {
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement("canvas")
     return !!(
       window.WebGLRenderingContext &&
       (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
-    );
+    )
   } catch {
-    return false;
+    return false
   }
 }
 
 export default function MapPage() {
-  const { authState } = useAuth();
-  const [webglSupported] = useState(() => checkWebGLSupport());
+  const { authState } = useAuth()
+  const [webglSupported] = useState(() => checkWebGLSupport())
 
   /* Browse mode state */
   const [queryString, setQueryString] = usePersistedState<MapQueryString>(
     "map-queryString",
     "discover",
-  );
+  )
   const [lastMyFilmsQueryString, setLastMyFilmsQueryString] =
     usePersistedState<MapFilmQueryString>(
       "map-lastMyFilmsQueryString",
       "watched/by_country",
-    );
-  const isDiscoverMode = queryString === "discover";
+    )
+  const isDiscoverMode = queryString === "discover"
   const [sortBy, setSortBy] = usePersistedState<SortBy>(
     "map-sortBy",
     "added_date",
-  );
+  )
   const [sortDirection, setSortDirection] = usePersistedState<SortDirection>(
     "map-sortDirection",
     "desc",
-  );
+  )
   const [numStars, setNumStars] = usePersistedState<number | null>(
     "map-numStars",
     0,
-  );
+  )
   const [scrollPosition, setScrollPosition] = usePersistedState<number>(
     "map-scrollPosition",
     0,
-  );
+  )
 
   /* Side-effects when queryString changes */
   useEffect(() => {
-    if (queryString !== "watched/rated/by_country") setNumStars(null);
-    if (queryString !== "discover") setLastMyFilmsQueryString(queryString);
-  }, [queryString]);
+    if (queryString !== "watched/rated/by_country") setNumStars(null)
+    if (queryString !== "discover") setLastMyFilmsQueryString(queryString)
+  }, [queryString])
 
   /* Hooks */
-  const { filmsPerCountryData } = useMapFilmData(authState);
+  const { filmsPerCountryData } = useMapFilmData(authState)
   const {
     mapRef,
     firstSymbolId,
@@ -102,7 +102,7 @@ export default function MapPage() {
     setPopupInfo,
     onMapLoad,
     onMapClick,
-  } = useMapInteraction(filmsPerCountryData);
+  } = useMapInteraction(filmsPerCountryData)
   const {
     suggestedFilmList,
     page,
@@ -119,7 +119,7 @@ export default function MapPage() {
     setTempVoteCountRange,
     isLoading: discoverLoading,
     loadMoreTrigger,
-  } = useDiscoverFilms({ isDiscoverMode, popupInfo });
+  } = useDiscoverFilms({ isDiscoverMode, popupInfo })
   const { userFilmList, isLoading: userFilmsLoading } = useUserFilms({
     authState,
     isDiscoverMode,
@@ -128,49 +128,49 @@ export default function MapPage() {
     sortBy,
     sortDirection,
     numStars,
-  });
+  })
   const {
     panelRef,
     mapContainerRef,
     setShowPanel,
     onDragHandlePointerDown,
     handleDragAreaClick,
-  } = useMapPanel();
+  } = useMapPanel()
 
-  const innerScrollRef = useRef<HTMLDivElement | null>(null);
+  const innerScrollRef = useRef<HTMLDivElement | null>(null)
 
-  const isLoading = discoverLoading || userFilmsLoading;
+  const isLoading = discoverLoading || userFilmsLoading
 
   /* Show/hide panel when a country is selected */
-  const isMountedRef = useRef(false);
+  const isMountedRef = useRef(false)
   useEffect(() => {
     if (!isMountedRef.current) {
-      isMountedRef.current = true;
-      return;
+      isMountedRef.current = true
+      return
     }
     if (popupInfo && popupInfo.iso_a2 != null) {
-      setShowPanel(true);
+      setShowPanel(true)
     } else {
-      setShowPanel(false);
+      setShowPanel(false)
     }
-  }, [popupInfo]);
+  }, [popupInfo])
 
   /* Scroll restoration — tracks scroll within the inner scroll container */
   useEffect(() => {
     if (!isLoading && innerScrollRef.current) {
-      innerScrollRef.current.scrollTop = scrollPosition;
-      const el = innerScrollRef.current;
-      const handleScroll = () => setScrollPosition(el.scrollTop);
+      innerScrollRef.current.scrollTop = scrollPosition
+      const el = innerScrollRef.current
+      const handleScroll = () => setScrollPosition(el.scrollTop)
       const scrollTimer = setTimeout(
         () => el.addEventListener("scroll", handleScroll),
         500,
-      );
+      )
       return () => {
-        clearTimeout(scrollTimer);
-        el.removeEventListener("scroll", handleScroll);
-      };
+        clearTimeout(scrollTimer)
+        el.removeEventListener("scroll", handleScroll)
+      }
     }
-  }, [isLoading]);
+  }, [isLoading])
 
   /**
    * Derive the queryString to pass to FilmUser_Gallery.
@@ -182,7 +182,7 @@ export default function MapPage() {
       ? "watchlisted"
       : queryString === "watched/rated/by_country"
         ? "watched/rated"
-        : "watched";
+        : "watched"
 
   return (
     <div className="font-primary fixed inset-0 overflow-hidden">
@@ -199,8 +199,7 @@ export default function MapPage() {
             onClick={onMapClick as unknown as (event: unknown) => void}
             mapboxAccessToken={MAPTILER_API_KEY}
             initialViewState={{ latitude: 25, longitude: 150, zoom: 1.2 }}
-            mapStyle={MAPTILER_STYLE_URL}
-          >
+            mapStyle={MAPTILER_STYLE_URL}>
             <NavigationControl
               position="top-right"
               showCompass={false}
@@ -214,8 +213,7 @@ export default function MapPage() {
                 latitude={popupInfo.latitude}
                 anchor="bottom"
                 closeOnClick={false}
-                onClose={() => setPopupInfo(null)}
-              >
+                onClose={() => setPopupInfo(null)}>
                 <div className="flex flex-col items-center justify-center hover:text-hover-link cursor-pointer">
                   {popupInfo.custom_name !== undefined && (
                     <span className="font-bold">{popupInfo.custom_name}</span>
@@ -277,15 +275,14 @@ export default function MapPage() {
           // Mobile: slides up from viewport bottom
           "bottom-0 left-0 right-0",
           // Desktop: left sidebar below navbar
-          "md:right-auto md:top-[4.5rem]",
-        ].join(" ")}
-      >
+          "md:left-[3rem] md:top-0",
+        ].join(" ")}>
         {/* Inner scroll container: visual appearance + scrolling */}
         <div
           ref={innerScrollRef}
           className={[
             "w-full h-full",
-            "bg-elevated overflow-y-auto flex flex-col items-center",
+            "bg-background overflow-y-auto flex flex-col items-center",
             // Mobile visual
 
             "shadow-[25px_-8px_30px_rgba(0,0,0,0.15)]",
@@ -294,15 +291,13 @@ export default function MapPage() {
             "md:pt-10",
             "md:shadow-[8px_0_30px_rgba(0,0,0,0.15)]",
             "md:[clip-path:none]",
-          ].join(" ")}
-        >
+          ].join(" ")}>
           {/* Mobile drag handle — sticky at top so it's always reachable while scrolling */}
           <div
-            className="md:hidden sticky top-0 z-250 w-full flex flex-col items-center cursor-ns-resize touch-none select-none bg-elevated hover:bg-control transition-colors ease-out duration-200 py-2 mb-2"
+            className="md:hidden sticky top-0 z-250 w-full flex flex-col items-center cursor-ns-resize touch-none select-none bg-background hover:bg-muted transition-colors ease-out duration-200 py-2 mb-2"
             onClick={handleDragAreaClick}
-            onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}
-          >
-            <FaGripLines className="text-2xl text-muted-dark" />
+            onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}>
+            <FaGripLines className="text-2xl text-muted" />
           </div>
 
           {popupInfo &&
@@ -329,8 +324,8 @@ export default function MapPage() {
               label="Browse"
               value={isDiscoverMode ? "discover" : "my_films"}
               onChange={(val) => {
-                if (val === "discover") setQueryString("discover");
-                else setQueryString(lastMyFilmsQueryString);
+                if (val === "discover") setQueryString("discover")
+                else setQueryString(lastMyFilmsQueryString)
               }}
               options={[
                 { value: "discover", label: "Discover" },
@@ -423,23 +418,22 @@ export default function MapPage() {
             "hidden md:flex absolute -right-7 top-1/2 -translate-y-1/2",
             "z-10 w-7 h-14",
             "flex-col items-center justify-center gap-[3px]",
-            "bg-elevated border border-control border-l-0",
+            "bg-background border border-border border-l-0",
             "rounded-r-lg",
             "inset-shadow-[2px_0px_5px_rgba(0,0,0,0.12)]",
             "cursor-ew-resize touch-none select-none",
             "transition-colors duration-150 ease-out",
-            "hover:bg-control",
-            "active:bg-control active:shadow-[1px_1px_4px_rgba(0,0,0,0.10)]",
+            "hover:bg-accent",
+            "active:bg-muted active:shadow-[1px_1px_4px_rgba(0,0,0,0.10)]",
             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dark",
           ].join(" ")}
           onClick={handleDragAreaClick}
-          onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}
-        >
-          <GripVertical className="text-muted-light" />
-          {/* <FaGripLines className="text-[8px] text-muted-dark rotate-90" /> */}
-          {/* <FaGripLines className="text-[8px] text-muted-dark rotate-90" /> */}
+          onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}>
+          <GripVertical className="text-foreground" />
+          {/* <FaGripLines className="text-[8px] text-muted rotate-90" /> */}
+          {/* <FaGripLines className="text-[8px] text-muted rotate-90" /> */}
         </button>
       </div>
     </div>
-  );
+  )
 }

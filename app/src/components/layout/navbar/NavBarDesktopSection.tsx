@@ -1,16 +1,16 @@
-import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "@tanstack/react-router";
-import { BiSearchAlt2 } from "react-icons/bi";
-import { ChevronDown } from "lucide-react";
-import { useApp } from "@/utils/appContext";
-import { CustomLink } from "./CustomLink";
-import { INFO_LINKS } from "./navTypes";
+import { useState, useRef, useEffect } from "react"
+import { useNavigate } from "@tanstack/react-router"
+import { BiSearchAlt2 } from "react-icons/bi"
+import { ChevronDown } from "lucide-react"
+import { useApp } from "@/utils/appContext"
+import { CustomLink } from "./CustomLink"
+import { INFO_LINKS } from "./navTypes"
 
 export function NavBarDesktopSection() {
-  const navigate = useNavigate();
-  const { setSearchModalOpen } = useApp();
-  const [infoDropdownOpen, setInfoDropdownOpen] = useState(false);
-  const infoDropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate()
+  const { setSearchModalOpen } = useApp()
+  const [infoDropdownOpen, setInfoDropdownOpen] = useState(false)
+  const infoDropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -18,12 +18,12 @@ export function NavBarDesktopSection() {
         infoDropdownRef.current &&
         !infoDropdownRef.current.contains(e.target as Node)
       ) {
-        setInfoDropdownOpen(false);
+        setInfoDropdownOpen(false)
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   return (
     <>
@@ -31,8 +31,7 @@ export function NavBarDesktopSection() {
       <div className="hidden lg:flex h-full items-center justify-center">
         <span
           onClick={() => navigate({ to: "/about" })}
-          className="font-logo font-black uppercase text-lg lg:text-xl cursor-pointer"
-        >
+          className="font-logo font-black uppercase text-lg lg:text-xl cursor-pointer">
           The Film Atlas
         </span>
       </div>
@@ -55,23 +54,20 @@ export function NavBarDesktopSection() {
           <div className="relative" ref={infoDropdownRef}>
             <button
               className="flex items-center gap-1 uppercase hover:underline decoration-solid decoration-2 underline-offset-4"
-              onClick={() => setInfoDropdownOpen((prev) => !prev)}
-            >
+              onClick={() => setInfoDropdownOpen((prev) => !prev)}>
               INFO
               <ChevronDown
                 className={`w-3 h-3 transition-transform duration-200 ${infoDropdownOpen ? "rotate-180" : "rotate-0"}`}
               />
             </button>
             <div
-              className={`absolute top-full left-0 mt-2 bg-void border border-light/30 flex flex-col min-w-[8rem] z-500 overflow-hidden transition-all duration-200 ease-out ${infoDropdownOpen ? "max-h-40 opacity-100 p-3 gap-2" : "max-h-0 opacity-0 p-0 gap-0"}`}
-            >
+              className={`absolute top-full left-0 mt-2 bg-background border border-light/30 flex flex-col min-w-[8rem] z-500 overflow-hidden transition-all duration-200 ease-out ${infoDropdownOpen ? "max-h-40 opacity-100 p-3 gap-2" : "max-h-0 opacity-0 p-0 gap-0"}`}>
               {INFO_LINKS.map(({ to, label }) => (
                 <CustomLink
                   key={to}
                   to={to}
                   exact={false}
-                  onClick={() => setInfoDropdownOpen(false)}
-                >
+                  onClick={() => setInfoDropdownOpen(false)}>
                   {label}
                 </CustomLink>
               ))}
@@ -79,13 +75,12 @@ export function NavBarDesktopSection() {
           </div>
         </ul>
         <button
-          className="flex items-center justify-center gap-1 border-0 p-1 px-2 rounded-full bg-elevated hover:bg-elevated/90 text-dark transition-all duration-200 ease-out"
-          onClick={() => setSearchModalOpen(true)}
-        >
+          className="flex items-center justify-center gap-1 border-0 p-1 px-2 rounded-full bg-background hover:bg-background/90 text-dark transition-all duration-200 ease-out"
+          onClick={() => setSearchModalOpen(true)}>
           <BiSearchAlt2 />
           {`\u2318K`}
         </button>
       </div>
     </>
-  );
+  )
 }

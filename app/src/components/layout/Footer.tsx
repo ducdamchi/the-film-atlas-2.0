@@ -1,14 +1,14 @@
-import { FaGithub } from "react-icons/fa";
-import { useNavigate } from "@tanstack/react-router";
+import { FaGithub } from "react-icons/fa"
+import { useNavigate } from "@tanstack/react-router"
 
 interface FooterLink {
-  name: string;
-  link: string;
+  name: string
+  link: string
 }
 
 interface FooterSection {
-  title: string;
-  items: FooterLink[];
+  title: string
+  items: FooterLink[]
 }
 
 const LINKS: FooterSection[] = [
@@ -35,15 +35,15 @@ const LINKS: FooterSection[] = [
       { name: "Terms & Conditions", link: "/terms" },
     ],
   },
-];
+]
 
-const currentYear = new Date().getFullYear();
+const currentYear = new Date().getFullYear()
 
 export default function FooterWithSocialLinks() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
-    <footer className="relative w-full bg-void text-light p-10 font-primary z-100">
+    <footer className="fixed bottom-0 w-full bg-background text-light p-10 font-primary z-100">
       <div className="mx-auto w-full max-w-7xl px-8">
         <div className="grid grid-cols-1 justify-between gap-4 md:grid-cols-2">
           <div className="mb-6 flex flex-col items-start">
@@ -58,8 +58,7 @@ export default function FooterWithSocialLinks() {
                   <li key={link.name}>
                     <div
                       onClick={() => navigate({ to: link.link })}
-                      className="py-1.5 font-normal transition-colors hover:text-hover-light cursor-pointer"
-                    >
+                      className="py-1.5 font-normal transition-colors hover:text-hover-light cursor-pointer">
                       {link.name}
                     </div>
                   </li>
@@ -78,13 +77,12 @@ export default function FooterWithSocialLinks() {
               href="https://github.com/ducdamchi/the-film-atlas"
               target="_blank"
               rel="noopener noreferrer"
-              className="opacity-80 transition-opacity hover:opacity-100"
-            >
+              className="opacity-80 transition-opacity hover:opacity-100">
               <FaGithub className="text-2xl" />
             </a>
           </div>
         </div>
       </div>
     </footer>
-  );
+  )
 }

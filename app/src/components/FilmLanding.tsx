@@ -1,157 +1,157 @@
 /* Libraries */
-import { useEffect, useState } from "react";
-import { getColorSync } from "colorthief";
-import { useParams, useNavigate, ClientOnly } from "@tanstack/react-router";
-import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react"
+import { getColorSync } from "colorthief"
+import { useParams, useNavigate, ClientOnly } from "@tanstack/react-router"
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query"
 
 /* Custom functions */
 import {
   getCountryName,
   getReleaseYear,
   darkenColorToOklch,
-} from "../utils/helperFunctions";
+} from "../utils/helperFunctions"
 import {
   filmQueryOptions,
   omdbQueryOptions,
   wikidataQueryOptions,
   ytsQueryOptions,
   subtitlesQueryOptions,
-} from "../queries/film.queries";
-import useCommandKey from "../hooks/useCommandKey";
-import { useApp } from "../utils/appContext";
+} from "../queries/film.queries"
+import useCommandKey from "../hooks/useCommandKey"
+import { useApp } from "../utils/appContext"
 
 /* Types */
-import type { TMDBFilm, TMDBCrewMember } from "@/types/tmdb";
+import type { TMDBFilm, TMDBCrewMember } from "@/types/tmdb"
 
 /* Components */
-import InteractionConsole from "./film-interaction/InteractionConsole";
-import PersonList from "./films/PersonList";
-import TrailerModal from "./films/TrailerModal";
-import Torrents from "./films/Torrents";
-import Subtitles from "./films/Subtitles";
+import InteractionConsole from "./film-interaction/InteractionConsole"
+import PersonList from "./films/PersonList"
+import TrailerModal from "./films/TrailerModal"
+import Torrents from "./films/Torrents"
+import Subtitles from "./films/Subtitles"
 
-import { IoMdCalendar, IoIosTimer } from "react-icons/io";
-import { BiPlay } from "react-icons/bi";
+import { IoMdCalendar, IoIosTimer } from "react-icons/io"
+import { BiPlay } from "react-icons/bi"
 
 /** A crew member with consolidated jobs list (built locally from credits.crew) */
 interface CrewMemberWithJobs {
-  id: number;
-  name: string;
-  profile_path: string | null;
-  jobs: string[];
+  id: number
+  name: string
+  profile_path: string | null
+  jobs: string[]
 }
 
 /** Shape returned by fetchFilmFromYTS for a single torrent */
 interface YtsTorrent {
-  url: string;
-  type?: string;
-  quality?: string;
-  size?: string;
-  peers?: number;
-  seeds?: number;
-  video_codec?: string;
+  url: string
+  type?: string
+  quality?: string
+  size?: string
+  peers?: number
+  seeds?: number
+  video_codec?: string
 }
 
 /** Shape of a subtitle item from OpenSubtitles */
 interface SubtitleItem {
   attributes: {
-    files?: Array<{ file_id: string | number }>;
-    release?: string;
-    ai_translated?: boolean;
-    machine_translated?: boolean;
-    comments?: string;
-    upload_date?: string;
-    download_count?: number;
-  };
+    files?: Array<{ file_id: string | number }>
+    release?: string
+    ai_translated?: boolean
+    machine_translated?: boolean
+    comments?: string
+    upload_date?: string
+    download_count?: number
+  }
 }
 
-type SecretPanel = "torrents" | "subtitles" | null;
+type SecretPanel = "torrents" | "subtitles" | null
 
 export default function FilmLanding() {
-  const imgBaseUrl = "https://image.tmdb.org/t/p/original";
+  const imgBaseUrl = "https://image.tmdb.org/t/p/original"
 
   // Derived state from credits — not fetches
-  const [directors, setDirectors] = useState<TMDBCrewMember[]>([]);
-  const [crew, setCrew] = useState<CrewMemberWithJobs[]>([]);
-  const [mainCast, setMainCast] = useState<TMDBCrewMember[]>([]);
-  const [trailerLink, setTrailerLink] = useState<string | null>(null);
+  const [directors, setDirectors] = useState<TMDBCrewMember[]>([])
+  const [crew, setCrew] = useState<CrewMemberWithJobs[]>([])
+  const [mainCast, setMainCast] = useState<TMDBCrewMember[]>([])
+  const [trailerLink, setTrailerLink] = useState<string | null>(null)
   const [backdropColor, setBackdropColor] = useState<[number, number, number]>([
     0, 0, 0,
-  ]);
+  ])
 
   // UI-only state
-  const [openTrailer, setOpenTrailer] = useState(false);
-  const [secretPanel, setSecretPanel] = useState<SecretPanel>(null);
+  const [openTrailer, setOpenTrailer] = useState(false)
+  const [secretPanel, setSecretPanel] = useState<SecretPanel>(null)
 
-  const { setSearchModalOpen } = useApp();
-  const { tmdbId } = useParams({ strict: false });
-  const navigate = useNavigate();
+  const { setSearchModalOpen } = useApp()
+  const { tmdbId } = useParams({ strict: false })
+  const navigate = useNavigate()
 
   function toggleSecretPanel() {
-    setSecretPanel((cur) => (cur ? null : "torrents"));
+    setSecretPanel((cur) => (cur ? null : "torrents"))
   }
-  useCommandKey(toggleSecretPanel, "j");
+  useCommandKey(toggleSecretPanel, "j")
 
   // Close search modal and scroll to top on navigation
   useEffect(() => {
-    setSearchModalOpen(false);
-    window.scrollTo(0, 0);
-  }, [tmdbId]);
+    setSearchModalOpen(false)
+    window.scrollTo(0, 0)
+  }, [tmdbId])
 
   // Queries — loader pre-fills cache so these read synchronously on first render
-  const { data: movieDetails } = useSuspenseQuery(filmQueryOptions(tmdbId!));
-  const film = movieDetails as TMDBFilm;
-  const imdbId = film.imdb_id ?? "";
+  const { data: movieDetails } = useSuspenseQuery(filmQueryOptions(tmdbId!))
+  const film = movieDetails as TMDBFilm
+  const imdbId = film.imdb_id ?? ""
 
   const { data: filmRatingsRaw } = useQuery({
     ...omdbQueryOptions(imdbId),
     enabled: !!imdbId,
-  });
+  })
   const filmRatings =
-    filmRatingsRaw?.Response === "True" ? filmRatingsRaw : null;
+    filmRatingsRaw?.Response === "True" ? filmRatingsRaw : null
 
   const { data: filmAwardsRaw } = useQuery({
     ...wikidataQueryOptions(imdbId),
     enabled: !!imdbId,
-  });
+  })
   const filmAwards =
     filmAwardsRaw &&
     (filmAwardsRaw.wins.length > 0 || filmAwardsRaw.nominations.length > 0)
       ? filmAwardsRaw
-      : null;
+      : null
 
   // Non-blocking — rendered only when secretPanel is open
   const { data: ytsRaw } = useQuery({
     ...ytsQueryOptions(imdbId),
     enabled: !!imdbId,
-  });
+  })
   const ytsTorrents =
     (ytsRaw as { data?: { movie?: { torrents?: YtsTorrent[] } } } | undefined)
-      ?.data?.movie?.torrents ?? [];
+      ?.data?.movie?.torrents ?? []
 
   const { data: subtitleRaw } = useQuery({
     ...subtitlesQueryOptions(imdbId),
     enabled: !!imdbId,
-  });
+  })
   const subtitles =
-    (subtitleRaw as { data?: SubtitleItem[] } | undefined)?.data ?? [];
+    (subtitleRaw as { data?: SubtitleItem[] } | undefined)?.data ?? []
 
   // Transform credits into derived state — pure, no fetch
   useEffect(() => {
-    if (!film.credits) return;
+    if (!film.credits) return
 
     const directorsList = film.credits.crew.filter(
       (crewMember) => crewMember.job === "Director",
-    );
+    )
 
-    const rawCrew = film.credits.crew;
-    const listOfUniqueCrewMembers: CrewMemberWithJobs[] = [];
+    const rawCrew = film.credits.crew
+    const listOfUniqueCrewMembers: CrewMemberWithJobs[] = []
     rawCrew.forEach((person) => {
       const crewMember = listOfUniqueCrewMembers.find(
         (member) => member.id === person.id,
-      );
+      )
       if (crewMember !== undefined) {
-        crewMember.jobs.push(person.job);
+        crewMember.jobs.push(person.job)
       } else {
         if (person.profile_path !== null) {
           listOfUniqueCrewMembers.push({
@@ -159,51 +159,51 @@ export default function FilmLanding() {
             name: person.name,
             profile_path: person.profile_path,
             jobs: [person.job],
-          });
+          })
         }
       }
-    });
+    })
 
     const castListFiltered = film.credits.cast.filter(
       (cast) => cast.profile_path !== null,
-    );
+    )
     const mainCastList = castListFiltered.slice(
       0,
       Math.min(15, castListFiltered.length),
-    );
+    )
 
     const trailerLinks = film.videos.results.filter(
       (video) => video.type === "Trailer",
-    );
+    )
     const sortedTrailerLinks = trailerLinks.sort((a, b) => {
-      const dateA = new Date(a.published_at);
-      const dateB = new Date(b.published_at);
-      return dateB.getTime() - dateA.getTime();
-    });
+      const dateA = new Date(a.published_at)
+      const dateB = new Date(b.published_at)
+      return dateB.getTime() - dateA.getTime()
+    })
 
-    setDirectors(directorsList);
-    setCrew(listOfUniqueCrewMembers);
-    setMainCast(mainCastList);
+    setDirectors(directorsList)
+    setCrew(listOfUniqueCrewMembers)
+    setMainCast(mainCastList)
     setTrailerLink(
       sortedTrailerLinks.length >= 1 ? sortedTrailerLinks[0].key : null,
-    );
+    )
 
     try {
-      const backdrop = new Image();
-      backdrop.crossOrigin = "anonymous";
-      if (!film.backdrop_path) return;
-      const proxyUrl = `${import.meta.env.VITE_API_URL}/proxy/image?url=${encodeURIComponent(`https://image.tmdb.org/t/p/w500${film.backdrop_path}`)}`;
-      backdrop.src = proxyUrl;
+      const backdrop = new Image()
+      backdrop.crossOrigin = "anonymous"
+      if (!film.backdrop_path) return
+      const proxyUrl = `${import.meta.env.VITE_API_URL}/proxy/image?url=${encodeURIComponent(`https://image.tmdb.org/t/p/w500${film.backdrop_path}`)}`
+      backdrop.src = proxyUrl
       backdrop.onload = () => {
-        const color = getColorSync(backdrop!);
-        if (!color) return;
-        const domColor = color.array() as [number, number, number];
-        setBackdropColor(darkenColorToOklch(domColor, 0.3));
-      };
+        const color = getColorSync(backdrop!)
+        if (!color) return
+        const domColor = color.array() as [number, number, number]
+        setBackdropColor(darkenColorToOklch(domColor, 0.3))
+      }
     } catch (err) {
-      console.log(err);
+      console.log(err)
     }
-  }, [movieDetails]);
+  }, [movieDetails])
 
   return (
     <div className="font-primary mt-[4.5rem]">
@@ -228,8 +228,7 @@ export default function FilmLanding() {
               className="landing-transparent-layer"
               style={{
                 background: `linear-gradient(to bottom, rgb(${backdropColor[0]}, ${backdropColor[1]}, ${backdropColor[2]}), transparent)`,
-              }}
-            ></div>
+              }}></div>
 
             {/* All the text displayed over main backdrop */}
             <div className="">
@@ -271,14 +270,13 @@ export default function FilmLanding() {
                               onClick={() => {
                                 navigate({
                                   to: `/person/director/${director.id}`,
-                                });
-                              }}
-                            >{`${director.name}`}</span>
+                                })
+                              }}>{`${director.name}`}</span>
                             {key !== directors.length - 1 && (
                               <span>,&nbsp;</span>
                             )}
                           </span>
-                        );
+                        )
                       })}
                     </div>
                   )}
@@ -296,7 +294,7 @@ export default function FilmLanding() {
                               <span className="inline-block">,&nbsp;</span>
                             )}
                           </span>
-                        );
+                        )
                       })}
                     </div>
                   )}
@@ -307,15 +305,14 @@ export default function FilmLanding() {
                 <div className="absolute w-full h-full border-0 top-0 left-0 flex items-center justify-center">
                   <button
                     onClick={() => {
-                      setOpenTrailer(true);
+                      setOpenTrailer(true)
                     }}
-                    className="flex items-center z-40 rounded-full p-3 pt-2 pb-2 drop-shadow-lg bg-elevated text-[var(--backdropColor)] hover:text-light hover:bg-[var(--backdropColor)] transition-all duration-300 ease-out"
+                    className="flex items-center z-40 rounded-full p-3 pt-2 pb-2 drop-shadow-lg bg-background text-[var(--backdropColor)] hover:text-light hover:bg-[var(--backdropColor)] transition-all duration-300 ease-out"
                     style={
                       {
                         "--backdropColor": `rgb(${backdropColor[0]}, ${backdropColor[1]}, ${backdropColor[2]})`,
                       } as React.CSSProperties
-                    }
-                  >
+                    }>
                     <BiPlay className="text-3xl" />
                     <span className="text-base">Trailer</span>
                   </button>
@@ -328,8 +325,7 @@ export default function FilmLanding() {
               className="landing-transparent-layer-bottom"
               style={{
                 background: `linear-gradient(to top, rgb(${backdropColor[0]}, ${backdropColor[1]}, ${backdropColor[2]}), transparent)`,
-              }}
-            ></div>
+              }}></div>
 
             {/* Interaction console */}
             <div className="xl:hidden absolute bottom-0 w-full flex items-center justify-center mb-4">
@@ -379,14 +375,13 @@ export default function FilmLanding() {
                                 onClick={() => {
                                   navigate({
                                     to: `/person/director/${director.id}`,
-                                  });
-                                }}
-                              >{`${director.name}`}</span>
+                                  })
+                                }}>{`${director.name}`}</span>
                               {key !== directors.length - 1 && (
                                 <span>,&nbsp;</span>
                               )}
                             </span>
-                          );
+                          )
                         })}
                       </div>
                     )}
@@ -423,7 +418,7 @@ export default function FilmLanding() {
                                 <span className="inline-block">,&nbsp;</span>
                               )}
                             </span>
-                          );
+                          )
                         })}
                       </div>
                     )}
@@ -506,13 +501,13 @@ export default function FilmLanding() {
                               filmRatings.Ratings!.find(
                                 (r) => r.Source === "Metacritic",
                               )!.Value,
-                            );
+                            )
                             const color =
                               score >= 75
                                 ? "bg-green-600"
                                 : score >= 50
                                   ? "bg-yellow-500"
-                                  : "bg-red-600";
+                                  : "bg-red-600"
                             return (
                               <div className="flex flex-col items-start gap-0.5 border-1 p-3 rounded-sm bg-[var(--color-rating-mc)]/85 border-[var(--color-rating-mc)]">
                                 <span className="landing-ratingsTitle">
@@ -520,8 +515,7 @@ export default function FilmLanding() {
                                 </span>
                                 <div className="flex items-center gap-2 mt-1">
                                   <span
-                                    className={`${color} text-light font-bold text-sm lg:text-base px-2 py-0.5 rounded`}
-                                  >
+                                    className={`${color} text-light font-bold text-sm lg:text-base px-2 py-0.5 rounded`}>
                                     {score}
                                   </span>
                                   <span className="text-dark text-xs lg:text-sm font-thin">
@@ -529,7 +523,7 @@ export default function FilmLanding() {
                                   </span>
                                 </div>
                               </div>
-                            );
+                            )
                           })()}
                       </div>
                     )}
@@ -546,8 +540,7 @@ export default function FilmLanding() {
                               {filmAwards.wins.map((w, i) => (
                                 <li
                                   key={i}
-                                  className="flex items-baseline gap-1"
-                                >
+                                  className="flex items-baseline gap-1">
                                   <span className="text-dark text-sm lg:text-base">
                                     {w.award}
                                   </span>
@@ -570,8 +563,7 @@ export default function FilmLanding() {
                               {filmAwards.nominations.map((n, i) => (
                                 <li
                                   key={i}
-                                  className="flex items-baseline gap-1"
-                                >
+                                  className="flex items-baseline gap-1">
                                   <span className="text-dark text-sm lg:text-base">
                                     {n.award}
                                   </span>
@@ -624,12 +616,12 @@ export default function FilmLanding() {
             <TrailerModal
               trailerLink={trailerLink}
               closeModal={() => {
-                setOpenTrailer(false);
+                setOpenTrailer(false)
               }}
             />
           )}
         </div>
       </div>
     </div>
-  );
+  )
 }

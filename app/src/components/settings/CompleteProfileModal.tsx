@@ -1,40 +1,40 @@
-import { useState } from "react";
-import { LocationPicker } from "./LocationPicker";
-import { authClient } from "@/lib/authClient";
+import { useState } from "react"
+import { LocationPicker } from "./LocationPicker"
+import { authClient } from "@/lib/authClient"
 
 export function CompleteProfileModal() {
-  const [email, setEmail] = useState("");
-  const [country, setCountry] = useState("");
-  const [city, setCity] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("")
+  const [country, setCountry] = useState("")
+  const [city, setCity] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {
-    if (!email || !country) return;
-    setLoading(true);
-    setError("");
+    if (!email || !country) return
+    setLoading(true)
+    setError("")
     try {
       const { error: updateError } = await authClient.updateUser({
         email,
         locationCountry: country,
         locationCity: city,
         locationSource: "manual",
-      } as any);
+      } as any)
       if (updateError) {
-        setError(updateError.message);
-        return;
+        setError(updateError.message)
+        return
       }
       // useSession() updates automatically — modal unmounts when authState.email becomes truthy
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Something went wrong. Please try again.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 z-[500] flex items-center justify-center bg-overlay/80 font-primary">
-      <div className="bg-elevated border border-control rounded-2xl p-8 w-full max-w-md shadow-xl">
+      <div className="bg-background border border-border rounded-2xl p-8 w-full max-w-md shadow-xl">
         <h2 className="text-xl font-semibold text-body mb-2">
           One quick update!
         </h2>
@@ -68,11 +68,10 @@ export function CompleteProfileModal() {
         <button
           className="mt-6 w-full bg-dark text-light py-2.5 text-sm font-medium disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed hover:enabled:bg-atlas-green disabled:transition-none transition-colors duration-200 ease-out"
           onClick={handleSubmit}
-          disabled={!email || !country || !city || loading}
-        >
+          disabled={!email || !country || !city || loading}>
           {loading ? "Saving..." : "Save and continue"}
         </button>
       </div>
     </div>
-  );
+  )
 }

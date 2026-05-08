@@ -6,7 +6,7 @@ export default function AuthBg() {
         <img src="worldmap.svg" alt="" className="auth-svg" />
       </div>
 
-      <div className="lg:hidden fixed z-0 top-0 h-screen w-screen bg-void">
+      <div className="lg:hidden fixed z-0 top-0 h-screen w-screen bg-background">
         <img
           src="worldmap.svg"
           alt=""

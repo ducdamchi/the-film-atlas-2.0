@@ -6,35 +6,41 @@ import {
   Scripts,
   ClientOnly,
   useRouter,
-} from "@tanstack/react-router";
-import type { RouterContext, AuthUser } from "../router";
-import type { AuthState } from "../types/auth";
-import type { ReactNode } from "react";
-import { useState, useEffect } from "react";
-import { authClient } from "../lib/authClient";
-import "../styles.css";
+} from "@tanstack/react-router"
+import type { RouterContext, AuthUser } from "../router"
+import type { AuthState } from "../types/auth"
+import type { ReactNode } from "react"
+import { useState, useEffect } from "react"
+import { authClient } from "../lib/authClient"
+import "../styles.css"
 
-import { AuthContext } from "../utils/authContext";
-import { AppContext } from "../utils/appContext";
-import NavBar from "../components/layout/navbar/NavBar";
-import Footer from "../components/layout/Footer";
-import QuickSearchModal from "../components/search/QuickSearchModal";
-import ScrollToAnchor from "../hooks/scrollToAnchor";
-import useCommandKey from "../hooks/useCommandKey";
-import { CompleteProfileModal } from "../components/settings/CompleteProfileModal";
-import { runMigrations } from "../utils/localStorageMigrations";
-import { Toaster } from "../components/ui-shadcn/sonner";
-import { TanStackDevtools } from "@tanstack/react-devtools";
-import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { AuthContext } from "../utils/authContext"
+import { AppContext } from "../utils/appContext"
+import NavBar from "../components/layout/navbar/NavBar"
+import Footer from "../components/layout/Footer"
+import QuickSearchModal from "../components/search/QuickSearchModal"
+import ScrollToAnchor from "../hooks/scrollToAnchor"
+import useCommandKey from "../hooks/useCommandKey"
+import { CompleteProfileModal } from "../components/settings/CompleteProfileModal"
+import { runMigrations } from "../utils/localStorageMigrations"
+import { Toaster } from "../components/ui-shadcn/sonner"
+import { TanStackDevtools } from "@tanstack/react-devtools"
+import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools"
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
+import {
+  SidebarProvider,
+  SidebarTrigger,
+} from "../components/ui-shadcn/sidebar"
+import { AppSidebar } from "#/components/sidebar/AppSidebar"
+import { TooltipProvider } from "#/components/ui-shadcn/tooltip"
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async (): Promise<{ auth: AuthUser | null }> => {
-    if (typeof window === "undefined") return { auth: null };
+    if (typeof window === "undefined") return { auth: null }
 
     try {
-      const { data: session } = await authClient.getSession();
-      if (!session) return { auth: null };
+      const { data: session } = await authClient.getSession()
+      if (!session) return { auth: null }
 
       return {
         auth: {
@@ -46,9 +52,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
           locationCity: (session.user as any).locationCity ?? null,
           locationSource: (session.user as any).locationSource ?? null,
         },
-      };
+      }
     } catch {
-      return { auth: null };
+      return { auth: null }
     }
   },
   head: () => ({
@@ -71,7 +77,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
   }),
   component: RootComponent,
-});
+})
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
@@ -85,7 +91,7 @@ function RootDocument({ children }: { children: ReactNode }) {
         <Scripts />
       </body>
     </html>
-  );
+  )
 }
 
 const loggedOutState: AuthState = {
@@ -96,29 +102,30 @@ const loggedOutState: AuthState = {
   locationCountry: null,
   locationCity: null,
   locationSource: null,
-};
+}
 
 function RootComponent() {
-  const router = useRouter();
+  const router = useRouter()
 
   useEffect(() => {
-    runMigrations();
+    runMigrations()
 
-    router.invalidate();
-  }, []);
+    router.invalidate()
+  }, [])
 
-  const { auth } = Route.useRouteContext();
-  const { data: liveSession, isPending: sessionPending } = authClient.useSession();
+  const { auth } = Route.useRouteContext()
+  const { data: liveSession, isPending: sessionPending } =
+    authClient.useSession()
   const { pathname, isRouterPending } = useRouterState({
     select: (s) => ({
       pathname: s.location.pathname,
       isRouterPending: s.status === "pending",
     }),
-  });
-  const isMapPage = pathname === "/map";
-  const isHomePage = pathname === "/";
-  const [searchModalOpen, setSearchModalOpen] = useState(false);
-  useCommandKey(() => setSearchModalOpen((s) => !s), "k");
+  })
+  const isMapPage = pathname === "/map"
+  const isHomePage = pathname === "/"
+  const [searchModalOpen, setSearchModalOpen] = useState(false)
+  useCommandKey(() => setSearchModalOpen((s) => !s), "k")
 
   const authState: AuthState = sessionPending
     ? (auth ?? loggedOutState)
@@ -132,36 +139,47 @@ function RootComponent() {
           locationCity: (liveSession.user as any).locationCity ?? null,
           locationSource: (liveSession.user as any).locationSource ?? null,
         }
-      : loggedOutState;
+      : loggedOutState
 
   return (
     <RootDocument>
       <AuthContext.Provider
-        value={{ authState, setAuthState: () => {}, authLoading: false }}
-      >
+        value={{ authState, setAuthState: () => {}, authLoading: false }}>
         <AppContext.Provider value={{ searchModalOpen, setSearchModalOpen }}>
-          <ScrollToAnchor />
-          <NavBar />
-          {searchModalOpen && (
-            <QuickSearchModal
-              searchModalOpen={searchModalOpen}
-              setSearchModalOpen={setSearchModalOpen}
-            />
-          )}
-          {/* {!isMapPage && <LocationBanner />} */}
-          <Outlet />
-          <ClientOnly>
-            {authState.status && !authState.email && <CompleteProfileModal />}
-          </ClientOnly>
-          <Toaster position="top-right" />
-          {!isMapPage && !isHomePage && !isRouterPending && (
-            <div
-              key={pathname}
-              style={{ animation: "footer-fade-in 0.3s ease 0.25s both" }}
-            >
-              <Footer />
-            </div>
-          )}
+          <TooltipProvider>
+            <SidebarProvider>
+              <ScrollToAnchor />
+              <AppSidebar />
+              <SidebarTrigger />
+
+              <main>
+                {/* <NavBar /> */}
+                {searchModalOpen && (
+                  <QuickSearchModal
+                    searchModalOpen={searchModalOpen}
+                    setSearchModalOpen={setSearchModalOpen}
+                  />
+                )}
+                {/* {!isMapPage && <LocationBanner />} */}
+                <Outlet />
+                <ClientOnly>
+                  {authState.status && !authState.email && (
+                    <CompleteProfileModal />
+                  )}
+                </ClientOnly>
+                <Toaster position="top-right" />
+                {/* {!isMapPage && !isHomePage && !isRouterPending && (
+                  <div
+                    key={pathname}
+                    style={{
+                      animation: "footer-fade-in 0.3s ease 0.25s both",
+                    }}>
+                    <Footer />
+                  </div>
+                )} */}
+              </main>
+            </SidebarProvider>
+          </TooltipProvider>
         </AppContext.Provider>
       </AuthContext.Provider>
       <TanStackDevtools
@@ -177,5 +195,5 @@ function RootComponent() {
         ]}
       />
     </RootDocument>
-  );
+  )
 }

@@ -1,16 +1,16 @@
-import { useNavigate } from "@tanstack/react-router";
-import InteractionConsole from "./InteractionConsole";
-import SkeletonBlock from "@/components/ui-custom/SkeletonBlock";
+import { useNavigate } from "@tanstack/react-router"
+import InteractionConsole from "./InteractionConsole"
+import SkeletonBlock from "@/components/ui-custom/SkeletonBlock"
 import type {
   TMDBFilmSummary,
   TMDBFilm,
   TMDBCrewMember,
   TMDBSpokenLanguage,
-} from "@/types/tmdb";
-import type { UserFilm, DirectorRef } from "@/types/film";
-import type { DiscoverPageState } from "@/types/map";
-import { IoIosTimer } from "react-icons/io";
-import { IoLanguageSharp, IoWarning } from "react-icons/io5";
+} from "@/types/tmdb"
+import type { UserFilm, DirectorRef } from "@/types/film"
+import type { DiscoverPageState } from "@/types/map"
+import { IoIosTimer } from "react-icons/io"
+import { IoLanguageSharp, IoWarning } from "react-icons/io5"
 
 // function useOverlayVariant(): "overlay-sm" | "overlay-lg" {
 //   const [isLg, setIsLg] = useState(
@@ -26,19 +26,19 @@ import { IoLanguageSharp, IoWarning } from "react-icons/io5";
 // }
 
 interface CardHoverOverlayProps {
-  hoverId: number | null;
+  hoverId: number | null
   /** Either a TMDB film summary (from the discover gallery) or a user's saved film */
-  filmObject: TMDBFilmSummary | UserFilm;
-  directors: TMDBCrewMember[] | DirectorRef[];
+  filmObject: TMDBFilmSummary | UserFilm
+  directors: TMDBCrewMember[] | DirectorRef[]
   /** Full TMDB detail, stored UserFilm, or empty object while loading */
-  movieDetails: TMDBFilm | UserFilm | Record<string, never>;
-  isLoading: boolean;
-  fetchError?: boolean;
-  showOverview: boolean;
-  setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>;
+  movieDetails: TMDBFilm | UserFilm | Record<string, never>
+  isLoading: boolean
+  fetchError?: boolean
+  showOverview: boolean
+  setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>
   /** When true: renders as a slide-down panel below the card (Phase 2 behavior).
    *  Visibility is CSS group-hover driven — hoverId is ignored. */
-  slideDown?: boolean;
+  slideDown?: boolean
 }
 
 export default function CardHoverOverlay({
@@ -52,20 +52,20 @@ export default function CardHoverOverlay({
   setPage,
   slideDown = false,
 }: CardHoverOverlayProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   // const isHovered = hoverId === filmObject.id;
-  const details = movieDetails as TMDBFilm;
+  const details = movieDetails as TMDBFilm
   // const overlayVariant = useOverlayVariant();
 
   const handleNavigate = () => {
-    navigate({ to: `/films/${filmObject.id}` });
-    if (setPage) setPage((prevPage) => ({ ...prevPage, loadMore: false }));
-  };
+    navigate({ to: `/films/${filmObject.id}` })
+    if (setPage) setPage((prevPage) => ({ ...prevPage, loadMore: false }))
+  }
 
   if (slideDown) {
     return (
       /* Note: md break point here controls the desktop behavior of the card. specifically, mobile mode (< md) will display the card content as a block, giving it full space; while desktop mode (>= md) will display the card content as absolute, triggered only when user hovers over it.  */
-      <div className="w-full md:w-auto md:absolute md:top-full md:left-0 md:right-0 bg-elevated text-dark z-50 md:opacity-0 md:-translate-y-2 md:pointer-events-none md:group-hover/card:opacity-100 md:group-hover/card:translate-y-0 md:group-hover/card:pointer-events-auto md:transition-[opacity,transform] md:duration-200 md:ease-out">
+      <div className="w-full md:w-auto md:absolute md:top-full md:left-0 md:right-0 bg-background text-foreground z-50 md:opacity-0 md:-translate-y-2 md:pointer-events-none md:group-hover/card:opacity-100 md:group-hover/card:translate-y-0 md:group-hover/card:pointer-events-auto md:transition-[opacity,transform] md:duration-200 md:ease-out">
         <div className="z-50 w-full p-5 @7xl:px-7 pt-4 flex flex-col items-center justify-start gap-2">
           <div className="z-50 flex justify-between items-center w-full">
             <div>
@@ -138,7 +138,7 @@ export default function CardHoverOverlay({
           </div>
         </div>
       </div>
-    );
+    )
   }
   // return (
   //   <div

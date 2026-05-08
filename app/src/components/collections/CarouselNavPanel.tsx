@@ -1,10 +1,10 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 interface CarouselNavPanelProps {
-  direction: "left" | "right";
-  showArrows: boolean;
-  onClick?: () => void;
-  width: number;
+  direction: "left" | "right"
+  showArrows: boolean
+  onClick?: () => void
+  width: number
 }
 
 export default function CarouselNavPanel({
@@ -13,7 +13,7 @@ export default function CarouselNavPanel({
   onClick,
   width,
 }: CarouselNavPanelProps) {
-  const isLeft = direction === "left";
+  const isLeft = direction === "left"
 
   return (
     <div
@@ -21,14 +21,13 @@ export default function CarouselNavPanel({
       className={`absolute ${isLeft ? "left-0" : "right-0"} top-0 h-full z-20 flex items-center justify-center transition-opacity duration-200 ${showArrows ? "opacity-100 cursor-pointer" : "opacity-0 cursor-default"}`}
       style={{ width }}
       aria-label={isLeft ? "Previous" : "Next"}
-      role="button"
-    >
+      role="button">
       {/* Edge blur */}
       <div
-        className={`pointer-events-none absolute ${isLeft ? "left-0" : "right-0"} top-0 h-full z-10 ${isLeft ? "bg-linear-to-r from-white to-transparent" : "bg-linear-to-l from-white to-transparent"}`}
+        className={`pointer-events-none absolute ${isLeft ? "left-0" : "right-0"} top-0 h-full z-10 ${isLeft ? "bg-linear-to-r from-background to-transparent" : "bg-linear-to-l from-background to-transparent"}`}
         style={{ width }}
       />
-      <div className="absolute inset-0 bg-elevated group-hover/carousel:opacity-0 transition-all duration-200 ease-out" />
+      <div className="absolute inset-0 bg-background group-hover/carousel:opacity-0 transition-all duration-200 ease-out" />
       <button className="z-10 p-2 border-0 flex items-center justify-center rounded-full backdrop-blur-sm group-hover/carousel:backdrop-brightness-70 transition-all duration-200 ease-out hover:backdrop-brightness-50">
         {isLeft ? (
           <ChevronLeft
@@ -43,5 +42,5 @@ export default function CarouselNavPanel({
         )}
       </button>
     </div>
-  );
+  )
 }

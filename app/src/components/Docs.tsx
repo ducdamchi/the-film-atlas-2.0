@@ -1,33 +1,33 @@
-import { useState, useEffect } from "react";
-import { Link } from "@tanstack/react-router";
-import { GoSquareFill } from "react-icons/go";
-import { useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react"
+import { Link } from "@tanstack/react-router"
+import { GoSquareFill } from "react-icons/go"
+import { useNavigate } from "@tanstack/react-router"
 
-import { MathJax, MathJaxContext } from "better-react-mathjax";
-import { MdMenuBook } from "react-icons/md";
+import { MathJax, MathJaxContext } from "better-react-mathjax"
+import { MdMenuBook } from "react-icons/md"
 
 export default function Docs() {
-  const navigate = useNavigate();
-  const [menuOpened, setMenuOpened] = useState(false);
-  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const navigate = useNavigate()
+  const [menuOpened, setMenuOpened] = useState(false)
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth)
 
   /* Dynamically obtain screen width of window */
   useEffect(() => {
     const handleResize = () => {
-      setScreenWidth(window.innerWidth);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
+      setScreenWidth(window.innerWidth)
+    }
+    handleResize()
+    window.addEventListener("resize", handleResize)
     return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [])
 
   useEffect(() => {
     if (screenWidth >= 1024) {
-      setMenuOpened(true);
-    } else setMenuOpened(false);
-  }, [screenWidth]);
+      setMenuOpened(true)
+    } else setMenuOpened(false)
+  }, [screenWidth])
 
   return (
     <MathJaxContext>
@@ -37,11 +37,10 @@ export default function Docs() {
             <button
               onClick={() => {
                 if (screenWidth < 1024) {
-                  setMenuOpened((prevState) => !prevState);
+                  setMenuOpened((prevState) => !prevState)
                 }
               }}
-              className="ml-5 mt-5 fixed left-0 bg-elevated p-3 rounded-full drop-shadow-md z-60 border-1 border-dark/30 transition-all ease-in-out duration-300 flex items-center justify-start"
-            >
+              className="ml-5 mt-5 fixed left-0 bg-background p-3 rounded-full drop-shadow-md z-60 border-1  /30 transition-all ease-in-out duration-300 flex items-center justify-start">
               <div className="flex items-center justify-start gap-2">
                 <MdMenuBook className="text-3xl" />
 
@@ -54,27 +53,24 @@ export default function Docs() {
             </button>
 
             {menuOpened && (
-              <div className="fixed left-0 top-[4rem] h-auto border-1 border-dark/30 w-[18rem] bg-elevated p-7 z-50 drop-shadow-md md:text-lg lg:h-screen">
+              <div className="fixed left-0 top-[4rem] h-auto border-1  /30 w-[18rem] bg-background p-7 z-50 drop-shadow-md md:text-lg lg:h-screen">
                 <div className="mt-24 flex flex-col justify-center items-start gap-5">
                   {/* Getting started */}
                   <div className="flex flex-col gap-2">
                     <Link
                       to="/docs#getting-started"
-                      className="docs-menu-heading"
-                    >
+                      className="docs-menu-heading">
                       Getting Started
                     </Link>
                     <ul className="docs-menu-content">
                       <Link
                         to="/docs#getting-started-glance"
-                        className="hover:text-hover-link"
-                      >
+                        className="hover:text-hover-link">
                         At A Glance
                       </Link>
                       <Link
                         to="/docs#getting-started-account"
-                        className="hover:text-hover-link"
-                      >
+                        className="hover:text-hover-link">
                         Creating An Account
                       </Link>
                     </ul>
@@ -88,26 +84,22 @@ export default function Docs() {
                     <ul className="docs-menu-content">
                       <Link
                         to="/docs#feature-map"
-                        className="hover:text-hover-link"
-                      >
+                        className="hover:text-hover-link">
                         Map Page
                       </Link>
                       <Link
                         to="/docs#feature-film"
-                        className="hover:text-hover-link"
-                      >
+                        className="hover:text-hover-link">
                         Films Page
                       </Link>
                       <Link
                         to="/docs#feature-director"
-                        className="hover:text-hover-link"
-                      >
+                        className="hover:text-hover-link">
                         Directors Page
                       </Link>
                       <Link
                         to="/docs#feature-search"
-                        className="hover:text-hover-link"
-                      >
+                        className="hover:text-hover-link">
                         Quick Search
                       </Link>
                     </ul>
@@ -120,20 +112,17 @@ export default function Docs() {
                     <ul className="docs-menu-content">
                       <Link
                         to="/docs#curation-origin"
-                        className="hover:text-hover-link"
-                      >
+                        className="hover:text-hover-link">
                         Origin Country
                       </Link>
                       <Link
                         to="/docs#curation-stars"
-                        className="hover:text-hover-link"
-                      >
+                        className="hover:text-hover-link">
                         Stars (Films)
                       </Link>
                       <Link
                         to="/docs#curation-score"
-                        className="hover:text-hover-link"
-                      >
+                        className="hover:text-hover-link">
                         Score (Directors)
                       </Link>
                     </ul>
@@ -146,8 +135,7 @@ export default function Docs() {
                     <ul className="docs-menu-content">
                       <Link
                         to="/docs#crit-review-bias"
-                        className="hover:text-hover-link"
-                      >
+                        className="hover:text-hover-link">
                         Voting Bias
                       </Link>
                     </ul>
@@ -156,8 +144,7 @@ export default function Docs() {
                   <div className="flex flex-col gap-2">
                     <Link
                       to="/docs#acknowledgement"
-                      className="docs-menu-heading"
-                    >
+                      className="docs-menu-heading">
                       Acknowledgement
                     </Link>
                   </div>
@@ -179,8 +166,7 @@ export default function Docs() {
                     </div>
                     <div
                       id="getting-started-glance"
-                      className="docs-sectionTitle"
-                    >
+                      className="docs-sectionTitle">
                       AT A GLANCE
                     </div>
                   </div>
@@ -190,8 +176,7 @@ export default function Docs() {
                         className="docs-subtitle hover:text-hover-link cursor-pointer transition-all ease-out duration-200"
                         to="/map"
                         target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                        rel="noopener noreferrer">
                         Map
                       </Link>
                       <div className="font-light">
@@ -211,8 +196,7 @@ export default function Docs() {
                         className="docs-subtitle hover:text-hover-link cursor-pointer transition-all ease-out duration-200"
                         to="/films"
                         target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                        rel="noopener noreferrer">
                         Films
                       </Link>
                       <div className="font-light">
@@ -222,8 +206,7 @@ export default function Docs() {
                           className="text-hover-dark"
                           to="/films"
                           target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                          rel="noopener noreferrer">
                           films
                         </Link>{" "}
                         main page, which can be sorted and displayed in several
@@ -241,8 +224,7 @@ export default function Docs() {
                         className="docs-subtitle hover:text-hover-link cursor-pointer transition-all ease-out duration-200"
                         to="/directors"
                         target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                        rel="noopener noreferrer">
                         Directors
                       </Link>
                       <div className="font-light">
@@ -264,8 +246,7 @@ export default function Docs() {
                     <div className="docs-sectionCategory">Getting started</div>
                     <div
                       id="getting-started-account"
-                      className="docs-sectionTitle"
-                    >
+                      className="docs-sectionTitle">
                       Creating an account
                     </div>
                   </div>
@@ -341,8 +322,7 @@ export default function Docs() {
                           href="https://www.themoviedb.org/?language=en-US"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-hover-dark cursor-pointer"
-                        >
+                          className="text-hover-dark cursor-pointer">
                           The Movies Database
                         </a>{" "}
                         (TMDB), and currently we include three sort options:
@@ -389,8 +369,7 @@ export default function Docs() {
                         for different countries, as{" "}
                         <Link
                           to="/docs#crit-review-bias"
-                          className="text-hover-dark cursor-pointer inline"
-                        >
+                          className="text-hover-dark cursor-pointer inline">
                           voting biases
                         </Link>{" "}
                         may be present within the database that we use.
@@ -444,8 +423,7 @@ export default function Docs() {
                         the Rated collection. Refer to{" "}
                         <Link
                           to="/docs#curation-stars"
-                          className="text-hover-dark cursor-pointer inline"
-                        >
+                          className="text-hover-dark cursor-pointer inline">
                           this section
                         </Link>{" "}
                         for more details on the rating system.
@@ -468,8 +446,7 @@ export default function Docs() {
                         the{" "}
                         <Link
                           to="/docs#feature-director"
-                          className="text-hover-dark cursor-pointer inline"
-                        >
+                          className="text-hover-dark cursor-pointer inline">
                           director's page search bar
                         </Link>{" "}
                         if you want to search for directors instead.
@@ -550,8 +527,7 @@ export default function Docs() {
                           user's interactions. Refer to{" "}
                           <Link
                             to="/docs#curation-score"
-                            className="text-hover-dark cursor-pointer inline"
-                          >
+                            className="text-hover-dark cursor-pointer inline">
                             this section
                           </Link>{" "}
                           for more details on our directors scoring system.
@@ -565,8 +541,7 @@ export default function Docs() {
                           film (0-3). Refer to{" "}
                           <Link
                             to="/docs#curation-stars"
-                            className="text-hover-dark cursor-pointer inline"
-                          >
+                            className="text-hover-dark cursor-pointer inline">
                             this section
                           </Link>{" "}
                           for more details on our films starring system.
@@ -601,8 +576,7 @@ export default function Docs() {
                         directors with this search bar. Use the{" "}
                         <Link
                           to="/docs#feature-film"
-                          className="text-hover-dark cursor-pointer inline"
-                        >
+                          className="text-hover-dark cursor-pointer inline">
                           film page's search bar
                         </Link>{" "}
                         if you want to search for films instead.
@@ -1029,8 +1003,7 @@ export default function Docs() {
                           to="/contact"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-hover-dark cursor-pointer"
-                        >
+                          className="text-hover-dark cursor-pointer">
                           hear more from you!
                         </Link>
                       </div>
@@ -1057,8 +1030,7 @@ export default function Docs() {
                           href="https://www.themoviedb.org/?language=en-US"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-hover-dark cursor-pointer"
-                        >
+                          className="text-hover-dark cursor-pointer">
                           The Movies Database
                         </a>{" "}
                         does not publicly release the demographics of its
@@ -1076,8 +1048,7 @@ export default function Docs() {
                             href="https://www.wipo.int/en/web/global-innovation-index/w/blogs/2025/global-film-production"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-hover-dark cursor-pointer"
-                          >
+                            className="text-hover-dark cursor-pointer">
                             <sup> 1</sup>
                           </a>
                           . In 2023, 2562 feature films were produced in India,
@@ -1087,8 +1058,7 @@ export default function Docs() {
                             href="https://www.wipo.int/en/web/global-innovation-index/w/blogs/2025/global-film-production"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-hover-dark cursor-pointer"
-                          >
+                            className="text-hover-dark cursor-pointer">
                             <sup> 2</sup>
                           </a>
                           . This, together with the fact that India currently
@@ -1098,8 +1068,7 @@ export default function Docs() {
                             href="https://www.worldometers.info/world-population/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-hover-dark cursor-pointer"
-                          >
+                            className="text-hover-dark cursor-pointer">
                             <sup> 3</sup>
                           </a>
                           ), would make one think that there must be a lot of
@@ -1109,8 +1078,7 @@ export default function Docs() {
                         <a
                           href="https://www.wipo.int/en/web/global-innovation-index/w/blogs/2025/global-film-production"
                           target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                          rel="noopener noreferrer">
                           <img
                             src="/productiondata.png"
                             alt="Statistics for countries prominent in anual film production."
@@ -1126,8 +1094,7 @@ export default function Docs() {
                             href="https://thefilmatlas.org/#/films/157336"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="italic text-hover-dark cursor-pointer"
-                          >
+                            className="italic text-hover-dark cursor-pointer">
                             Interstellar
                           </a>
                           , 2014, dir. Christopher Nolan, 8.5 average rating),
@@ -1136,8 +1103,7 @@ export default function Docs() {
                             href="https://thefilmatlas.org/#/films/19404"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="italic text-hover-dark cursor-pointer"
-                          >
+                            className="italic text-hover-dark cursor-pointer">
                             Dilwale Dulhania Le Jayenge
                           </a>
                           , 1995, dir. Aditya Chopra, 8.5 average rating).
@@ -1148,8 +1114,7 @@ export default function Docs() {
                             href="https://www.boxofficemojo.com/chart/top_lifetime_gross/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-hover-dark cursor-pointer"
-                          >
+                            className="text-hover-dark cursor-pointer">
                             <sup> 4</sup>
                           </a>
                           ), must have gathered a lot of attention from TMDB
@@ -1165,8 +1130,7 @@ export default function Docs() {
                             href="https://www.cnn.com/2025/10/20/style/ddlj-bollywood-30-years-anniversary-intl-hnk-dst"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-hover-dark cursor-pointer"
-                          >
+                            className="text-hover-dark cursor-pointer">
                             <sup> 5</sup>
                           </a>
                           .
@@ -1174,8 +1138,7 @@ export default function Docs() {
                         <a
                           href="https://thefilmatlas.org/#/films/157336"
                           target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                          rel="noopener noreferrer">
                           <img
                             src="/interstellar.png"
                             alt="Interstellar film card."
@@ -1202,8 +1165,7 @@ export default function Docs() {
                         <a
                           href="https://thefilmatlas.org/#/films/19404"
                           target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                          rel="noopener noreferrer">
                           <img
                             src="/dilwale.png"
                             alt="Interstellar film card."
@@ -1221,8 +1183,7 @@ export default function Docs() {
                               href="https://thefilmatlas.org/#/films/1585"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="italic text-hover-dark cursor-pointer"
-                            >
+                              className="italic text-hover-dark cursor-pointer">
                               It's A Wonderful Life
                             </a>{" "}
                             (4600+ votes, 8.3 average rating). While both films
@@ -1255,8 +1216,7 @@ export default function Docs() {
                         <a
                           href="https://thefilmatlas.org/#/films/1585"
                           target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                          rel="noopener noreferrer">
                           <img
                             src="/itsawonderfullife.png"
                             alt="Interstellar film card."
@@ -1272,8 +1232,7 @@ export default function Docs() {
                               href="https://thefilmatlas.org/#/films/980477"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="italic text-hover-dark cursor-pointer"
-                            >
+                              className="italic text-hover-dark cursor-pointer">
                               Ne Zha II
                             </a>
                             , the highest grossing Chinese film of all time,
@@ -1286,8 +1245,7 @@ export default function Docs() {
                               href="https://www.nytimes.com/2025/02/10/business/china-box-office-ne-zha-2.html"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-hover-dark cursor-pointer"
-                            >
+                              className="text-hover-dark cursor-pointer">
                               <sup> 6</sup>
                             </a>
                             . It currently has less than 500 votes on TMDB.
@@ -1297,8 +1255,7 @@ export default function Docs() {
                               href="https://thefilmatlas.org/#/person/director/2367353"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-hover-dark cursor-pointer"
-                            >
+                              className="text-hover-dark cursor-pointer">
                               Jiao Zi
                             </a>
                             , there's no biography available (as this is being
@@ -1308,8 +1265,7 @@ export default function Docs() {
                         <a
                           href="https://thefilmatlas.org/#/films/980477"
                           target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                          rel="noopener noreferrer">
                           <img
                             src="/nezha2.png"
                             alt="Interstellar film card."
@@ -1477,8 +1433,7 @@ export default function Docs() {
                         href="https://www.themoviedb.org/?language=en-US"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-hover-link cursor-pointer"
-                      >
+                        className="hover:text-hover-link cursor-pointer">
                         <div className="docs-subtitle hover:text-hover-link">
                           The Movies Database
                         </div>
@@ -1488,8 +1443,7 @@ export default function Docs() {
                         href="https://www.themoviedb.org/?language=en-US"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="max-w-[15rem]"
-                      >
+                        className="max-w-[15rem]">
                         <img
                           src="/tmdb.png"
                           alt="TMDB log."
@@ -1502,8 +1456,7 @@ export default function Docs() {
                         href="https://maplibre.org/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-hover-link cursor-pointer"
-                      >
+                        className="hover:text-hover-link cursor-pointer">
                         <div className="docs-subtitle hover:text-hover-link">
                           Map Libre
                         </div>
@@ -1513,8 +1466,7 @@ export default function Docs() {
                         href="https://maplibre.org/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="max-w-[15rem]"
-                      >
+                        className="max-w-[15rem]">
                         <img
                           src="/maplibre.png"
                           alt="Map Libre logo."
@@ -1527,8 +1479,7 @@ export default function Docs() {
                         href="https://www.maptiler.com/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-hover-link cursor-pointer"
-                      >
+                        className="hover:text-hover-link cursor-pointer">
                         <div className="docs-subtitle hover:text-hover-link">
                           Map Tiler
                         </div>
@@ -1538,8 +1489,7 @@ export default function Docs() {
                         href="https://www.maptiler.com/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="max-w-[15rem]"
-                      >
+                        className="max-w-[15rem]">
                         <img
                           src="/maptiler.svg"
                           alt="Map Tiler logo."
@@ -1566,5 +1516,5 @@ export default function Docs() {
         </div>
       </div>
     </MathJaxContext>
-  );
+  )
 }

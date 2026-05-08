@@ -1,23 +1,23 @@
-import { useState, useEffect, type RefObject } from "react";
-import { useNavigate } from "@tanstack/react-router";
-import { MdMenu, MdClose } from "react-icons/md";
-import { BiSearchAlt2 } from "react-icons/bi";
-import { ChevronDown } from "lucide-react";
-import { useApp } from "@/utils/appContext";
-import { CustomLink } from "./CustomLink";
-import { INFO_LINKS, type MenuState } from "./navTypes";
-import { IoIosMenu, IoIosCloseCircle } from "react-icons/io";
+import { useState, useEffect, type RefObject } from "react"
+import { useNavigate } from "@tanstack/react-router"
+import { MdMenu, MdClose } from "react-icons/md"
+import { BiSearchAlt2 } from "react-icons/bi"
+import { ChevronDown } from "lucide-react"
+import { useApp } from "@/utils/appContext"
+import { CustomLink } from "./CustomLink"
+import { INFO_LINKS, type MenuState } from "./navTypes"
+import { IoIosMenu, IoIosCloseCircle } from "react-icons/io"
 
 interface NavBarMobileSectionProps {
-  menuOpened: MenuState;
-  setMenuOpened: (state: MenuState) => void;
-  setSettingsOpened: (state: MenuState) => void;
-  menuRef: RefObject<HTMLDivElement | null>;
-  menuBorderBottom: RefObject<HTMLDivElement | null>;
-  menuBorderRight: RefObject<HTMLDivElement | null>;
-  settingsPanelWidth: string;
-  navbarHeight: number;
-  borderWidth: number;
+  menuOpened: MenuState
+  setMenuOpened: (state: MenuState) => void
+  setSettingsOpened: (state: MenuState) => void
+  menuRef: RefObject<HTMLDivElement | null>
+  menuBorderBottom: RefObject<HTMLDivElement | null>
+  menuBorderRight: RefObject<HTMLDivElement | null>
+  settingsPanelWidth: string
+  navbarHeight: number
+  borderWidth: number
 }
 
 export function NavBarMobileSection({
@@ -31,21 +31,21 @@ export function NavBarMobileSection({
   navbarHeight,
   borderWidth,
 }: NavBarMobileSectionProps) {
-  const navigate = useNavigate();
-  const { setSearchModalOpen } = useApp();
-  const [mobileInfoDropdownOpen, setMobileInfoDropdownOpen] = useState(false);
+  const navigate = useNavigate()
+  const { setSearchModalOpen } = useApp()
+  const [mobileInfoDropdownOpen, setMobileInfoDropdownOpen] = useState(false)
 
   const closeAll = () => {
-    setMenuOpened({ isOpened: false, isNeutral: false });
-    setSettingsOpened({ isOpened: false, isNeutral: false });
-  };
+    setMenuOpened({ isOpened: false, isNeutral: false })
+    setSettingsOpened({ isOpened: false, isNeutral: false })
+  }
 
   // ResizeObserver lives here (not in the hook) because NavBarMobileSection is
   // conditionally rendered — menuRef.current is null when the hook's effect runs on mount.
   // Running the observer here guarantees the ref is attached when the effect fires.
   useEffect(() => {
-    const panel = menuRef.current;
-    if (!panel) return;
+    const panel = menuRef.current
+    if (!panel) return
 
     const ro = new ResizeObserver(() => {
       if (
@@ -53,22 +53,22 @@ export function NavBarMobileSection({
         !menuBorderBottom.current ||
         !menuBorderRight.current
       )
-        return;
-      if (menuRef.current.style.display === "none") return;
+        return
+      if (menuRef.current.style.display === "none") return
 
-      const panelHeightPx = menuRef.current.offsetHeight;
+      const panelHeightPx = menuRef.current.offsetHeight
       const rootFontSize = parseFloat(
         getComputedStyle(document.documentElement).fontSize,
-      );
-      const navbarHeightPx = navbarHeight * rootFontSize;
+      )
+      const navbarHeightPx = navbarHeight * rootFontSize
 
-      menuBorderBottom.current.style.top = `${navbarHeightPx + panelHeightPx}px`;
-      menuBorderRight.current.style.height = `${panelHeightPx}px`;
-    });
+      menuBorderBottom.current.style.top = `${navbarHeightPx + panelHeightPx}px`
+      menuBorderRight.current.style.height = `${panelHeightPx}px`
+    })
 
-    ro.observe(panel);
-    return () => ro.disconnect();
-  }, []);
+    ro.observe(panel)
+    return () => ro.disconnect()
+  }, [])
 
   return (
     <>
@@ -81,8 +81,7 @@ export function NavBarMobileSection({
               isOpened: !menuOpened.isOpened,
               isNeutral: false,
             })
-          }
-        >
+          }>
           <IoIosMenu
             className={`text-xl absolute inset-0 transition-all duration-300 ease-in-out ${
               menuOpened.isOpened
@@ -100,27 +99,24 @@ export function NavBarMobileSection({
         </button>
         <span
           onClick={() => navigate({ to: "/about" })}
-          className="font-logo text-base uppercase font-black flex items-center justify-center p-1 cursor-pointer"
-        >
+          className="font-logo text-base uppercase font-black flex items-center justify-center p-1 cursor-pointer">
           The Film Atlas
         </span>
         <button
-          className="flex items-center justify-center ml-2 p-[5px] pl-[10px] pr-[10px] rounded-full bg-control text-dark cursor-pointer"
-          onClick={() => setSearchModalOpen(true)}
-        >
+          className="flex items-center justify-center ml-2 p-[5px] pl-[10px] pr-[10px] rounded-full bg-muted text-dark cursor-pointer"
+          onClick={() => setSearchModalOpen(true)}>
           <BiSearchAlt2 className="text-[10px]" />
         </button>
       </div>
 
       {/* MOBILE - SLIDE PANEL */}
       <div
-        className="hidden absolute z-20 left-0 bg-void border-atlas-blue pl-5 pb-5 pt- transition-all ease-out duration-200 font-light z-100 md:pl-12"
+        className="hidden absolute z-20 left-0 bg-background border-atlas-blue pl-5 pb-5 pt- transition-all ease-out duration-200 font-light z-100 md:pl-12"
         style={{
           width: settingsPanelWidth,
           top: `${navbarHeight}rem`,
         }}
-        ref={menuRef}
-      >
+        ref={menuRef}>
         <ul className="flex flex-col gap-2 text-sm">
           <CustomLink to="/map" exact={false} onClick={closeAll}>
             MAP
@@ -137,16 +133,14 @@ export function NavBarMobileSection({
           <div>
             <button
               className="flex items-center gap-1 uppercase"
-              onClick={() => setMobileInfoDropdownOpen((prev) => !prev)}
-            >
+              onClick={() => setMobileInfoDropdownOpen((prev) => !prev)}>
               INFO
               <ChevronDown
                 className={`w-3 h-3 transition-transform duration-200 ${mobileInfoDropdownOpen ? "rotate-180" : ""}`}
               />
             </button>
             <div
-              className={`overflow-hidden transition-[max-height] duration-200 ease-out ${mobileInfoDropdownOpen ? "max-h-40" : "max-h-0"}`}
-            >
+              className={`overflow-hidden transition-[max-height] duration-200 ease-out ${mobileInfoDropdownOpen ? "max-h-40" : "max-h-0"}`}>
               <ul className="flex flex-col gap-2 pl-3 pt-2">
                 {INFO_LINKS.map(({ to, label }) => (
                   <CustomLink
@@ -154,10 +148,9 @@ export function NavBarMobileSection({
                     to={to}
                     exact={false}
                     onClick={() => {
-                      closeAll();
-                      setMobileInfoDropdownOpen(false);
-                    }}
-                  >
+                      closeAll()
+                      setMobileInfoDropdownOpen(false)
+                    }}>
                     {label}
                   </CustomLink>
                 ))}
@@ -189,5 +182,5 @@ export function NavBarMobileSection({
         ref={menuBorderRight}
       />
     </>
-  );
+  )
 }
