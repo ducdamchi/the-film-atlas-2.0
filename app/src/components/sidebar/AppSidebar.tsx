@@ -5,11 +5,14 @@ import {
   Command,
   Frame,
   LifeBuoy,
-  Map,
   PieChart,
   Send,
   Settings2,
   SquareTerminal,
+  Map,
+  LibraryBig,
+  UserStar,
+  CircleEllipsis,
 } from "lucide-react"
 
 import { NavMain } from "#/components/sidebar/NavMain"
@@ -25,6 +28,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui-shadcn/sidebar"
 import { Link } from "@tanstack/react-router"
 import { useAuth } from "@/utils/authContext"
@@ -40,7 +44,7 @@ const data = {
     {
       title: "Map",
       url: "/map",
-      icon: Bot,
+      icon: Map,
       // items: [
       //   {
       //     title: "Genesis",
@@ -59,19 +63,15 @@ const data = {
     {
       title: "Collections",
       url: "/collections",
-      icon: SquareTerminal,
+      icon: LibraryBig,
       isActive: true,
       items: [
         {
-          title: "History",
+          title: "Watched",
           url: "#",
         },
         {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
+          title: "Watchlist",
           url: "#",
         },
       ],
@@ -79,48 +79,51 @@ const data = {
     {
       title: "Directors",
       url: "/directors",
-      icon: BookOpen,
+      icon: UserStar,
+    },
+
+    {
+      title: "More",
+      url: "#",
+      icon: CircleEllipsis,
+      isActive: true,
       items: [
         {
-          title: "Introduction",
-          url: "#",
+          title: "Docs",
+          url: "/docs",
         },
         {
-          title: "Get Started",
-          url: "#",
+          title: "About",
+          url: "/about",
         },
         {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
+          title: "Contact",
+          url: "/contact",
         },
       ],
     },
     {
       title: "Settings",
-      url: "#",
+      url: "/settings",
       icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
+      // items: [
+      //   {
+      //     title: "General",
+      //     url: "#",
+      //   },
+      //   {
+      //     title: "Team",
+      //     url: "#",
+      //   },
+      //   {
+      //     title: "Billing",
+      //     url: "#",
+      //   },
+      //   {
+      //     title: "Limits",
+      //     url: "#",
+      //   },
+      // ],
     },
   ],
   navSecondary: [
@@ -157,25 +160,30 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { authState } = useAuth()
   return (
-    <Sidebar collapsible="icon" variant="sidebar" {...props} className="z-2000">
+    <Sidebar
+      collapsible="icon"
+      variant="sidebar"
+      {...props}
+      className="z-2000 border-foreground">
       <SidebarHeader>
         <SidebarMenu>
-          <SidebarMenuItem>
+          <SidebarMenuItem className="flex items-center">
             <SidebarMenuButton size="lg" asChild>
-              <Link to="/about">
-                {/* <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              {/* <Link to="/about"> */}
+              {/* <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <Command className="size-4" />
                 </div> */}
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium text-base font-logo">
-                    THE FILM ATLAS
-                  </span>
-                  <span className="truncate text-xs">
-                    Discover. Share. Curate.
-                  </span>
-                </div>
-              </Link>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium text-base font-logo">
+                  THE FILM ATLAS
+                </span>
+                <span className="truncate text-xs">
+                  Discover. Share. Curate.
+                </span>
+              </div>
+              {/* </Link> */}
             </SidebarMenuButton>
+            <SidebarTrigger />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

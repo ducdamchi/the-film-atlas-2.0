@@ -439,6 +439,7 @@ export default function FilmLanding() {
               </div>
 
               {/* Ratings & Awards section */}
+
               {(filmRatings || filmAwards) && (
                 <div className="p-4 pt-2">
                   <div className="landing-sectionTitle mb-2">

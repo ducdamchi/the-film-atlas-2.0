@@ -382,7 +382,7 @@ export default function Collections() {
   }
 
   return (
-    <div className="font-primary min-h-screen w-screen mb-40 absolute inset-0">
+    <div className="font-primary min-h-screen mb-40 inset-0 left-[3rem]">
       <div className="@container flex flex-col items-center w-full">
         <div className="font-heading page-title">COLLECTIONS</div>
         <SearchBar

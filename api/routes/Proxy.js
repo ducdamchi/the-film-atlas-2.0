@@ -68,12 +68,17 @@ router.get("/image", async (req, res) => {
   }
   try {
     const response = await axios.get(url, { responseType: "stream" })
-    res.setHeader("Content-Type", response.headers["content-type"] || "image/jpeg")
-    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader(
+      "Content-Type",
+      response.headers["content-type"] || "image/jpeg",
+    )
+    res.setHeader("Access-muted-Allow-Origin", "*")
     response.data.pipe(res)
   } catch (err) {
     console.error("Server: Image proxy failed:", err.message)
-    res.status(err?.response?.status || 500).json({ error: "Failed to fetch image" })
+    res
+      .status(err?.response?.status || 500)
+      .json({ error: "Failed to fetch image" })
   }
 })
 

@@ -34,6 +34,9 @@ import {
 import { AppSidebar } from "#/components/sidebar/AppSidebar"
 import { TooltipProvider } from "#/components/ui-shadcn/tooltip"
 
+import { useAtom } from "jotai"
+import { sidebarHoveredAtom, sidebarPinnedAtom } from "#/atoms/atoms"
+
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async (): Promise<{ auth: AuthUser | null }> => {
     if (typeof window === "undefined") return { auth: null }
@@ -141,18 +144,23 @@ function RootComponent() {
         }
       : loggedOutState
 
+  const [sidebarHovered] = useAtom(sidebarHoveredAtom)
+  const [sidebarPinned] = useAtom(sidebarPinnedAtom)
+  // useEffect(() => {
+  //   console.log("keep sidebar open: ", sidebarHovered || sidebarPinned)
+  // }, [sidebarHovered, sidebarPinned])
+
   return (
     <RootDocument>
       <AuthContext.Provider
         value={{ authState, setAuthState: () => {}, authLoading: false }}>
         <AppContext.Provider value={{ searchModalOpen, setSearchModalOpen }}>
           <TooltipProvider>
-            <SidebarProvider>
+            <SidebarProvider open={sidebarHovered || sidebarPinned}>
               <ScrollToAnchor />
               <AppSidebar />
-              <SidebarTrigger />
 
-              <main>
+              <main className="group peer w-full">
                 {/* <NavBar /> */}
                 {searchModalOpen && (
                   <QuickSearchModal

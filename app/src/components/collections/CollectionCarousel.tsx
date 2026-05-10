@@ -35,9 +35,9 @@ const NAV_BUTTON_WIDTH = 64
 const GAP = 12
 
 function getSlidesPerPage(containerPx: number): number {
-  if (containerPx < 958) return 1 //48rem + 10rem
-  if (containerPx < 1312) return 2 //72rem + 10rem
-  if (containerPx < 1969) return 3 //100rem + 10rem
+  if (containerPx < 896) return 1 //48rem + 8rem
+  if (containerPx < 1280) return 2 //72rem + 8rem
+  if (containerPx < 1728) return 3 //100rem + 8rem
   return 4
 }
 

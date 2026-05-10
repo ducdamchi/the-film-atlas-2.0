@@ -29,6 +29,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui-shadcn/sidebar"
+import { sidebarHoveredAtom, sidebarPinnedAtom } from "#/atoms/atoms"
+import { useAtom } from "jotai"
 
 export function NavUser({
   user,
@@ -40,6 +42,8 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const [, setSidebarPinned] = useAtom(sidebarPinnedAtom)
+  // const [, setSidebarHovered] = useAtom(sidebarHoveredAtom)
 
   return (
     <SidebarMenu>
@@ -61,7 +65,8 @@ export function NavUser({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            // onMouseEnter={() => setSidebarHovered(true)}
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg z-2500"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}>

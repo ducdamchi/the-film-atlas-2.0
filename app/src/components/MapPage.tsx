@@ -185,7 +185,7 @@ export default function MapPage() {
         : "watched"
 
   return (
-    <div className="font-primary fixed inset-0 overflow-hidden">
+    <div className="font-primary inset-0 overflow-hidden">
       {isLoading && <LoadingPage />}
 
       {/* Map — fills the full viewport */}
@@ -275,22 +275,17 @@ export default function MapPage() {
           // Mobile: slides up from viewport bottom
           "bottom-0 left-0 right-0",
           // Desktop: left sidebar below navbar
-          "md:left-[3rem] md:top-0",
+          "md:top-0 md:relative md:h-screen",
         ].join(" ")}>
         {/* Inner scroll container: visual appearance + scrolling */}
         <div
           ref={innerScrollRef}
           className={[
-            "w-full h-full",
-            "bg-background overflow-y-auto flex flex-col items-center",
+            "w-full h-full bg-background overflow-y-auto flex flex-col items-center",
             // Mobile visual
-
-            "shadow-[25px_-8px_30px_rgba(0,0,0,0.15)]",
-            "[clip-path:inset(-100%_-100%_-20rem_-100%)]",
+            "shadow-[25px_-8px_30px_rgba(0,0,0,0.15)] [clip-path:inset(-100%_-100%_-20rem_-100%)]",
             // Desktop visual
-            "md:pt-10",
-            "md:shadow-[8px_0_30px_rgba(0,0,0,0.15)]",
-            "md:[clip-path:none]",
+            "md:pt-10 md:min-h-screen md:shadow-[8px_0_30px_rgba(0,0,0,0.15)] md:[clip-path:none]",
           ].join(" ")}>
           {/* Mobile drag handle — sticky at top so it's always reachable while scrolling */}
           <div

@@ -23,6 +23,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui-shadcn/tooltip"
 import { PanelLeftIcon } from "lucide-react"
+import { useAtom, useAtomValue } from "jotai"
+import { sidebarHoveredAtom, sidebarPinnedAtom } from "../../atoms/atoms"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -53,7 +55,7 @@ function useSidebar() {
 }
 
 function SidebarProvider({
-  defaultOpen = true,
+  defaultOpen = false,
   open: openProp,
   onOpenChange: setOpenProp,
   className,
@@ -65,11 +67,21 @@ function SidebarProvider({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
+  /* use jotai atom to track if <Sidebar> is hovered on (atom state set in <Sidebar> itself) */
+  const sidebarHovered = useAtomValue(sidebarHoveredAtom)
+  const [sidebarPinned, setSidebarPinned] = useAtom(sidebarPinnedAtom)
+
+  // React.useEffect(() => {
+  //   console.log("sidebar Pinned:", sidebarPinned)
+  // }, [sidebarPinned])
+
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
+
+  /* _open and _setOpen use jotai atom instead of defaultOpen*/
   const [_open, _setOpen] = React.useState(defaultOpen)
   const open = openProp ?? _open
   const setOpen = React.useCallback(
@@ -89,8 +101,11 @@ function SidebarProvider({
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
-    return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
-  }, [isMobile, setOpen, setOpenMobile])
+    // return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
+    return isMobile
+      ? setOpenMobile((open) => !open)
+      : setSidebarPinned((prev) => !prev)
+  }, [isMobile, setSidebarPinned, setOpenMobile])
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
@@ -161,6 +176,7 @@ function Sidebar({
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const [, setSidebarHovered] = useAtom(sidebarHoveredAtom)
 
   if (collapsible === "none") {
     return (
@@ -208,7 +224,9 @@ function Sidebar({
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
       data-side={side}
-      data-slot="sidebar">
+      data-slot="sidebar"
+      onMouseEnter={() => setSidebarHovered(true)}
+      onMouseLeave={() => setSidebarHovered(false)}>
       {/* This is what handles the sidebar gap on desktop */}
       <div
         data-slot="sidebar-gap"
@@ -257,10 +275,11 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="sidebar"
       size="icon-sm"
-      className={cn(className, "bg-foreground text-background rounded-full")}
+      className={cn(className, "")}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
+        // console.log("clicked button")
       }}
       {...props}>
       <PanelLeftIcon />
