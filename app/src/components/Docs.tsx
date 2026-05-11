@@ -31,16 +31,16 @@ export default function Docs() {
 
   return (
     <MathJaxContext>
-      <div className="font-primary mt-20 mb-20 min-h-screen h-auto relative">
-        <div className="flex flex-col items-center relative w-screen h-auto">
-          <div className="relative">
+      <div className="font-primary mb-20 min-h-screen h-auto relative">
+        <div className="flex relative h-auto">
+          <div className="">
             <button
               onClick={() => {
                 if (screenWidth < 1024) {
                   setMenuOpened((prevState) => !prevState)
                 }
               }}
-              className="ml-5 mt-5 fixed left-0 bg-background p-3 rounded-full drop-shadow-md z-60 border-1  /30 transition-all ease-in-out duration-300 flex items-center justify-start">
+              className="ml-5 mt-5 absolute left-0 bg-background p-3 rounded-full drop-shadow-md z-60 border-1  transition-all ease-in-out duration-300 flex items-center justify-start">
               <div className="flex items-center justify-start gap-2">
                 <MdMenuBook className="text-3xl" />
 
@@ -53,7 +53,7 @@ export default function Docs() {
             </button>
 
             {menuOpened && (
-              <div className="fixed left-0 top-[4rem] h-auto border-1  /30 w-[18rem] bg-background p-7 z-50 drop-shadow-md md:text-lg lg:h-screen">
+              <div className="sticky left-0 inset-0 h-auto border-1 w-[18rem] bg-background p-7 z-50 drop-shadow-md md:text-lg lg:h-screen">
                 <div className="mt-24 flex flex-col justify-center items-start gap-5">
                   {/* Getting started */}
                   <div className="flex flex-col gap-2">
@@ -153,7 +153,7 @@ export default function Docs() {
             )}
           </div>
 
-          <div className="w-screen lg:w-[calc(100vw-18rem)] xl:w-[calc(100vw-36rem)] lg:ml-[18rem]">
+          <div className="w-full">
             <div className="font-heading page-title mb-10">DOCUMENTATION</div>
 
             <div className="flex items-center justify-center ">

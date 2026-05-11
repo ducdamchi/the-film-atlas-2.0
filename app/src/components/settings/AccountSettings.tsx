@@ -265,7 +265,6 @@ export function AccountSettings() {
 
   return (
     <div className="font-primary min-h-screen text-body">
-      <NavBar />
       <div className="pt-24 pb-12 max-w-xl mx-auto px-4 flex flex-col gap-6">
         <h1 className="text-2xl font-bold">Account Settings</h1>
 

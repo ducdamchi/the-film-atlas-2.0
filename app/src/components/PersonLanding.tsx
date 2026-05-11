@@ -1,127 +1,127 @@
 /* Libraries */
-import { useEffect, useMemo } from "react";
-import { useParams } from "@tanstack/react-router";
-import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react"
+import { useParams } from "@tanstack/react-router"
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query"
 
 /* Custom functions */
-import { useAuth } from "../utils/authContext";
-import { useApp } from "../utils/appContext";
-import { getNiceMonthDateYear, getAge } from "../utils/helperFunctions";
+import { useAuth } from "../utils/authContext"
+import { useApp } from "../utils/appContext"
+import { getNiceMonthDateYear, getAge } from "../utils/helperFunctions"
 import {
   personQueryOptions,
   directorStatusQueryOptions,
-} from "../queries/person.queries";
-import { computeDirectorScore } from "@/utils/directorScore";
-import { usePersistedState } from "../hooks/usePersistedState";
+} from "../queries/person.queries"
+import { computeDirectorScore } from "@/utils/directorScore"
+import { usePersistedState } from "../hooks/usePersistedState"
 
 /* Types */
-import type { TMDBPerson, TMDBFilmSummary } from "@/types/tmdb";
+import type { TMDBPerson, TMDBFilmSummary } from "@/types/tmdb"
 
 /* Components */
-import TmdbFilmGallery from "./films/TmdbFilmGallery";
+import TmdbFilmGallery from "./films/TmdbFilmGallery"
 
 export default function PersonLanding() {
-  const imgBaseUrl = "https://image.tmdb.org/t/p/original";
-  const { job, tmdbId } = useParams({ strict: false });
+  const imgBaseUrl = "https://image.tmdb.org/t/p/original"
+  const { job, tmdbId } = useParams({ strict: false })
   const [scrollPosition, setScrollPosition] = usePersistedState<number>(
     `${job}Landing-scrollPosition`,
     0,
-  );
+  )
 
-  const { authState } = useAuth();
-  const { setSearchModalOpen } = useApp();
+  const { authState } = useAuth()
+  const { setSearchModalOpen } = useApp()
 
   // Close search modal on mount/navigation
   useEffect(() => {
-    setSearchModalOpen(false);
-  }, [tmdbId]);
+    setSearchModalOpen(false)
+  }, [tmdbId])
 
   // Scroll restoration — runs once on mount (component only renders after loader resolves)
   useEffect(() => {
     if (scrollPosition) {
       setTimeout(() => {
-        window.scrollTo(0, parseInt(String(scrollPosition), 10));
-      }, 50);
+        window.scrollTo(0, parseInt(String(scrollPosition), 10))
+      }, 50)
     } else {
-      window.scrollTo(0, 0);
+      window.scrollTo(0, 0)
     }
 
     const handleScroll = () => {
-      setScrollPosition(window.scrollY);
-    };
+      setScrollPosition(window.scrollY)
+    }
 
     const scrollTimer = setTimeout(() => {
-      window.addEventListener("scroll", handleScroll);
-    }, 500);
+      window.addEventListener("scroll", handleScroll)
+    }, 500)
 
     return () => {
-      clearTimeout(scrollTimer);
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
+      clearTimeout(scrollTimer)
+      window.removeEventListener("scroll", handleScroll)
+    }
+  }, [])
 
   // Person data — loader pre-filled cache
-  const { data: personDetails } = useSuspenseQuery(personQueryOptions(tmdbId!));
-  const person = personDetails as TMDBPerson;
+  const { data: personDetails } = useSuspenseQuery(personQueryOptions(tmdbId!))
+  const person = personDetails as TMDBPerson
 
   // Director interaction stats — auth and job-conditional
   const { data: directorStatus } = useQuery({
     ...directorStatusQueryOptions(tmdbId!),
     enabled: !!authState.status && job === "director",
-  });
-  const numWatched = directorStatus?.watched ?? 0;
-  const numStarred = directorStatus?.starred ?? 0;
-  const avgRating = directorStatus?.avg_rating ?? 0;
+  })
+  const numWatched = directorStatus?.watched ?? 0
+  const numStarred = directorStatus?.starred ?? 0
+  const avgRating = directorStatus?.avg_rating ?? 0
   const score = directorStatus
     ? computeDirectorScore({
         num_watched_films: numWatched,
         num_starred_films: numStarred,
         num_stars_total: directorStatus.num_stars_total ?? 0,
       })
-    : 0;
+    : 0
 
   useEffect(() => {
-    console.log(directorStatus);
-  }, [directorStatus]);
+    console.log(directorStatus)
+  }, [directorStatus])
 
   // Filmography derivation — pure transform from person data, no async
   const filmography = useMemo<TMDBFilmSummary[]>(() => {
-    let list: TMDBFilmSummary[] | undefined;
+    let list: TMDBFilmSummary[] | undefined
 
     if (job === "director") {
       list = person.movie_credits?.crew?.filter(
         (film) =>
           (film as TMDBFilmSummary & { job?: string }).job === "Director",
-      );
+      )
     } else if (job === "actor") {
-      list = person.movie_credits?.cast;
+      list = person.movie_credits?.cast
     }
 
-    if (!list) return [];
+    if (!list) return []
 
     let filtered = list.filter(
       (film) => !(film.backdrop_path === null || film.poster_path === null),
-    );
+    )
 
     if (person.deathday) {
-      const deathDate = new Date(person.deathday);
+      const deathDate = new Date(person.deathday)
       filtered = filtered.filter((film) => {
-        if (!film.release_date) return false;
-        return new Date(film.release_date) <= deathDate;
-      });
+        if (!film.release_date) return false
+        return new Date(film.release_date) <= deathDate
+      })
     }
 
     return filtered.sort((a, b) => {
-      const dateA = parseInt((a.release_date ?? "").replace("-", ""));
-      const dateB = parseInt((b.release_date ?? "").replace("-", ""));
-      return dateB - dateA;
-    });
-  }, [personDetails, job]);
+      const dateA = parseInt((a.release_date ?? "").replace("-", ""))
+      const dateB = parseInt((b.release_date ?? "").replace("-", ""))
+      return dateB - dateA
+    })
+  }, [personDetails, job])
 
   return (
-    <div className="font-primary mt-[4.5rem]">
+    <div className="font-primary">
       {/* Text over backdrop */}
-      <div className="landing-main-img-container">
+      <div className="landing-main-img-container text-background">
         <div className="flex w-screen grayscale">
           <img
             className="landing-main-img w-screen sm:w-[50%] xl:w-[33.3333%]"
@@ -156,8 +156,7 @@ export default function PersonLanding() {
           className="landing-transparent-layer"
           style={{
             background: `linear-gradient(to bottom, rgb(0, 0,0), transparent)`,
-          }}
-        ></div>
+          }}></div>
         <div className="">
           <div className="landing-img-text-container">
             {/* Title */}
@@ -207,8 +206,7 @@ export default function PersonLanding() {
           className="landing-transparent-layer-bottom"
           style={{
             background: `linear-gradient(to top, rgb(0, 0,0), transparent)`,
-          }}
-        ></div>
+          }}></div>
         {job === "director" && (
           <div className="absolute bottom-0 w-full flex items-center justify-center gap-2 text-light text-[12px] mb-4 xl:text-[16px] xl:mb-6">
             <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Watched: ${numWatched}`}</div>
@@ -237,5 +235,5 @@ export default function PersonLanding() {
         <TmdbFilmGallery listOfFilmObjects={filmography} />
       </div>
     </div>
-  );
+  )
 }

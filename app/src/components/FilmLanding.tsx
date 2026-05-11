@@ -206,9 +206,9 @@ export default function FilmLanding() {
   }, [movieDetails])
 
   return (
-    <div className="font-primary mt-[4.5rem]">
+    <div className="font-primary">
       {/* Landing Page content */}
-      <div className="w-screen h-auto flex flex-col justify-center">
+      <div className="w-full h-auto flex flex-col justify-center">
         <div className="w-[100%] h-[90%] top-[5%] text-light">
           {/* Backdrop section */}
           <div className="landing-main-img-container">
@@ -231,7 +231,7 @@ export default function FilmLanding() {
               }}></div>
 
             {/* All the text displayed over main backdrop */}
-            <div className="">
+            <div className="text-background">
               <div className="landing-img-text-container z-30">
                 {/* Title */}
                 {film.title && (
@@ -307,7 +307,7 @@ export default function FilmLanding() {
                     onClick={() => {
                       setOpenTrailer(true)
                     }}
-                    className="flex items-center z-40 rounded-full p-3 pt-2 pb-2 drop-shadow-lg bg-background text-[var(--backdropColor)] hover:text-light hover:bg-[var(--backdropColor)] transition-all duration-300 ease-out"
+                    className="flex items-center z-40 rounded-full p-3 pt-2 pb-2 drop-shadow-lg bg-background text-[var(--backdropColor)] hover:text-background hover:bg-[var(--backdropColor)] transition-all duration-300 ease-out"
                     style={
                       {
                         "--backdropColor": `rgb(${backdropColor[0]}, ${backdropColor[1]}, ${backdropColor[2]})`,

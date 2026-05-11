@@ -260,14 +260,6 @@
     @apply flex flex-col items-center w-screen h-screen overflow-hidden;
   }
 
-  .auth-svgContainer {
-    @apply fixed z-0 top-0 h-screen  overflow-hidden flex flex-row gap-0 scale-200;
-  }
-
-  .auth-svg {
-    @apply scale-100 z-0 border-blue-500 animate-[moveHorizontal_30s_linear_infinite];
-  }
-
   .auth-formContainer {
     @apply mt-35 z-100 bg-background text-foreground border-atlas-blue border-5 w-auto min-w-[20rem] relative md:p-5 rounded-none;
   }

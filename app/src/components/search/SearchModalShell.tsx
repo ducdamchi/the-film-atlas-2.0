@@ -27,7 +27,7 @@ export default function SearchModalShell({
   return (
     <div className="font-primary fixed top-[20%] left-0 w-screen h-auto z-500 flex justify-center">
       <div
-        className="relative w-[60%] h-auto min-w-[20rem] max-w-[32rem] bg-background/80 text-light backdrop-blur-sm border-1  /50 rounded-md"
+        className="relative w-[60%] h-auto min-w-[20rem] max-w-[32rem] bg-foreground/80 text-background text-light backdrop-blur-sm border-1  /50 rounded-md"
         ref={modalRef as RefObject<HTMLDivElement>}>
         {header}
 

@@ -33,7 +33,7 @@ export default function Contact() {
   }
 
   return (
-    <div className="font-primary mt-20 mb-20 min-h-screen">
+    <div className="font-primary mb-20 min-h-screen">
       <div className="flex flex-col items-center text-base md:text-lg ">
         <div className="font-heading page-title">Contact</div>
         <div className="relative mt-[4rem] mb-[4rem] flex h-auto w-full flex-col items-center justify-center gap-1">

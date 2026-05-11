@@ -19,7 +19,9 @@ const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
 @params:
 - searchInput: A useState object containing the search input
 - setSearchResult: A useState function that updates the search result  */
-export function queryFilmFromTMDB(searchInput: string): Promise<TMDBFilmSummary[]> {
+export function queryFilmFromTMDB(
+  searchInput: string,
+): Promise<TMDBFilmSummary[]> {
   const searchUrl = "https://api.themoviedb.org/3/search/movie"
 
   return axios
@@ -87,7 +89,9 @@ export function fetchFilmFromTMDB(tmdbId: number | string): Promise<TMDBFilm> {
     })
 }
 
-export function queryMultiFromTMDB(searchInput: string): Promise<TMDBSearchResult[]> {
+export function queryMultiFromTMDB(
+  searchInput: string,
+): Promise<TMDBSearchResult[]> {
   const searchUrl = "https://api.themoviedb.org/3/search/multi"
 
   return axios
@@ -105,7 +109,9 @@ export function queryMultiFromTMDB(searchInput: string): Promise<TMDBSearchResul
     })
 }
 
-export function queryPersonFromTMDB(searchInput: string): Promise<TMDBPerson[]> {
+export function queryPersonFromTMDB(
+  searchInput: string,
+): Promise<TMDBPerson[]> {
   const searchPersonUrl = "https://api.themoviedb.org/3/search/person"
 
   return axios
@@ -125,7 +131,9 @@ export function queryPersonFromTMDB(searchInput: string): Promise<TMDBPerson[]> 
     })
 }
 
-export function fetchPersonFromTMDB(tmdbId: number | string): Promise<TMDBPerson> {
+export function fetchPersonFromTMDB(
+  tmdbId: number | string,
+): Promise<TMDBPerson> {
   const personDetailsUrl = "https://api.themoviedb.org/3/person/"
 
   return axios
@@ -179,7 +187,9 @@ export function queryTopRatedFilmByCountryTMDB({
 
 /* Probe TMDB to determine appropriate vote_count and rating defaults for a country.
 Uses total_results from a permissive (unfiltered) query to tier the thresholds. */
-export async function probeCountryDefaults(isoA2: string): Promise<CountryDefaults> {
+export async function probeCountryDefaults(
+  isoA2: string,
+): Promise<CountryDefaults> {
   const searchUrl = "https://api.themoviedb.org/3/discover/movie"
 
   try {
@@ -208,8 +218,9 @@ export async function probeCountryDefaults(isoA2: string): Promise<CountryDefaul
   }
 }
 
-
-export function fetchFilmAwardsFromWikidata(imdbId: string): Promise<WikidataAwardsResponse> {
+export function fetchFilmAwardsFromWikidata(
+  imdbId: string,
+): Promise<WikidataAwardsResponse> {
   const query = `
     SELECT DISTINCT ?awardLabel ?awardTime ?nominated WHERE {
       ?film wdt:P345 "${imdbId}" .
@@ -267,11 +278,13 @@ export function fetchFilmAwardsFromWikidata(imdbId: string): Promise<WikidataAwa
     })
     .catch((err) => {
       console.log("Client: Error fetching awards from Wikidata", err)
-      throw err
+      // throw err
     })
 }
 
-export function fetchFilmRatingsFromOMDB(imdbId: string): Promise<OmdbResponse> {
+export function fetchFilmRatingsFromOMDB(
+  imdbId: string,
+): Promise<OmdbResponse> {
   const omdbUrl = "https://www.omdbapi.com/"
 
   return axios
@@ -298,7 +311,10 @@ export function fetchSubtitles(imdb_id: string): Promise<unknown> {
     })
 }
 
-export async function fetchSubtitleFile(file_id: string | number, filename: string): Promise<string> {
+export async function fetchSubtitleFile(
+  file_id: string | number,
+  filename: string,
+): Promise<string> {
   const response = await fetch(
     `${import.meta.env.VITE_API_URL}/proxy/subtitles/download`,
     {
@@ -311,7 +327,6 @@ export async function fetchSubtitleFile(file_id: string | number, filename: stri
   const blob = await response.blob()
   return URL.createObjectURL(blob)
 }
-
 
 export function fetchFilmFromYTS(imdb_id: string): Promise<unknown> {
   return axios
