@@ -1,161 +1,38 @@
 import * as React from "react"
-import {
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  LifeBuoy,
-  PieChart,
-  Send,
-  Settings2,
-  SquareTerminal,
-  Map,
-  LibraryBig,
-  UserStar,
-  CircleEllipsis,
-} from "lucide-react"
+import { Settings2, Map, UserStar, CircleEllipsis } from "lucide-react"
 
-import { NavMain } from "#/components/sidebar/NavMain"
-// import { NavProjects } from "@/components/nav-projects"
-// import { NavSecondary } from "@/components/nav-secondary"
+import { NavMenuItem } from "#/components/sidebar/NavMain"
+import { NavCollections } from "#/components/sidebar/NavCollections"
 import { NavUser } from "#/components/sidebar/NavUser"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   SidebarTrigger,
 } from "@/components/ui-shadcn/sidebar"
 import { Link } from "@tanstack/react-router"
 import { useAuth } from "@/utils/authContext"
-import { Button } from "../ui-shadcn/button"
+import { NavUserAnon } from "./NavUserAnon"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    // avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Map",
-      url: "/map",
-      icon: Map,
-      // items: [
-      //   {
-      //     title: "Genesis",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Explorer",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Quantum",
-      //     url: "#",
-      //   },
-      // ],
-    },
-    {
-      title: "Collections",
-      url: "/collections",
-      icon: LibraryBig,
-      isActive: true,
-      items: [
-        {
-          title: "Watched",
-          url: "#",
-        },
-        {
-          title: "Watchlist",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Directors",
-      url: "/directors",
-      icon: UserStar,
-    },
-
-    {
-      title: "More",
-      url: "#",
-      icon: CircleEllipsis,
-      isActive: true,
-      items: [
-        {
-          title: "Docs",
-          url: "/docs",
-        },
-        {
-          title: "About",
-          url: "/about",
-        },
-        {
-          title: "Contact",
-          url: "/contact",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings2,
-      // items: [
-      //   {
-      //     title: "General",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Team",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Billing",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Limits",
-      //     url: "#",
-      //   },
-      // ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: LifeBuoy,
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: Send,
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
+const MAP_NAV = { title: "Map", url: "/map", icon: Map }
+const DIRECTORS_NAV = { title: "Directors", url: "/directors", icon: UserStar }
+const MORE_NAV = {
+  title: "More",
+  url: "#",
+  icon: CircleEllipsis,
+  isActive: true,
+  items: [
+    { title: "Docs", url: "/docs" },
+    { title: "About", url: "/about" },
+    { title: "Contact", url: "/contact" },
   ],
 }
+// const SETTINGS_NAV = { title: "Settings", url: "/settings", icon: Settings2 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { authState } = useAuth()
@@ -169,10 +46,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center">
             <SidebarMenuButton size="lg" asChild>
-              {/* <Link to="/about"> */}
-              {/* <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="size-4" />
-                </div> */}
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium text-base font-logo">
                   THE FILM ATLAS
@@ -181,34 +54,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   Discover. Share. Curate.
                 </span>
               </div>
-              {/* </Link> */}
             </SidebarMenuButton>
             <SidebarTrigger />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        {/* <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
+        <SidebarGroup>
+          <SidebarMenu>
+            <NavMenuItem item={MAP_NAV} />
+            <NavCollections />
+            <NavMenuItem item={DIRECTORS_NAV} />
+            <NavMenuItem item={MORE_NAV} />
+            {/* <NavMenuItem item={SETTINGS_NAV} /> */}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         {authState.status ? (
-          <NavUser user={data.user} />
+          <NavUser
+            user={{
+              name: authState.username,
+              email: authState.email ?? "",
+              avatar: "",
+            }}
+          />
         ) : (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <Link to="/login">
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">Log In</span>
-                  </div>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <NavUserAnon
+            user={{
+              name: "Anonymous User",
+              email: "",
+              avatar: "",
+            }}
+          />
         )}
       </SidebarFooter>
       {/* <SidebarRail /> */}

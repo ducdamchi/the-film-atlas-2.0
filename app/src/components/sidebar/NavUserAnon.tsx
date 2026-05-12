@@ -3,6 +3,7 @@ import {
   Bell,
   ChevronsUpDown,
   CreditCard,
+  LogIn,
   LogOut,
   Settings2,
   Sparkles,
@@ -34,7 +35,7 @@ import { Link, useNavigate } from "@tanstack/react-router"
 import { clearAllPersistedState } from "#/utils/localStorage"
 import { authClient, clearAuthToken } from "#/lib/authClient"
 
-export function NavUser({
+export function NavUserAnon({
   user,
 }: {
   user: {
@@ -46,12 +47,6 @@ export function NavUser({
   const navigate = useNavigate()
   const { isMobile } = useSidebar()
   const setSidebarAnchored = useSetAtom(sidebarAnchoredAtom)
-  const logOut = async () => {
-    clearAllPersistedState()
-    clearAuthToken()
-    await authClient.signOut()
-    navigate({ to: "/login" })
-  }
 
   return (
     <SidebarMenu>
@@ -70,17 +65,18 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">
+                  {user.name[0]}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate text-xs"></span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            // onMouseEnter={() => setSidebarHovered(true)}
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg z-2500"
             side={isMobile ? "bottom" : "right"}
             align="end"
@@ -100,16 +96,9 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
-                <Settings2 />
-                Settings
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => logOut()}>
-              <LogOut />
-              Log out
+            <DropdownMenuItem onClick={() => navigate({ to: "/login" })}>
+              <LogIn />
+              Log in
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

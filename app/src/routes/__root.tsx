@@ -33,7 +33,6 @@ import {
 import { AppSidebar } from "#/components/sidebar/AppSidebar"
 import { TooltipProvider } from "#/components/ui-shadcn/tooltip"
 
-
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async (): Promise<{ auth: AuthUser | null }> => {
     if (typeof window === "undefined") return { auth: null }
@@ -140,7 +139,6 @@ function RootComponent() {
           locationSource: (liveSession.user as any).locationSource ?? null,
         }
       : loggedOutState
-
 
   return (
     <RootDocument>

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui-shadcn/tooltip"
 import { PanelLeftIcon } from "lucide-react"
 import { useAtom, useAtomValue } from "jotai"
-import { sidebarHoveredAtom, sidebarPinnedAtom } from "../../atoms/atoms"
+import { sidebarHoveredAtom, sidebarPinnedAtom, sidebarAnchoredAtom } from "../../atoms/atoms"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -70,6 +70,7 @@ function SidebarProvider({
   /* use jotai atom to track if <Sidebar> is hovered on (atom state set in <Sidebar> itself) */
   const sidebarHovered = useAtomValue(sidebarHoveredAtom)
   const [sidebarPinned, setSidebarPinned] = useAtom(sidebarPinnedAtom)
+  const sidebarAnchored = useAtomValue(sidebarAnchoredAtom)
 
   // React.useEffect(() => {
   //   console.log("sidebar Pinned:", sidebarPinned)
@@ -83,7 +84,7 @@ function SidebarProvider({
 
   /* _open and _setOpen use jotai atom instead of defaultOpen*/
   const [_open, _setOpen] = React.useState(defaultOpen)
-  const open = openProp ?? (sidebarHovered || sidebarPinned)
+  const open = openProp ?? (sidebarHovered || sidebarPinned || sidebarAnchored)
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value
