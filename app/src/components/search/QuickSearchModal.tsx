@@ -21,7 +21,7 @@ import type {
   TMDBSearchResult,
 } from "@/types/tmdb"
 
-const imgBaseUrl = "https://image.tmdb.org/t/p/original"
+const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL
 
 const SECTION_NAMES = ["Films", "Directors", "Actors"] as const
 type SectionName = (typeof SECTION_NAMES)[number]

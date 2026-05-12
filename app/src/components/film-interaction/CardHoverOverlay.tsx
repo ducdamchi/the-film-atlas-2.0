@@ -65,7 +65,7 @@ export default function CardHoverOverlay({
   if (slideDown) {
     return (
       /* Note: md break point here controls the desktop behavior of the card. specifically, mobile mode (< md) will display the card content as a block, giving it full space; while desktop mode (>= md) will display the card content as absolute, triggered only when user hovers over it.  */
-      <div className="w-full md:w-auto md:absolute md:top-full md:left-0 md:right-0 bg-background text-foreground z-50 md:opacity-0 md:-translate-y-2 md:pointer-events-none md:group-hover/card:opacity-100 md:group-hover/card:translate-y-0 md:group-hover/card:pointer-events-auto md:transition-[opacity,transform] md:duration-200 md:ease-out">
+      <div className="w-full md:w-auto md:absolute md:top-full md:left-0 md:right-0 bg-card text-foreground z-50 md:opacity-0 md:-translate-y-2 md:pointer-events-none md:group-hover/card:opacity-100 md:group-hover/card:translate-y-0 md:group-hover/card:pointer-events-auto md:transition-[opacity,transform] md:duration-200 md:ease-out">
         <div className="z-50 w-full p-5 @7xl:px-7 pt-4 flex flex-col items-center justify-start gap-2">
           <div className="z-50 flex justify-between items-center w-full">
             <div>

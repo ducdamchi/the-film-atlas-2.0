@@ -1,6 +1,5 @@
 /* Libraries */
 import { useEffect, useState } from "react"
-import { getColorSync } from "colorthief"
 import { useParams, useNavigate, ClientOnly } from "@tanstack/react-router"
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query"
 
@@ -8,7 +7,6 @@ import { useSuspenseQuery, useQuery } from "@tanstack/react-query"
 import {
   getCountryName,
   getReleaseYear,
-  darkenColorToOklch,
 } from "../utils/helperFunctions"
 import {
   filmQueryOptions,
@@ -68,7 +66,7 @@ interface SubtitleItem {
 type SecretPanel = "torrents" | "subtitles" | null
 
 export default function FilmLanding() {
-  const imgBaseUrl = "https://image.tmdb.org/t/p/original"
+  const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL_FULL
 
   // Derived state from credits — not fetches
   const [directors, setDirectors] = useState<TMDBCrewMember[]>([])
@@ -187,23 +185,8 @@ export default function FilmLanding() {
     setTrailerLink(
       sortedTrailerLinks.length >= 1 ? sortedTrailerLinks[0].key : null,
     )
-
-    try {
-      const backdrop = new Image()
-      backdrop.crossOrigin = "anonymous"
-      if (!film.backdrop_path) return
-      const proxyUrl = `${import.meta.env.VITE_API_URL}/proxy/image?url=${encodeURIComponent(`https://image.tmdb.org/t/p/w500${film.backdrop_path}`)}`
-      backdrop.src = proxyUrl
-      backdrop.onload = () => {
-        const color = getColorSync(backdrop!)
-        if (!color) return
-        const domColor = color.array() as [number, number, number]
-        setBackdropColor(darkenColorToOklch(domColor, 0.3))
-      }
-    } catch (err) {
-      console.log(err)
-    }
   }, [movieDetails])
+
 
   return (
     <div className="font-primary">

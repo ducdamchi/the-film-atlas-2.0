@@ -46,7 +46,6 @@ export default function Collections() {
   }, [newCollectionId])
 
   /* ── Create ─────────────────────────────────────────────────────────── */
-
   const createMutation = useMutation({
     mutationFn: (params: { id: string; title: string; description: string }) =>
       createCollectionFn({ data: params }),
@@ -99,7 +98,6 @@ export default function Collections() {
       setNewCollectionId(null)
     },
   })
-
   function handleCreateCollection() {
     const tempId = crypto.randomUUID()
     const n = collections.length + 1
@@ -110,7 +108,6 @@ export default function Collections() {
   }
 
   /* ── Pin ─────────────────────────────────────────────────────────────── */
-
   const pinMutation = useMutation({
     mutationFn: ({ id, pinned }: { id: string; pinned: boolean }) =>
       patchCollectionPinFn({ data: { id, pinned } }),
@@ -140,7 +137,6 @@ export default function Collections() {
       )
     },
   })
-
   function handleTogglePin(id: string): Promise<void> {
     const col = collections.find((c) => c.id === id)
     if (!col) return Promise.resolve()
@@ -154,7 +150,6 @@ export default function Collections() {
   }
 
   /* ── Rename ──────────────────────────────────────────────────────────── */
-
   const renameMutation = useMutation({
     mutationFn: ({ id, title }: { id: string; title: string }) =>
       putCollectionTitleFn({ data: { id, title } }),
@@ -185,7 +180,6 @@ export default function Collections() {
       )
     },
   })
-
   function handleRename(id: string, newTitle: string): Promise<void> {
     return new Promise((resolve, reject) => {
       renameMutation.mutate(
@@ -196,7 +190,6 @@ export default function Collections() {
   }
 
   /* ── Description ─────────────────────────────────────────────────────── */
-
   const descriptionMutation = useMutation({
     mutationFn: ({ id, description }: { id: string; description: string }) =>
       putCollectionDescriptionFn({ data: { id, description } }),
@@ -229,7 +222,6 @@ export default function Collections() {
       )
     },
   })
-
   function handleUpdateDescription(
     id: string,
     newDescription: string,
@@ -243,7 +235,6 @@ export default function Collections() {
   }
 
   /* ── Visibility ──────────────────────────────────────────────────────── */
-
   const visibilityMutation = useMutation({
     mutationFn: ({ id, is_public }: { id: string; is_public: boolean }) =>
       patchCollectionVisibilityFn({ data: { id, is_public } }),
@@ -265,7 +256,6 @@ export default function Collections() {
       )
     },
   })
-
   function handleToggleVisibility(id: string): Promise<void> {
     const col = collections.find((c) => c.id === id)
     if (!col) return Promise.resolve()
@@ -279,7 +269,6 @@ export default function Collections() {
   }
 
   /* ── Add / Remove films (API call happens in child, we just sync cache) ── */
-
   function handleAddFilmToCollection(collectionId: string, film: UserFilm) {
     const col = collections.find((c) => c.id === collectionId)
     if (col?.collectionType === "watched") {
@@ -315,7 +304,6 @@ export default function Collections() {
         ),
     )
   }
-
   function handleRemoveFilmFromCollection(
     collectionId: string,
     filmId: number,
@@ -373,7 +361,6 @@ export default function Collections() {
   }
 
   /* ── Delete (API call happens in child, we just remove from cache) ────── */
-
   function handleDelete(deletedId: string) {
     queryClient.setQueryData<AppCollection[]>(
       collectionsQueryOptions.queryKey,
@@ -382,7 +369,7 @@ export default function Collections() {
   }
 
   return (
-    <div className="font-primary min-h-screen mb-40 inset-0 left-[3rem]">
+    <div className="font-primary min-h-screen mb-40 inset-0 bg-background">
       <div className="@container flex flex-col items-center w-full">
         <div className="font-heading page-title">COLLECTIONS</div>
         <SearchBar

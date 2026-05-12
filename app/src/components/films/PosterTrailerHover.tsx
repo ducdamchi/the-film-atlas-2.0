@@ -1,95 +1,102 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react"
 
-type Phase = "idle" | "dimming" | "playing" | "fading-out";
+type Phase = "idle" | "dimming" | "playing" | "fading-out"
 
 interface PosterTrailerHoverProps {
-  backdropPath: string | null;
-  trailerKey: string;
-  startOnMount: boolean;
-  onClick: () => void;
+  backdropPath: string | null
+  trailerKey: string
+  startOnMount: boolean
+  onClick: () => void
+  imgRef?: (node: HTMLImageElement | null) => void
+  onImageLoad?: (el: HTMLImageElement) => void
 }
 
-const imgBaseUrl = "https://image.tmdb.org/t/p/original";
+const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL
 
 export default function PosterTrailerHover({
   backdropPath,
   trailerKey,
   startOnMount,
   onClick,
+  imgRef,
+  onImageLoad,
 }: PosterTrailerHoverProps) {
-  const [phase, setPhase] = useState<Phase>("idle");
-  const intentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [phase, setPhase] = useState<Phase>("idle")
+  const intentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const dimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (startOnMount) {
-      setPhase("dimming");
+      setPhase("dimming")
       dimTimerRef.current = setTimeout(() => {
-        setPhase("playing");
-      }, 300);
+        setPhase("playing")
+      }, 300)
     }
     return () => {
-      if (intentTimerRef.current) clearTimeout(intentTimerRef.current);
-      if (dimTimerRef.current) clearTimeout(dimTimerRef.current);
-      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
-    };
-  }, []);
+      if (intentTimerRef.current) clearTimeout(intentTimerRef.current)
+      if (dimTimerRef.current) clearTimeout(dimTimerRef.current)
+      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
+    }
+  }, [])
 
   const handleMouseEnter = () => {
     if (fadeTimerRef.current) {
-      clearTimeout(fadeTimerRef.current);
-      fadeTimerRef.current = null;
+      clearTimeout(fadeTimerRef.current)
+      fadeTimerRef.current = null
     }
     intentTimerRef.current = setTimeout(() => {
-      setPhase("dimming");
+      setPhase("dimming")
       dimTimerRef.current = setTimeout(() => {
-        setPhase("playing");
-      }, 300);
-    }, 1000);
-  };
+        setPhase("playing")
+      }, 300)
+    }, 1000)
+  }
 
   const handleMouseLeave = () => {
     if (intentTimerRef.current) {
-      clearTimeout(intentTimerRef.current);
-      intentTimerRef.current = null;
+      clearTimeout(intentTimerRef.current)
+      intentTimerRef.current = null
     }
     if (dimTimerRef.current) {
-      clearTimeout(dimTimerRef.current);
-      dimTimerRef.current = null;
+      clearTimeout(dimTimerRef.current)
+      dimTimerRef.current = null
     }
     if (phase !== "idle") {
-      setPhase("fading-out");
+      setPhase("fading-out")
       fadeTimerRef.current = setTimeout(() => {
-        setPhase("idle");
-      }, 200);
+        setPhase("idle")
+      }, 200)
     }
-  };
+  }
 
   const posterSrc = backdropPath
     ? `${imgBaseUrl}${backdropPath}`
-    : "backdropnotfound.jpg";
+    : "backdropnotfound.jpg"
 
-  const iframeUrl = `https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${trailerKey}&rel=0&showinfo=0&iv_load_policy=3&start=30`;
+  const iframeUrl = `https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${trailerKey}&rel=0&showinfo=0&iv_load_policy=3&start=30`
 
   // Poster fades out on dimming/playing, fades back in on fading-out/idle
-  const posterVisible = phase === "idle" || phase === "fading-out";
+  const posterVisible = phase === "idle" || phase === "fading-out"
   // Iframe mounts during dimming (starts loading), unmounts on idle
-  const iframeMounted = phase === "dimming" || phase === "playing" || phase === "fading-out";
+  const iframeMounted =
+    phase === "dimming" || phase === "playing" || phase === "fading-out"
 
   return (
     <div
       className="w-full aspect-16/10 relative overflow-hidden cursor-pointer"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={onClick}
-    >
+      onClick={onClick}>
       {/* Poster */}
       <img
+        ref={imgRef}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
           posterVisible ? "opacity-100" : "opacity-0"
         }`}
         src={posterSrc}
+        crossOrigin="anonymous"
+        onLoad={(e) => onImageLoad?.(e.currentTarget)}
         alt=""
       />
 
@@ -104,5 +111,5 @@ export default function PosterTrailerHover({
         />
       )}
     </div>
-  );
+  )
 }

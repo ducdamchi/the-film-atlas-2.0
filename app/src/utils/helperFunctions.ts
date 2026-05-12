@@ -1,4 +1,4 @@
-import { getColorSync } from "colorthief";
+import { getColorSync } from "colorthief"
 
 /* Converts ISO_A2 country codes into full country name */
 export function getCountryName(code: string): string | undefined {
@@ -61,12 +61,19 @@ export function getNiceMonthYear(dateString: string): string {
 export function getNiceMonthDateYear(dateString: string): string {
   const [year, month, date] = dateString.split("-")
   const inputDate = new Date(Number(year), Number(month) - 1, Number(date))
-  const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric" }
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }
   return new Intl.DateTimeFormat("en-US", options).format(inputDate)
 }
 
 /* Calculate age from birthday and deathday in the string format yyyy-mm-dd. If deathday left empty, person is not deceased -> use current year. */
-export function getAge(birthday: string | null | undefined, deathday: string | null | undefined): number | "N/A" {
+export function getAge(
+  birthday: string | null | undefined,
+  deathday: string | null | undefined,
+): number | "N/A" {
   if (birthday) {
     const birth = new Date(birthday)
     if (deathday) {
@@ -86,7 +93,9 @@ export interface NameParts {
   lastName: string
 }
 
-export function getNameParts(fullName: string | null | undefined): NameParts | "" {
+export function getNameParts(
+  fullName: string | null | undefined,
+): NameParts | "" {
   if (!fullName || typeof fullName !== "string") return ""
 
   const nameParts = fullName.trim().split(/\s+/) // Handles multiple spaces
@@ -124,27 +133,32 @@ export function shuffleArray<T>(array: T[]): T[] {
 // Darken an [r, g, b] color by clamping its OKLCH lightness to maxL (0–1).
 // Preserves hue and chroma — only the perceptual lightness is reduced.
 // maxL=0.3 is a good default for ensuring white text readability.
-export function darkenColorToOklch([r, g, b]: [number, number, number], maxL = 0.3): [number, number, number] {
+export function darkenColorToOklch(
+  [r, g, b]: [number, number, number],
+  maxL = 0.3,
+): [number, number, number] {
   // sRGB (0–255) → linear light
   const toLinear = (c: number): number => {
     c = c / 255
     return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
   }
-  const rl = toLinear(r), gl = toLinear(g), bl = toLinear(b)
+  const rl = toLinear(r),
+    gl = toLinear(g),
+    bl = toLinear(b)
 
   // Linear RGB → XYZ (D65)
   const X = 0.4124564 * rl + 0.3575761 * gl + 0.1804375 * bl
-  const Y = 0.2126729 * rl + 0.7151522 * gl + 0.0721750 * bl
-  const Z = 0.0193339 * rl + 0.1191920 * gl + 0.9503041 * bl
+  const Y = 0.2126729 * rl + 0.7151522 * gl + 0.072175 * bl
+  const Z = 0.0193339 * rl + 0.119192 * gl + 0.9503041 * bl
 
   // XYZ → OKLab
   const lc = Math.cbrt(0.8189330101 * X + 0.3618667424 * Y - 0.1288597137 * Z)
   const mc = Math.cbrt(0.0329845436 * X + 0.9293118715 * Y + 0.0361456387 * Z)
-  const sc = Math.cbrt(0.0482003018 * X + 0.2643662691 * Y + 0.6338517070 * Z)
+  const sc = Math.cbrt(0.0482003018 * X + 0.2643662691 * Y + 0.633851707 * Z)
 
-  const L = 0.2104542553 * lc + 0.7936177850 * mc - 0.0040720468 * sc
-  const a = 1.9779984951 * lc - 2.4285922050 * mc + 0.4505937099 * sc
-  const b_ok = 0.0259040371 * lc + 0.7827717662 * mc - 0.8086757660 * sc
+  const L = 0.2104542553 * lc + 0.793617785 * mc - 0.0040720468 * sc
+  const a = 1.9779984951 * lc - 2.428592205 * mc + 0.4505937099 * sc
+  const b_ok = 0.0259040371 * lc + 0.7827717662 * mc - 0.808675766 * sc
 
   // Clamp lightness
   const Lc = Math.min(L, maxL)
@@ -152,66 +166,85 @@ export function darkenColorToOklch([r, g, b]: [number, number, number], maxL = 0
   // OKLab → XYZ (inverse)
   const ln = Lc + 0.3963377774 * a + 0.2158037573 * b_ok
   const mn = Lc - 0.1055613458 * a - 0.0638541728 * b_ok
-  const sn = Lc - 0.0894841775 * a - 1.2914855480 * b_ok
+  const sn = Lc - 0.0894841775 * a - 1.291485548 * b_ok
 
-  const Xn =  1.2270138511 * ln**3 - 0.5577999807 * mn**3 + 0.2812561490 * sn**3
-  const Yn = -0.0405801784 * ln**3 + 1.1122568696 * mn**3 - 0.0716766787 * sn**3
-  const Zn = -0.0763812845 * ln**3 - 0.4214819784 * mn**3 + 1.5861632204 * sn**3
+  const Xn =
+    1.2270138511 * ln ** 3 - 0.5577999807 * mn ** 3 + 0.281256149 * sn ** 3
+  const Yn =
+    -0.0405801784 * ln ** 3 + 1.1122568696 * mn ** 3 - 0.0716766787 * sn ** 3
+  const Zn =
+    -0.0763812845 * ln ** 3 - 0.4214819784 * mn ** 3 + 1.5861632204 * sn ** 3
 
   // XYZ → linear RGB
-  const rLin =  3.2404542 * Xn - 1.5371385 * Yn - 0.4985314 * Zn
-  const gLin = -0.9692660 * Xn + 1.8760108 * Yn + 0.0415560 * Zn
-  const bLin =  0.0556434 * Xn - 0.2040259 * Yn + 1.0572252 * Zn
+  const rLin = 3.2404542 * Xn - 1.5371385 * Yn - 0.4985314 * Zn
+  const gLin = -0.969266 * Xn + 1.8760108 * Yn + 0.041556 * Zn
+  const bLin = 0.0556434 * Xn - 0.2040259 * Yn + 1.0572252 * Zn
 
   // Linear → sRGB (0–255)
   const toSRGB = (c: number): number => {
     c = Math.max(0, Math.min(1, c))
-    return Math.round((c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055) * 255)
+    return Math.round(
+      (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055) * 255,
+    )
   }
   return [toSRGB(rLin), toSRGB(gLin), toSRGB(bLin)]
 }
 
-export async function extractBorderColor(backdropPath: string): Promise<string | null> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    const proxyUrl = `${import.meta.env.VITE_API_URL}/proxy/image?url=${encodeURIComponent(`https://image.tmdb.org/t/p/w500${backdropPath}`)}`;
-    img.src = proxyUrl;
+export function extractBorderColorFromElement(
+  img: HTMLImageElement,
+): string | null {
+  try {
+    const color = getColorSync(img)
+    if (!color) return null
+    const [r, g, b] = color.array()
 
-    img.onload = () => {
-      try {
-        const color = getColorSync(img);
-        if (!color) { resolve(null); return; }
-        const [r, g, b] = color.array();
+    const lin = (c: number) => {
+      const n = c / 255
+      return n <= 0.04045 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4)
+    }
+    const rl = lin(r),
+      gl = lin(g),
+      bl = lin(b)
+    const X = 0.4124 * rl + 0.3576 * gl + 0.1805 * bl
+    const Y = 0.2126 * rl + 0.7152 * gl + 0.0722 * bl
+    const Z = 0.0193 * rl + 0.1192 * gl + 0.9505 * bl
+    const lms_l = Math.cbrt(
+      0.8189330101 * X + 0.3618667424 * Y - 0.1288597137 * Z,
+    )
+    const lms_m = Math.cbrt(
+      -0.0329845436 * X + 0.9293118715 * Y + 0.0361456387 * Z,
+    )
+    const lms_s = Math.cbrt(
+      0.0482003018 * X + 0.2643662691 * Y + 0.633851707 * Z,
+    )
+    const L =
+      0.2104542553 * lms_l + 0.793617785 * lms_m - 0.0040720468 * lms_s
+    const a =
+      1.9779984951 * lms_l - 2.428592205 * lms_m + 0.4505937099 * lms_s
+    const bLab =
+      0.0259040371 * lms_l + 0.4072969751 * lms_m - 0.4332046721 * lms_s
+    const C = Math.sqrt(a * a + bLab * bLab)
+    const H = Math.atan2(bLab, a) * (180 / Math.PI)
 
-        const lin = (c: number) => {
-          const n = c / 255;
-          return n <= 0.04045 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4);
-        };
-        const rl = lin(r), gl = lin(g), bl = lin(b);
-        const X = 0.4124 * rl + 0.3576 * gl + 0.1805 * bl;
-        const Y = 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
-        const Z = 0.0193 * rl + 0.1192 * gl + 0.9505 * bl;
-        const lms_l = Math.cbrt(0.8189330101 * X + 0.3618667424 * Y - 0.1288597137 * Z);
-        const lms_m = Math.cbrt(-0.0329845436 * X + 0.9293118715 * Y + 0.0361456387 * Z);
-        const lms_s = Math.cbrt(0.0482003018 * X + 0.2643662691 * Y + 0.633851707 * Z);
-        const L = 0.2104542553 * lms_l + 0.793617785 * lms_m - 0.0040720468 * lms_s;
-        const a = 1.9779984951 * lms_l - 2.428592205 * lms_m + 0.4505937099 * lms_s;
-        const bLab = 0.0259040371 * lms_l + 0.4072969751 * lms_m - 0.4332046721 * lms_s;
-        const C = Math.sqrt(a * a + bLab * bLab);
-        const H = Math.atan2(bLab, a) * (180 / Math.PI);
+    const clampedL = Math.max(0.52, Math.min(0.68, L))
+    const clampedC = Math.min(C, 0.14)
 
-        const clampedL = Math.max(0.52, Math.min(0.68, L));
-        const clampedC = Math.min(C, 0.14);
+    return `oklch(${clampedL} ${clampedC} ${H} / 0.55)`
+  } catch {
+    return null
+  }
+}
 
-        resolve(`oklch(${clampedL} ${clampedC} ${H} / 0.55)`);
-      } catch {
-        resolve(null);
-      }
-    };
-
-    img.onerror = () => resolve(null);
-  });
+export function extractBackdropColorFromElement(
+  img: HTMLImageElement,
+): [number, number, number] | null {
+  try {
+    const color = getColorSync(img)
+    if (!color) return null
+    return darkenColorToOklch(color.array() as [number, number, number], 0.3)
+  } catch {
+    return null
+  }
 }
 
 // Convert RGB to relative luminance

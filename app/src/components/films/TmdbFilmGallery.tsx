@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import TmdbFilmCard from "./TmdbFilmCard";
 import type { TMDBFilmSummary } from "@/types/tmdb";
 import type { DiscoverPageState } from "@/types/map";
@@ -12,6 +13,8 @@ export default function TmdbFilmGallery({
   listOfFilmObjects,
   setPage,
 }: FilmTMDB_GalleryProps) {
+  const imgRefs = useRef<Map<number, HTMLImageElement>>(new Map());
+
   return (
     <div className="w-full flex flex-col items-center">
       {listOfFilmObjects && listOfFilmObjects.length === 0 && (
@@ -28,6 +31,10 @@ export default function TmdbFilmGallery({
                 key={filmObject.id}
                 filmObject={filmObject}
                 setPage={setPage}
+                imgRef={(node) => {
+                  if (node) imgRefs.current.set(filmObject.id, node);
+                  else imgRefs.current.delete(filmObject.id);
+                }}
               />
             ))}
           </div>

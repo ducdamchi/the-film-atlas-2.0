@@ -1,7 +1,6 @@
-import { useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
 
-import { getReleaseYear, extractBorderColor } from "@/utils/helperFunctions"
+import { getReleaseYear, extractBorderColorFromElement } from "@/utils/helperFunctions"
 import { useMarquee } from "@/hooks/useMarquee"
 import { useFilmCardFetch } from "@/hooks/useFilmCardFetch"
 
@@ -15,12 +14,14 @@ import type { DiscoverPageState } from "@/types/map"
 
 interface FilmTMDB_CardProps {
   filmObject: TMDBFilmSummary
+  imgRef: (node: HTMLImageElement | null) => void
   /** Optional — only needed on pages that use pagination (MapPage). */
   setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>
 }
 
 export default function TmdbFilmCard({
   filmObject,
+  imgRef,
   setPage,
 }: FilmTMDB_CardProps) {
   const navigate = useNavigate()
@@ -43,18 +44,14 @@ export default function TmdbFilmCard({
       (v) => v.site === "YouTube" && v.type === "Trailer",
     )?.key ?? null
 
-  // Mobile: dynamic border color from backdrop
-  useEffect(() => {
+  // Mobile: dynamic border color from backdrop, runs when image finishes loading
+  function handleImageLoad(el: HTMLImageElement) {
     if (window.innerWidth >= 768) return
     if (!filmObject.backdrop_path) return
-
     const filmCard = document.getElementById(`film-card-${filmObject.id}`)
-    extractBorderColor(filmObject.backdrop_path).then((color) => {
-      if (color && filmCard) {
-        filmCard.style.borderColor = color
-      }
-    })
-  }, [])
+    const color = extractBorderColorFromElement(el)
+    if (color && filmCard) filmCard.style.borderColor = color
+  }
 
   return (
     <div
@@ -75,6 +72,8 @@ export default function TmdbFilmCard({
             navigate({ to: `/films/${filmObject.id}` })
             setPage?.((prevPage) => ({ ...prevPage, loadMore: false }))
           }}
+          imgRef={imgRef}
+          onImageLoad={handleImageLoad}
         />
 
         {/* Text below poster */}

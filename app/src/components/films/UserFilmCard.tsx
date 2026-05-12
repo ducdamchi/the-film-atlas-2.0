@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 
 import {
   getCountryName,
   getReleaseYear,
   getNameParts,
-  extractBorderColor,
+  extractBorderColorFromElement,
 } from "@/utils/helperFunctions"
 import { useMarquee } from "@/hooks/useMarquee"
 
@@ -15,16 +15,18 @@ import FilmCardPoster from "./FilmCardPoster"
 
 import type { UserFilm } from "@/types/film"
 
-const imgBaseUrl = "https://image.tmdb.org/t/p/original"
+const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL
 
 interface FilmUser_CardProps {
   filmObject: UserFilm
   queryString: string | null
+  imgRef: (node: HTMLImageElement | null) => void
 }
 
 export default function UserFilmCard({
   filmObject,
   queryString,
+  imgRef,
 }: FilmUser_CardProps) {
   const navigate = useNavigate()
 
@@ -33,17 +35,14 @@ export default function UserFilmCard({
   const titleSpanRef = useMarquee(filmObject.title)
   const countrySpanRef = useMarquee(filmObject.origin_country)
 
-  // Dynamic border color from backdrop (used on mobile always, on desktop on hover)
-  useEffect(() => {
+  // Mobile: dynamic border color from backdrop, runs when image finishes loading
+  function handleImageLoad(el: HTMLImageElement) {
+    if (window.innerWidth >= 768) return
     if (!filmObject.backdrop_path) return
-
     const filmCard = document.getElementById(`film-card-${filmObject.id}`)
-    extractBorderColor(filmObject.backdrop_path).then((color) => {
-      if (color && filmCard) {
-        filmCard.style.borderColor = color
-      }
-    })
-  }, [])
+    const color = extractBorderColorFromElement(el)
+    if (color && filmCard) filmCard.style.borderColor = color
+  }
 
   return (
     <div
@@ -59,6 +58,8 @@ export default function UserFilmCard({
           onPosterHoverEnter={() => setIsPosterHovered(true)}
           onPosterHoverLeave={() => setIsPosterHovered(false)}
           onNavigate={() => navigate({ to: `/films/${filmObject.id}` })}
+          imgRef={imgRef}
+          onImageLoad={handleImageLoad}
         />
         {/* Title overlay — anchored to bottom of poster */}
         <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-foreground/80 to-transparent text-light w-full flex justify-between gap-2 text-[12px]">

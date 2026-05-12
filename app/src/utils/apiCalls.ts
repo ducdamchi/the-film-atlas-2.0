@@ -13,7 +13,7 @@ import type {
 } from "@/types/api"
 import type { DiscoverFilmParams } from "@/types/map"
 
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
+const PROXY_URL = `${import.meta.env.VITE_API_URL}/proxy`
 
 /* Query for films from TMDB (search with provided input)
 @params:
@@ -22,13 +22,10 @@ const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
 export function queryFilmFromTMDB(
   searchInput: string,
 ): Promise<TMDBFilmSummary[]> {
-  const searchUrl = "https://api.themoviedb.org/3/search/movie"
-
   return axios
-    .get(searchUrl, {
+    .get(`${PROXY_URL}/tmdb/search/movie`, {
       params: {
         query: searchInput,
-        api_key: TMDB_API_KEY,
         include_adult: false,
         append_to_response: "credits",
       },
@@ -48,13 +45,10 @@ export function queryFilmFromTMDBPaged(
   searchInput: string,
   page = 1,
 ): Promise<{ results: TMDBFilmSummary[]; totalPages: number }> {
-  const searchUrl = "https://api.themoviedb.org/3/search/movie"
-
   return axios
-    .get(searchUrl, {
+    .get(`${PROXY_URL}/tmdb/search/movie`, {
       params: {
         query: searchInput,
-        api_key: TMDB_API_KEY,
         include_adult: false,
         page,
       },
@@ -74,12 +68,10 @@ export function queryFilmFromTMDBPaged(
 - tmdbId: unique TMDB id assigned to film
 */
 export function fetchFilmFromTMDB(tmdbId: number | string): Promise<TMDBFilm> {
-  const movieDetailsUrl = "https://api.themoviedb.org/3/movie/"
-
   return axios
-    .get(
-      `${movieDetailsUrl}${tmdbId}?append_to_response=credits,videos,images&api_key=${TMDB_API_KEY}`,
-    )
+    .get(`${PROXY_URL}/tmdb/movie/${tmdbId}`, {
+      params: { append_to_response: "credits,videos,images" },
+    })
     .then((response) => {
       return response.data as TMDBFilm
     })
@@ -92,13 +84,10 @@ export function fetchFilmFromTMDB(tmdbId: number | string): Promise<TMDBFilm> {
 export function queryMultiFromTMDB(
   searchInput: string,
 ): Promise<TMDBSearchResult[]> {
-  const searchUrl = "https://api.themoviedb.org/3/search/multi"
-
   return axios
-    .get(searchUrl, {
+    .get(`${PROXY_URL}/tmdb/search/multi`, {
       params: {
         query: searchInput,
-        api_key: TMDB_API_KEY,
         include_adult: false,
       },
     })
@@ -112,13 +101,10 @@ export function queryMultiFromTMDB(
 export function queryPersonFromTMDB(
   searchInput: string,
 ): Promise<TMDBPerson[]> {
-  const searchPersonUrl = "https://api.themoviedb.org/3/search/person"
-
   return axios
-    .get(searchPersonUrl, {
+    .get(`${PROXY_URL}/tmdb/search/person`, {
       params: {
         query: searchInput,
-        api_key: TMDB_API_KEY,
         include_adult: false,
       },
     })
@@ -134,12 +120,10 @@ export function queryPersonFromTMDB(
 export function fetchPersonFromTMDB(
   tmdbId: number | string,
 ): Promise<TMDBPerson> {
-  const personDetailsUrl = "https://api.themoviedb.org/3/person/"
-
   return axios
-    .get(
-      `${personDetailsUrl}${tmdbId}?append_to_response=movie_credits&api_key=${TMDB_API_KEY}`,
-    )
+    .get(`${PROXY_URL}/tmdb/person/${tmdbId}`, {
+      params: { append_to_response: "movie_credits" },
+    })
     .then((response) => {
       return response.data as TMDBPerson
     })
@@ -156,17 +140,14 @@ export function queryTopRatedFilmByCountryTMDB({
   ratingRange = null,
   voteCountRange = null,
 }: DiscoverFilmParams = {}): Promise<TMDBDiscoverResponse> {
-  const searchUrl = "https://api.themoviedb.org/3/discover/movie"
-
   return axios
-    .get(searchUrl, {
+    .get(`${PROXY_URL}/tmdb/discover/movie`, {
       params: {
-        api_key: TMDB_API_KEY,
         with_origin_country: countryCode,
         region: countryCode,
         include_adult: false,
         include_video: false,
-        "with_runtime.gte": 80, //pick films > 80 minutes
+        "with_runtime.gte": 80,
         "vote_count.gte": voteCountRange?.[1],
         "vote_average.gte": ratingRange?.[1],
         sort_by: sortBy,
@@ -190,12 +171,9 @@ Uses total_results from a permissive (unfiltered) query to tier the thresholds. 
 export async function probeCountryDefaults(
   isoA2: string,
 ): Promise<CountryDefaults> {
-  const searchUrl = "https://api.themoviedb.org/3/discover/movie"
-
   try {
-    const response = await axios.get(searchUrl, {
+    const response = await axios.get(`${PROXY_URL}/tmdb/discover/movie`, {
       params: {
-        api_key: TMDB_API_KEY,
         with_origin_country: isoA2,
         include_adult: false,
         include_video: false,
@@ -242,14 +220,8 @@ export function fetchFilmAwardsFromWikidata(
 
   return axios
     .post(
-      "https://query.wikidata.org/sparql",
-      `query=${encodeURIComponent(query)}`,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Accept: "application/sparql-results+json",
-        },
-      },
+      `${PROXY_URL}/wikidata/sparql`,
+      { query },
     )
     .then((response) => {
       const bindings: Array<{
@@ -285,14 +257,9 @@ export function fetchFilmAwardsFromWikidata(
 export function fetchFilmRatingsFromOMDB(
   imdbId: string,
 ): Promise<OmdbResponse> {
-  const omdbUrl = "https://www.omdbapi.com/"
-
   return axios
-    .get(omdbUrl, {
-      params: {
-        apikey: import.meta.env.VITE_OMDB_API_KEY,
-        i: imdbId,
-      },
+    .get(`${PROXY_URL}/omdb`, {
+      params: { i: imdbId },
     })
     .then((response) => response.data as OmdbResponse)
     .catch((err) => {
@@ -303,7 +270,7 @@ export function fetchFilmRatingsFromOMDB(
 
 export function fetchSubtitles(imdb_id: string): Promise<unknown> {
   return axios
-    .get(`${import.meta.env.VITE_API_URL}/proxy/subtitles/${imdb_id}`)
+    .get(`${PROXY_URL}/subtitles/${imdb_id}`)
     .then((response) => response.data)
     .catch((err) => {
       console.log("Client: Error fetching subtitles", err)
@@ -330,7 +297,7 @@ export async function fetchSubtitleFile(
 
 export function fetchFilmFromYTS(imdb_id: string): Promise<unknown> {
   return axios
-    .get(`${import.meta.env.VITE_API_URL}/proxy/yts/${imdb_id}`)
+    .get(`${PROXY_URL}/yts/${imdb_id}`)
     .then((response) => response.data)
     .catch((err) => {
       console.log("Client: Error fetching film from YTS", err)

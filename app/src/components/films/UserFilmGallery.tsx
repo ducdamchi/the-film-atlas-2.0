@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getReleaseYear, getNiceMonthYear } from "@/utils/helperFunctions";
 
 import UserFilmCard from "./UserFilmCard";
@@ -31,6 +31,7 @@ export default function UserFilmGallery({
 }: FilmUser_GalleryProps) {
   // Grouped films stored as sorted [key, group] tuple pairs
   const [groupedFilms, setGroupedFilms] = useState<[string, FilmGroup][]>([]);
+  const imgRefs = useRef<Map<number, HTMLImageElement>>(new Map());
 
   useEffect(() => {
     if (listOfFilmObjects && !("error" in listOfFilmObjects)) {
@@ -124,6 +125,10 @@ export default function UserFilmGallery({
                       key={filmObject.id}
                       filmObject={filmObject}
                       queryString={queryString}
+                      imgRef={(node) => {
+                        if (node) imgRefs.current.set(filmObject.id, node);
+                        else imgRefs.current.delete(filmObject.id);
+                      }}
                     />
                   ))}
                 </div>

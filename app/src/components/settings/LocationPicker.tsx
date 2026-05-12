@@ -13,7 +13,7 @@ interface GeonamesCity {
   countryCode: string
 }
 
-const GEONAMES_USER = import.meta.env.VITE_GEONAMES_USERNAME
+const PROXY_URL = `${import.meta.env.VITE_API_URL}/proxy`
 
 export function LocationPicker({
   country,
@@ -49,13 +49,12 @@ export function LocationPicker({
           q: value,
           featureClass: "P",
           maxRows: "10",
-          username: GEONAMES_USER,
           lang: "en",
           ...(country && { country }),
         })
 
         const res = await fetch(
-          `https://secure.geonames.org/searchJSON?${params}`,
+          `${PROXY_URL}/geonames/search?${params}`,
         )
         const data = await res.json()
         const cities: GeonamesCity[] = data.geonames ?? []

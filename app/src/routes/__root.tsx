@@ -26,7 +26,6 @@ import { runMigrations } from "../utils/localStorageMigrations"
 import { Toaster } from "../components/ui-shadcn/sonner"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools"
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import {
   SidebarProvider,
   SidebarTrigger,
@@ -195,10 +194,6 @@ function RootComponent() {
           {
             name: "TanStack Query",
             render: <ReactQueryDevtoolsPanel />,
-          },
-          {
-            name: "TanStack Router",
-            render: <TanStackRouterDevtoolsPanel />,
           },
         ]}
       />

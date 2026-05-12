@@ -25,7 +25,7 @@ export default function PersonList({
   listOfPeople,
   type,
 }: PersonListProps) {
-  const imgBaseUrl = "https://image.tmdb.org/t/p/original"
+  const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL
   const navigate = useNavigate()
 
   return (

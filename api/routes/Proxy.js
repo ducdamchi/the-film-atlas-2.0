@@ -9,6 +9,55 @@ const OPENSUBTITLES_HEADERS = {
   "User-Agent": "TheFilmAtlas v1.0",
 }
 
+// Generic TMDB proxy — forwards any sub-path + query params, injects api_key server-side
+router.use("/tmdb", async (req, res) => {
+  const tmdbBase = "https://api.themoviedb.org/3"
+  try {
+    const response = await axios.get(`${tmdbBase}${req.path}`, {
+      params: { ...req.query, api_key: process.env.TMDB_API_KEY },
+    })
+    res.json(response.data)
+  } catch (err) {
+    console.error("Server: TMDB proxy failed:", err.message)
+    res
+      .status(err?.response?.status || 500)
+      .json({ error: "TMDB request failed" })
+  }
+})
+
+// OMDB proxy
+router.get("/omdb", async (req, res) => {
+  try {
+    const response = await axios.get("https://www.omdbapi.com/", {
+      params: { ...req.query, apikey: process.env.OMDB_API_KEY },
+    })
+    res.json(response.data)
+  } catch (err) {
+    console.error("Server: OMDB proxy failed:", err.message)
+    res
+      .status(err?.response?.status || 500)
+      .json({ error: "OMDB request failed" })
+  }
+})
+
+// GeoNames proxy
+router.get("/geonames/search", async (req, res) => {
+  try {
+    const response = await axios.get(
+      "https://secure.geonames.org/searchJSON",
+      {
+        params: { ...req.query, username: process.env.GEONAMES_USERNAME },
+      },
+    )
+    res.json(response.data)
+  } catch (err) {
+    console.error("Server: GeoNames proxy failed:", err.message)
+    res
+      .status(err?.response?.status || 500)
+      .json({ error: "GeoNames request failed" })
+  }
+})
+
 router.get("/subtitles/:imdbId", async (req, res) => {
   const { imdbId } = req.params
   try {
@@ -61,24 +110,27 @@ router.post("/subtitles/download", async (req, res) => {
   }
 })
 
-router.get("/image", async (req, res) => {
-  const { url } = req.query
-  if (!url || !url.startsWith("https://image.tmdb.org/")) {
-    return res.status(400).json({ error: "Invalid image URL" })
-  }
+router.post("/wikidata/sparql", async (req, res) => {
+  const { query } = req.body
+  if (!query) return res.status(400).json({ error: "Missing query" })
   try {
-    const response = await axios.get(url, { responseType: "stream" })
-    res.setHeader(
-      "Content-Type",
-      response.headers["content-type"] || "image/jpeg",
+    const response = await axios.post(
+      "https://query.wikidata.org/sparql",
+      `query=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/sparql-results+json",
+          "User-Agent": "TheFilmAtlas/1.0 (https://github.com/ducdamchi/the-film-atlas-2.0)",
+        },
+      },
     )
-    res.setHeader("Access-muted-Allow-Origin", "*")
-    response.data.pipe(res)
+    res.json(response.data)
   } catch (err) {
-    console.error("Server: Image proxy failed:", err.message)
+    console.error("Server: Wikidata SPARQL fetch failed:", err.message)
     res
       .status(err?.response?.status || 500)
-      .json({ error: "Failed to fetch image" })
+      .json({ error: "Failed to fetch from Wikidata" })
   }
 })
 

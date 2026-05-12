@@ -21,7 +21,7 @@ import type { TMDBPerson, TMDBFilmSummary } from "@/types/tmdb"
 import TmdbFilmGallery from "./films/TmdbFilmGallery"
 
 export default function PersonLanding() {
-  const imgBaseUrl = "https://image.tmdb.org/t/p/original"
+  const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL
   const { job, tmdbId } = useParams({ strict: false })
   const [scrollPosition, setScrollPosition] = usePersistedState<number>(
     `${job}Landing-scrollPosition`,
