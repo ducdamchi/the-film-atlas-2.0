@@ -83,7 +83,7 @@ function SidebarProvider({
 
   /* _open and _setOpen use jotai atom instead of defaultOpen*/
   const [_open, _setOpen] = React.useState(defaultOpen)
-  const open = openProp ?? _open
+  const open = openProp ?? (sidebarHovered || sidebarPinned)
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value
@@ -177,6 +177,7 @@ function Sidebar({
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
   const [, setSidebarHovered] = useAtom(sidebarHoveredAtom)
+  const [sidebarPinned, setSidebarPinned] = useAtom(sidebarPinnedAtom)
 
   if (collapsible === "none") {
     return (
@@ -225,6 +226,7 @@ function Sidebar({
       data-variant={variant}
       data-side={side}
       data-slot="sidebar"
+      data-pinned={String(sidebarPinned)}
       onMouseEnter={() => setSidebarHovered(true)}
       onMouseLeave={() => setSidebarHovered(false)}>
       {/* This is what handles the sidebar gap on desktop */}
@@ -235,8 +237,8 @@ function Sidebar({
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
+            ? "group-data-[pinned=false]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
+            : "group-data-[pinned=false]:w-(--sidebar-width-icon)",
         )}
       />
       <div
