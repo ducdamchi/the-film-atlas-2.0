@@ -79,17 +79,13 @@ export function useDiscoverFilms({
     [0, 7],
   )
 
-  const [tempRatingRange, setTempRatingRange] = usePersistedState<
-    [number, number]
-  >("map-tempRating", [0, 7])
+  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>(ratingRange)
 
   const [voteCountRange, setVoteCountRange] = usePersistedState<
     [number, number]
   >("map-voteCountRange", [0, 100])
 
-  const [tempVoteCountRange, setTempVoteCountRange] = usePersistedState<
-    [number, number]
-  >("map-tempVoteCount", [0, 100])
+  const [tempVoteCountRange, setTempVoteCountRange] = useState<[number, number]>(voteCountRange)
 
   const [discoverTotalResults, setDiscoverTotalResults] = useState<
     number | null

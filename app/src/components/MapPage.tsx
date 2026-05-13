@@ -65,10 +65,7 @@ export default function MapPage() {
     "discover",
   )
   const [lastMyFilmsQueryString, setLastMyFilmsQueryString] =
-    usePersistedState<MapFilmQueryString>(
-      "map-lastMyFilmsQueryString",
-      "watched/by_country",
-    )
+    useState<MapFilmQueryString>("watched/by_country")
   const isDiscoverMode = queryString === "discover"
   const [sortBy, setSortBy] = usePersistedState<SortBy>(
     "map-sortBy",

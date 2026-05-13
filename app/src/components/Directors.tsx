@@ -45,15 +45,9 @@ type DirectorSortBy = "name" | "score" | "highest_star"
 type SortDirection = "asc" | "desc"
 
 export default function Directors() {
-  const [searchInput, setSearchInput] = usePersistedState<string>(
-    "directors-searchInput",
-    "",
-  )
+  const [searchInput, setSearchInput] = useState<string>("")
   const [searchResult, setSearchResult] = useState<DirectorSearchResult[]>([])
-  const [isSearching, setIsSearching] = usePersistedState<boolean>(
-    "directors-isSearching",
-    false,
-  )
+  const [isSearching, setIsSearching] = useState<boolean>(false)
   const [sortBy, setSortBy] = usePersistedState<DirectorSortBy>(
     "directors-sortBy",
     "name",
@@ -62,10 +56,6 @@ export default function Directors() {
     "directors-sortDirection",
     "desc",
   )
-  const [scrollPosition, setScrollPosition] = usePersistedState<number>(
-    "directors-scrollPosition",
-    0,
-  )
   const { authState } = useAuth()
   const location = useLocation()
 
@@ -73,34 +63,6 @@ export default function Directors() {
     ...directorsQueryOptions,
     enabled: !!authState.status,
   })
-
-  /* Hook for scroll restoration */
-  useEffect(() => {
-    if (!isLoading) {
-      if (scrollPosition) {
-        setTimeout(() => {
-          window.scrollTo(0, parseInt(String(scrollPosition), 10))
-        }, 50)
-      } else {
-        setTimeout(() => {
-          window.scrollTo(0, 0)
-        }, 0)
-      }
-
-      const handleScroll = () => {
-        setScrollPosition(window.scrollY)
-      }
-
-      const scrollTimer = setTimeout(() => {
-        window.addEventListener("scroll", handleScroll)
-      }, 500)
-
-      return () => {
-        clearTimeout(scrollTimer)
-        window.removeEventListener("scroll", handleScroll)
-      }
-    }
-  }, [isLoading])
 
   /* Query director from TMDB with Quick Search Modal's Search Input */
   useEffect(() => {

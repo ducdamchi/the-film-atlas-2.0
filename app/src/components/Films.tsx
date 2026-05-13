@@ -29,15 +29,9 @@ type SortBy = "added_date" | "released_date";
 type SortDirection = "asc" | "desc";
 
 export default function Films() {
-  const [searchInput, setSearchInput] = usePersistedState<string>(
-    "films-searchInput",
-    "",
-  );
+  const [searchInput, setSearchInput] = useState<string>("");
   const [searchResult, setSearchResult] = useState<TMDBFilmSummary[]>([]);
-  const [isSearching, setIsSearching] = usePersistedState<boolean>(
-    "films-isSearching",
-    false,
-  );
+  const [isSearching, setIsSearching] = useState<boolean>(false);
   const [sortBy, setSortBy] = usePersistedState<SortBy>(
     "films-sortBy",
     "added_date",
@@ -53,10 +47,6 @@ export default function Films() {
   const [queryString, setQueryString] = usePersistedState<QueryString>(
     "film-queryString",
     "watched",
-  );
-  const [scrollPosition, setScrollPosition] = usePersistedState<number>(
-    "films-scrollPosition",
-    0,
   );
   const { authState } = useAuth();
   const location = useLocation();
@@ -89,34 +79,6 @@ export default function Films() {
 
     return list;
   }, [watchedList, watchlistedList, queryString, numStars, sortBy, sortDirection]);
-
-  /* Hook for scroll restoration */
-  useEffect(() => {
-    if (!isLoading) {
-      if (scrollPosition) {
-        setTimeout(() => {
-          window.scrollTo(0, parseInt(String(scrollPosition), 10));
-        }, 50);
-      } else {
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-        }, 0);
-      }
-
-      const handleScroll = () => {
-        setScrollPosition(window.scrollY);
-      };
-
-      const scrollTimer = setTimeout(() => {
-        window.addEventListener("scroll", handleScroll);
-      }, 500);
-
-      return () => {
-        clearTimeout(scrollTimer);
-        window.removeEventListener("scroll", handleScroll);
-      };
-    }
-  }, [isLoading]);
 
   /* Query films from TMDB when user navigates back from Quick Search Modal */
   useEffect(() => {

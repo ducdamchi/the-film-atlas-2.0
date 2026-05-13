@@ -45,7 +45,12 @@ export function SignupForm({
 
   const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { username: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   })
 
   const registerMutation = useMutation({
@@ -113,10 +118,10 @@ export function SignupForm({
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
+              {/* <FormDescription>
                 We&apos;ll use this to contact you. We will not share your email
                 with anyone else.
-              </FormDescription>
+              </FormDescription> */}
               <FormMessage />
             </FormItem>
           )}
@@ -129,13 +134,11 @@ export function SignupForm({
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
-                  className="bg-background"
-                  {...field}
-                />
+                <Input type="password" className="bg-background" {...field} />
               </FormControl>
-              <FormDescription>Must be at least 8 characters long.</FormDescription>
+              <FormDescription>
+                Must be at least 8 characters long.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -148,11 +151,7 @@ export function SignupForm({
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
-                  className="bg-background"
-                  {...field}
-                />
+                <Input type="password" className="bg-background" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

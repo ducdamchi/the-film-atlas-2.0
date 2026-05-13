@@ -12,8 +12,6 @@ import {
   directorStatusQueryOptions,
 } from "../queries/person.queries"
 import { computeDirectorScore } from "@/utils/directorScore"
-import { usePersistedState } from "../hooks/usePersistedState"
-
 /* Types */
 import type { TMDBPerson, TMDBFilmSummary } from "@/types/tmdb"
 
@@ -23,10 +21,6 @@ import TmdbFilmGallery from "./films/TmdbFilmGallery"
 export default function PersonLanding() {
   const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL
   const { job, tmdbId } = useParams({ strict: false })
-  const [scrollPosition, setScrollPosition] = usePersistedState<number>(
-    `${job}Landing-scrollPosition`,
-    0,
-  )
 
   const { authState } = useAuth()
   const { setSearchModalOpen } = useApp()
@@ -35,30 +29,6 @@ export default function PersonLanding() {
   useEffect(() => {
     setSearchModalOpen(false)
   }, [tmdbId])
-
-  // Scroll restoration — runs once on mount (component only renders after loader resolves)
-  useEffect(() => {
-    if (scrollPosition) {
-      setTimeout(() => {
-        window.scrollTo(0, parseInt(String(scrollPosition), 10))
-      }, 50)
-    } else {
-      window.scrollTo(0, 0)
-    }
-
-    const handleScroll = () => {
-      setScrollPosition(window.scrollY)
-    }
-
-    const scrollTimer = setTimeout(() => {
-      window.addEventListener("scroll", handleScroll)
-    }, 500)
-
-    return () => {
-      clearTimeout(scrollTimer)
-      window.removeEventListener("scroll", handleScroll)
-    }
-  }, [])
 
   // Person data — loader pre-filled cache
   const { data: personDetails } = useSuspenseQuery(personQueryOptions(tmdbId!))
