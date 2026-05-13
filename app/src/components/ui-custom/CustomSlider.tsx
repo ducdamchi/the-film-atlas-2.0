@@ -8,9 +8,9 @@ interface CustomSliderProps {
   max: number
   step?: number
   tempRange: [number, number]
-  setTempRange: React.Dispatch<React.SetStateAction<[number, number]>>
-  range: [number, number]
-  setRange: React.Dispatch<React.SetStateAction<[number, number]>>
+  setTempRange: (val: [number, number]) => void
+  range?: [number, number]
+  setRange: (val: [number, number]) => void
   thumbsDisabled?: [boolean, boolean]
   rangeSlideDisabled?: boolean
 }
@@ -23,7 +23,6 @@ export default function CustomSlider({
   step,
   tempRange,
   setTempRange,
-  range,
   setRange,
   thumbsDisabled,
   rangeSlideDisabled,

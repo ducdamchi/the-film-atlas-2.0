@@ -17,23 +17,15 @@ export function getItem<T>(key: string): T | null {
 }
 
 export const PERSISTED_STATE_KEYS = [
+  // /films route (pending URL migration — localStorage-migrate.md Phase 5)
   "films-sortBy",
   "films-sortDirection",
   "films-numStars",
   "films-queryString",
+  // /map panel layout (pending DB migration — localStorage-migrate.md Phase 6)
   "map-showPanel",
   "map-sidebarWidth",
-  "map-popupInfo",
-  "map-suggestedFilmList",
-  "map-page",
-  "map-sortBy",
-  "map-sortDirection",
-  "map-queryString",
-  "map-numStars",
-  "map-discoverBy",
-  "map-scrollPosition",
-  "map-ratingRange",
-  "map-voteCountRange",
+  // /directors route (pending URL migration — localStorage-migrate.md Phase 5)
   "directors-sortBy",
   "directors-sortDirection",
   "directors-queryString",

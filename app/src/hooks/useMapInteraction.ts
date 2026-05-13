@@ -1,5 +1,4 @@
 import { useRef, useState, useCallback, useEffect } from "react"
-import { usePersistedState } from "./usePersistedState"
 import type { Map as MapboxMap, MapDataEvent, GeoJSONFeature, MapMouseEvent } from "mapbox-gl"
 import type { PopupInfo, FilmsPerCountryData } from "@/types/map"
 
@@ -52,10 +51,7 @@ export function useMapInteraction(
   const mapRef = useRef<MapboxMap | null>(null)
   const [firstSymbolId, setFirstSymbolId] = useState<string | null>(null)
   const [isMapLoaded, setIsMapLoaded] = useState<boolean>(false)
-  const [popupInfo, setPopupInfo] = usePersistedState<PopupInfo | null>(
-    "map-popupInfo",
-    null,
-  )
+  const [popupInfo, setPopupInfo] = useState<PopupInfo | null>(null)
 
   const setFeatureStates = useCallback(() => {
     if (!mapRef.current) return

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { Map, Popup, NavigationControl } from "react-map-gl/maplibre"
 
 import "@maptiler/sdk/dist/maptiler-sdk.css"
@@ -7,12 +8,14 @@ import "react-range-slider-input/dist/style.css"
 import { useAuth } from "../utils/authContext"
 import { getCountryName } from "../utils/helperFunctions"
 import { MAPTILER_API_KEY, MAPTILER_STYLE_URL } from "../utils/mapConstants"
-import { usePersistedState } from "../hooks/usePersistedState"
 import { useMapFilmData } from "../hooks/useMapFilmData"
 import { useMapInteraction } from "../hooks/useMapInteraction"
 import { useDiscoverFilms } from "../hooks/useDiscoverFilms"
 import { useUserFilms } from "../hooks/useUserFilms"
 import { useMapPanel } from "../hooks/useMapPanel"
+import { COUNTRY_DEFAULTS, GLOBAL_DEFAULTS } from "@/data/countryDefaults"
+import { Route, ALIAS_TO_MODE } from "@/routes/map"
+import type { MapMode, MapModeAlias, FilterMode, DiscoverSort, UserSort, SortDir } from "@/routes/map"
 
 import UserFilmGallery from "./films/UserFilmGallery"
 import TmdbFilmGallery from "./films/TmdbFilmGallery"
@@ -25,22 +28,7 @@ import MyFilmsControls from "./map/MyFilmsControls"
 import { FaGripLines } from "react-icons/fa6"
 import { GripVertical } from "lucide-react"
 
-/**
- * The full set of queryString values used by the map page.
- * "discover" — Discover mode (TMDB-sourced films)
- * The rest — user's film lists filtered by country
- */
-type MapQueryString =
-  | "discover"
-  | "watched/by_country"
-  | "watchlisted/by_country"
-  | "watched/rated/by_country"
-
-type MapFilmQueryString = Exclude<MapQueryString, "discover">
-
-type SortBy = "added_date" | "released_date"
-type SortDirection = "asc" | "desc"
-
+type MapFilmMode = Exclude<MapModeAlias, "discover">
 type BrowseMode = "discover" | "my_films"
 
 function checkWebGLSupport(): boolean {
@@ -59,73 +47,149 @@ export default function MapPage() {
   const { authState } = useAuth()
   const [webglSupported] = useState(() => checkWebGLSupport())
 
-  /* Browse mode state */
-  const [queryString, setQueryString] = usePersistedState<MapQueryString>(
-    "map-queryString",
-    "discover",
-  )
-  const [lastMyFilmsQueryString, setLastMyFilmsQueryString] =
-    useState<MapFilmQueryString>("watched/by_country")
-  const isDiscoverMode = queryString === "discover"
-  const [sortBy, setSortBy] = usePersistedState<SortBy>(
-    "map-sortBy",
-    "added_date",
-  )
-  const [sortDirection, setSortDirection] = usePersistedState<SortDirection>(
-    "map-sortDirection",
-    "desc",
-  )
-  const [numStars, setNumStars] = usePersistedState<number | null>(
-    "map-numStars",
-    0,
-  )
-  const [scrollPosition, setScrollPosition] = usePersistedState<number>(
-    "map-scrollPosition",
-    0,
-  )
+  /* URL search params — single source of truth for all filter/mode state */
+  const {
+    country,
+    mode,
+    filter: rawFilter,
+    rating: rawRating,
+    votes: rawVotes,
+    dsort: rawDsort,
+    sort: rawSort,
+    dir: rawDir,
+    stars: rawStars,
+  } = Route.useSearch()
+  const navigate = useNavigate({ from: "/map" })
 
-  /* Side-effects when queryString changes */
+  // Defaults applied at the call site — omitted URL params mean "use default"
+  const filter: FilterMode = rawFilter ?? "recommended"
+  const rating = rawRating ?? 0
+  const votes = rawVotes ?? 0
+  const dsort: DiscoverSort = rawDsort ?? "random"
+  const sort: UserSort = rawSort ?? "added_date"
+  const dir: SortDir = rawDir ?? "desc"
+  const stars = rawStars ?? 0
+
+  const isDiscoverMode = mode === "discover"
+  // Full internal mode string for hooks/API (strips the URL alias)
+  const internalMode: MapMode = ALIAS_TO_MODE[mode]
+
+  // Ephemeral: remembers last my-films sub-mode so switching back to "My Films"
+  // restores the previous filter (watched/watchlisted/rated) instead of defaulting.
+  const [lastMyFilmsMode, setLastMyFilmsMode] = useState<MapFilmMode>("watched")
+
+  /* URL setters — replace history entries so filter changes don't pollute back button */
+
+  // Strips irrelevant params on mode transition
+  const setMode = (val: MapModeAlias) => {
+    if (val === "discover") {
+      navigate({
+        search: (prev) => ({
+          country: prev.country,
+          mode: "discover" as const,
+          ...(prev.filter === "custom" && {
+            filter: "custom" as const,
+            rating: prev.rating,
+            votes: prev.votes,
+          }),
+          ...(prev.dsort && { dsort: prev.dsort }),
+        }),
+        replace: true,
+      })
+    } else {
+      navigate({
+        search: (prev) => ({
+          country: prev.country,
+          mode: val,
+          ...(prev.sort && { sort: prev.sort }),
+          ...(prev.dir && { dir: prev.dir }),
+          ...(val === "rated" && prev.stars && { stars: prev.stars }),
+        }),
+        replace: true,
+      })
+    }
+  }
+
+  // "random" is default — omit from URL
+  const setDsort = (val: DiscoverSort) =>
+    navigate({
+      search: (prev) => ({ ...prev, dsort: val === "random" ? undefined : val }),
+      replace: true,
+    })
+
+  const setFilter = (val: FilterMode) => {
+    if (val === "custom") {
+      // Seed custom sliders from the current recommended values
+      const rec = COUNTRY_DEFAULTS[isoA2 ?? ""] ?? GLOBAL_DEFAULTS
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          filter: "custom" as const,
+          rating: rec.rating,
+          votes: rec.voteCount,
+        }),
+        replace: true,
+      })
+    } else {
+      // Strip rating/votes; omitting filter key defaults to "recommended"
+      navigate({
+        search: (prev) => {
+          const { rating: _r, votes: _v, filter: _f, ...rest } = prev
+          return rest
+        },
+        replace: true,
+      })
+    }
+  }
+
+  const setRating = (val: number) =>
+    navigate({ search: (prev) => ({ ...prev, rating: val }), replace: true })
+  const setVotes = (val: number) =>
+    navigate({ search: (prev) => ({ ...prev, votes: val }), replace: true })
+
+  // Temp (in-drag) state for sliders — committed to URL on drag end
+  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, rating])
+  const [tempVoteCountRange, setTempVoteCountRange] = useState<[number, number]>([0, votes])
+
+  // Sync temp state when URL params change externally (e.g. back/forward nav)
+  useEffect(() => setTempRatingRange([0, rating]), [rating])
+  useEffect(() => setTempVoteCountRange([0, votes]), [votes])
+
+  // "added_date" and "desc" are defaults — omit from URL
+  const setSort = (val: UserSort) =>
+    navigate({
+      search: (prev) => ({ ...prev, sort: val === "added_date" ? undefined : val }),
+      replace: true,
+    })
+  const setDir = (val: SortDir) =>
+    navigate({
+      search: (prev) => ({ ...prev, dir: val === "desc" ? undefined : val }),
+      replace: true,
+    })
+  // 0 means "all" — omit from URL
+  const setStars = (val: number) =>
+    navigate({
+      search: (prev) => ({ ...prev, stars: val > 0 ? val : undefined }),
+      replace: true,
+    })
+
+  /* Track mode changes for lastMyFilmsMode and stale-stars cleanup (back/forward nav) */
+  const prevModeRef = useRef(mode)
   useEffect(() => {
-    if (queryString !== "watched/rated/by_country") setNumStars(null)
-    if (queryString !== "discover") setLastMyFilmsQueryString(queryString)
-  }, [queryString])
+    const prev = prevModeRef.current
+    prevModeRef.current = mode
+    if (prev !== mode) {
+      if (prev !== "discover") setLastMyFilmsMode(prev as MapFilmMode)
+      if (mode !== "rated" && stars !== 0) {
+        navigate({ search: (prev) => ({ ...prev, stars: undefined }), replace: true })
+      }
+    }
+  }, [mode])
 
   /* Hooks */
   const { filmsPerCountryData } = useMapFilmData(authState)
-  const {
-    mapRef,
-    firstSymbolId,
-    popupInfo,
-    setPopupInfo,
-    onMapLoad,
-    onMapClick,
-  } = useMapInteraction(filmsPerCountryData)
-  const {
-    suggestedFilmList,
-    page,
-    setPage,
-    discoverBy,
-    setDiscoverBy,
-    ratingRange,
-    setRatingRange,
-    tempRatingRange,
-    setTempRatingRange,
-    voteCountRange,
-    setVoteCountRange,
-    tempVoteCountRange,
-    setTempVoteCountRange,
-    isLoading: discoverLoading,
-    loadMoreTrigger,
-  } = useDiscoverFilms({ isDiscoverMode, popupInfo })
-  const { userFilmList, isLoading: userFilmsLoading } = useUserFilms({
-    authState,
-    isDiscoverMode,
-    popupInfo,
-    queryString,
-    sortBy,
-    sortDirection,
-    numStars,
-  })
+  const { mapRef, firstSymbolId, popupInfo, setPopupInfo, onMapLoad, onMapClick } =
+    useMapInteraction(filmsPerCountryData)
   const {
     panelRef,
     mapContainerRef,
@@ -134,52 +198,75 @@ export default function MapPage() {
     handleDragAreaClick,
   } = useMapPanel()
 
-  const innerScrollRef = useRef<HTMLDivElement | null>(null)
+  // isoA2 comes from a map click (popupInfo) or from the URL country param on
+  // initial load / navigation. popupInfo takes precedence since it has coordinates.
+  const isoA2 = popupInfo?.iso_a2 ?? country
 
+  const { suggestedFilmList, isLoading: discoverLoading, hasNextPage, loadMoreTrigger } =
+    useDiscoverFilms({ isDiscoverMode, isoA2, dsort, filter, rating, votes })
+
+  const { userFilmList, isLoading: userFilmsLoading } = useUserFilms({
+    authState,
+    isDiscoverMode,
+    isoA2,
+    queryString: internalMode,
+    sortBy: sort,
+    sortDirection: dir,
+    numStars: stars,
+  })
+
+  const innerScrollRef = useRef<HTMLDivElement | null>(null)
   const isLoading = discoverLoading || userFilmsLoading
 
-  /* Show/hide panel when a country is selected */
+  /* Sync country URL param when the user clicks a new country on the map */
+  const popupSyncMountedRef = useRef(false)
+  useEffect(() => {
+    if (!popupSyncMountedRef.current) {
+      popupSyncMountedRef.current = true
+      return
+    }
+    navigate({
+      search: (prev) => ({ ...prev, country: popupInfo?.iso_a2 }),
+      replace: true,
+    })
+  }, [popupInfo?.iso_a2])
+
+  /* Show/hide panel when isoA2 changes */
   const isMountedRef = useRef(false)
   useEffect(() => {
     if (!isMountedRef.current) {
       isMountedRef.current = true
+      if (isoA2) setShowPanel(true)
       return
     }
-    if (popupInfo && popupInfo.iso_a2 != null) {
-      setShowPanel(true)
-    } else {
-      setShowPanel(false)
-    }
-  }, [popupInfo])
+    setShowPanel(!!isoA2)
+  }, [isoA2])
 
-  /* Scroll restoration — tracks scroll within the inner scroll container */
+  /* Scroll restoration — per-country, stored in sessionStorage */
   useEffect(() => {
-    if (!isLoading && innerScrollRef.current) {
-      innerScrollRef.current.scrollTop = scrollPosition
+    if (isLoading || !innerScrollRef.current) return
+    const key = `map-panel-scroll:${isoA2 ?? "none"}`
+    const saved = sessionStorage.getItem(key)
+    if (saved) {
       const el = innerScrollRef.current
-      const handleScroll = () => setScrollPosition(el.scrollTop)
-      const scrollTimer = setTimeout(
-        () => el.addEventListener("scroll", handleScroll),
-        500,
-      )
-      return () => {
-        clearTimeout(scrollTimer)
-        el.removeEventListener("scroll", handleScroll)
-      }
+      setTimeout(() => { el.scrollTop = parseInt(saved, 10) }, 50)
     }
-  }, [isLoading])
+  }, [isLoading, isoA2])
 
-  /**
-   * Derive the queryString to pass to FilmUser_Gallery.
-   * The gallery accepts "watched", "watchlisted", or "watched/rated" without
-   * the "/by_country" suffix.
-   */
+  useEffect(() => {
+    const el = innerScrollRef.current
+    if (!el) return
+    const key = `map-panel-scroll:${isoA2 ?? "none"}`
+    const handleScroll = () => sessionStorage.setItem(key, String(el.scrollTop))
+    el.addEventListener("scroll", handleScroll, { passive: true })
+    return () => el.removeEventListener("scroll", handleScroll)
+  }, [isoA2])
+
+  // Derive the queryString for UserFilmGallery (strips /by_country suffix)
   const galleryQueryString =
-    queryString === "watchlisted/by_country"
-      ? "watchlisted"
-      : queryString === "watched/rated/by_country"
-        ? "watched/rated"
-        : "watched"
+    mode === "watchlisted" ? "watchlisted"
+    : mode === "rated"     ? "watched/rated"
+    : "watched"
 
   return (
     <div className="font-primary inset-0 overflow-hidden">
@@ -264,27 +351,22 @@ export default function MapPage() {
       </div>
 
       {/* Panel — mobile: bottom sheet; desktop: left sidebar */}
-      {/* Outer wrapper: owns positioning + dimensions, overflow-visible so the handle button can protrude */}
       <div
         ref={panelRef}
         className={[
           "@container absolute z-50",
-          // Mobile: slides up from viewport bottom
           "bottom-0 left-0 right-0",
-          // Desktop: left sidebar below navbar
           "md:top-0 md:relative md:h-screen",
         ].join(" ")}>
-        {/* Inner scroll container: visual appearance + scrolling */}
+        {/* Inner scroll container */}
         <div
           ref={innerScrollRef}
           className={[
             "w-full h-full bg-background overflow-y-auto flex flex-col items-center",
-            // Mobile visual
             "shadow-[25px_-8px_30px_rgba(0,0,0,0.15)] [clip-path:inset(-100%_-100%_-20rem_-100%)]",
-            // Desktop visual
             "md:pt-10 md:min-h-screen md:shadow-[8px_0_30px_rgba(0,0,0,0.15)] md:[clip-path:none]",
           ].join(" ")}>
-          {/* Mobile drag handle — sticky at top so it's always reachable while scrolling */}
+          {/* Mobile drag handle */}
           <div
             className="md:hidden sticky top-0 z-250 w-full flex flex-col items-center cursor-ns-resize touch-none select-none bg-background hover:bg-muted transition-colors ease-out duration-200 py-2 mb-2"
             onClick={handleDragAreaClick}
@@ -292,21 +374,15 @@ export default function MapPage() {
             <FaGripLines className="text-2xl text-muted" />
           </div>
 
-          {popupInfo &&
-            popupInfo.iso_a2 !== null &&
-            popupInfo.iso_a2 !== undefined && (
-              <div className="page-title-map font-heading">
-                {getCountryName(popupInfo.iso_a2)}
-              </div>
-            )}
-          {(!popupInfo ||
-            popupInfo.iso_a2 === null ||
-            popupInfo.iso_a2 === undefined) && (
+          {isoA2 ? (
+            <div className="page-title-map font-heading">
+              {getCountryName(isoA2)}
+            </div>
+          ) : (
             <div className="flex flex-col items-center justify-center">
               <div className="page-title-map font-heading">
                 select region on map
               </div>
-              {/* <div>(click on a valid region on map to start)</div> */}
             </div>
           )}
 
@@ -316,8 +392,8 @@ export default function MapPage() {
               label="Browse"
               value={isDiscoverMode ? "discover" : "my_films"}
               onChange={(val) => {
-                if (val === "discover") setQueryString("discover")
-                else setQueryString(lastMyFilmsQueryString)
+                if (val === "discover") setMode("discover")
+                else setMode(lastMyFilmsMode)
               }}
               options={[
                 { value: "discover", label: "Discover" },
@@ -327,48 +403,40 @@ export default function MapPage() {
 
             {isDiscoverMode ? (
               <DiscoverControls
-                discoverBy={discoverBy}
-                setDiscoverBy={setDiscoverBy}
-                ratingRange={ratingRange}
-                setRatingRange={setRatingRange}
+                isoA2={isoA2}
+                dsort={dsort}
+                filter={filter}
+                ratingRange={[0, rating]}
+                setRatingRange={(val) => setRating(val[1])}
                 tempRatingRange={tempRatingRange}
                 setTempRatingRange={setTempRatingRange}
-                voteCountRange={voteCountRange}
-                setVoteCountRange={setVoteCountRange}
+                voteCountRange={[0, votes]}
+                setVoteCountRange={(val) => setVotes(val[1])}
                 tempVoteCountRange={tempVoteCountRange}
                 setTempVoteCountRange={setTempVoteCountRange}
+                onDsortChange={setDsort}
+                onFilterChange={setFilter}
               />
             ) : (
               <MyFilmsControls
-                queryString={queryString as MapFilmQueryString}
-                setQueryString={
-                  setQueryString as React.Dispatch<
-                    React.SetStateAction<MapFilmQueryString>
-                  >
-                }
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                sortDirection={sortDirection}
-                setSortDirection={setSortDirection}
-                numStars={numStars}
-                setNumStars={setNumStars}
+                queryString={mode as MapFilmMode}
+                setQueryString={setMode}
+                sortBy={sort}
+                setSortBy={setSort}
+                sortDirection={dir}
+                setSortDirection={setDir}
+                numStars={stars}
+                setNumStars={setStars}
               />
             )}
           </div>
 
           <div className="flex flex-col items-center w-full">
-            {/* Film gallery section — top-level split: Discover vs. My Films */}
             {isDiscoverMode ? (
-              /* --- Discover mode --- */
               suggestedFilmList.length > 0 ? (
                 <>
-                  <TmdbFilmGallery
-                    listOfFilmObjects={suggestedFilmList}
-                    setPage={setPage}
-                  />
-                  {/* Pagination footer: sentinel triggers next page load, or show end message */}
-                  {page.hasMore ? (
-                    /* 1px sentinel; IntersectionObserver rootMargin pre-fires 400px early */
+                  <TmdbFilmGallery listOfFilmObjects={suggestedFilmList} />
+                  {hasNextPage ? (
                     <div ref={loadMoreTrigger} className="w-full h-px mt-20" />
                   ) : (
                     <div className="w-full flex items-center justify-center m-10 text-base text-black">
@@ -377,32 +445,28 @@ export default function MapPage() {
                   )}
                 </>
               ) : (
-                /* No results — only shown after loading completes */
                 !isLoading && (
                   <div className="mt-10 mb-20 text-sm md:text-base">
                     No films found.
                   </div>
                 )
               )
-            ) : /* --- My Films mode --- */
-            authState.status ? (
+            ) : authState.status ? (
               <UserFilmGallery
                 listOfFilmObjects={userFilmList}
                 queryString={galleryQueryString}
-                sortDirection={sortDirection}
-                sortBy={sortBy}
+                sortDirection={dir}
+                sortBy={sort}
               />
             ) : (
-              /* Unauthenticated prompt */
               <div className="mt-10 mb-20 text-sm md:text-base">
                 Log in and like a film to start!
               </div>
             )}
           </div>
         </div>
-        {/* end inner scroll container */}
 
-        {/* Desktop handle button — protrudes to the right at the sidebar's vertical center */}
+        {/* Desktop handle button */}
         <button
           type="button"
           aria-label="Resize or toggle sidebar"
@@ -422,8 +486,6 @@ export default function MapPage() {
           onClick={handleDragAreaClick}
           onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}>
           <GripVertical className="text-foreground" />
-          {/* <FaGripLines className="text-[8px] text-muted rotate-90" /> */}
-          {/* <FaGripLines className="text-[8px] text-muted rotate-90" /> */}
         </button>
       </div>
     </div>

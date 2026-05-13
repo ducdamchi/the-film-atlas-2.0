@@ -158,19 +158,6 @@ export interface WikidataAwardsResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Country probing
-// ---------------------------------------------------------------------------
-
-/**
- * Return value of probeCountryDefaults — the calibrated thresholds for a
- * country's TMDB discover query.
- */
-export interface CountryDefaults {
-  voteCount: number
-  rating: number
-}
-
-// ---------------------------------------------------------------------------
 // Collections
 // ---------------------------------------------------------------------------
 

@@ -1,24 +1,20 @@
-import type { Dispatch, SetStateAction } from "react";
 import Toggle from "../ui-custom/Toggle";
 import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa";
 
-type MapQueryString =
-  | "watched/by_country"
-  | "watchlisted/by_country"
-  | "watched/rated/by_country";
+type MapQueryString = "watched" | "watchlisted" | "rated";
 
 type SortBy = "added_date" | "released_date";
 type SortDirection = "asc" | "desc";
 
 interface MyFilmsControlsProps {
   queryString: MapQueryString;
-  setQueryString: Dispatch<SetStateAction<MapQueryString>>;
+  setQueryString: (val: MapQueryString | "discover") => void;
   sortBy: SortBy;
-  setSortBy: Dispatch<SetStateAction<SortBy>>;
+  setSortBy: (val: SortBy) => void;
   sortDirection: SortDirection;
-  setSortDirection: Dispatch<SetStateAction<SortDirection>>;
-  numStars: number | null;
-  setNumStars: Dispatch<SetStateAction<number | null>>;
+  setSortDirection: (val: SortDirection) => void;
+  numStars: number;
+  setNumStars: (val: number) => void;
 }
 
 export default function MyFilmsControls({
@@ -38,9 +34,9 @@ export default function MyFilmsControls({
         value={queryString}
         onChange={setQueryString}
         options={[
-          { value: "watched/by_country", label: "Watched" },
-          { value: "watchlisted/by_country", label: "Watchlist" },
-          { value: "watched/rated/by_country", label: "Rated" },
+          { value: "watched", label: "Watched" },
+          { value: "watchlisted", label: "Watchlist" },
+          { value: "rated", label: "Rated" },
         ]}
       />
       <div className="flex flex-col items-center justify-center">
@@ -69,8 +65,8 @@ export default function MyFilmsControls({
           ]}
         />
       </div>
-      {queryString === "watched/rated/by_country" && (
-        <Toggle<number | null>
+      {queryString === "rated" && (
+        <Toggle<number>
           label="Rating"
           value={numStars}
           onChange={setNumStars}

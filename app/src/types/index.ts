@@ -53,7 +53,6 @@ export type {
   OmdbResponse,
   WikidataAward,
   WikidataAwardsResponse,
-  CountryDefaults,
 } from './api'
 
 export type {

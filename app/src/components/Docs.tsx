@@ -175,6 +175,7 @@ export default function Docs() {
                       <Link
                         className="docs-subtitle hover:text-hover-link cursor-pointer transition-all ease-out duration-200"
                         to="/map"
+                        search={{}}
                         target="_blank"
                         rel="noopener noreferrer">
                         Map

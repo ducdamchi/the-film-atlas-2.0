@@ -1,373 +1,175 @@
-import { useState, useRef, useEffect } from "react"
-import { usePersistedState } from "./usePersistedState"
-import {
-  queryTopRatedFilmByCountryTMDB,
-  probeCountryDefaults,
-} from "@/utils/apiCalls"
+import { useRef, useEffect } from "react"
+import { useInfiniteQuery } from "@tanstack/react-query"
+import { queryTopRatedFilmByCountryTMDB } from "@/utils/apiCalls"
 import { shuffleArray } from "@/utils/helperFunctions"
+import { COUNTRY_DEFAULTS, GLOBAL_DEFAULTS } from "@/data/countryDefaults"
 import type { TMDBFilmSummary } from "@/types/tmdb"
-import type { DiscoverPageState } from "@/types/map"
-import type { PopupInfo } from "@/types/map"
+import type { FilterMode, DiscoverSort } from "@/routes/map"
 
-const RATING_STEPS = [0, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5] as const
 const RANDOM_BATCH_SIZE = 3
+
+// Module-level epoch map for random-mode cache busting.
+// Bumped when the user switches away from random and back, forcing a fresh shuffle.
+// Lives outside the hook so it survives component unmounts (full browser session).
+const randomEpochs = new Map<string, number>()
+function getOrInitEpoch(isoA2: string): number {
+  if (!randomEpochs.has(isoA2)) randomEpochs.set(isoA2, Date.now())
+  return randomEpochs.get(isoA2)!
+}
+function bumpEpoch(isoA2: string): void {
+  randomEpochs.set(isoA2, Date.now())
+}
 
 interface UseDiscoverFilmsParams {
   isDiscoverMode: boolean
-  popupInfo: PopupInfo | null
+  isoA2: string | null | undefined
+  dsort: DiscoverSort
+  filter: FilterMode
+  /** Used only when filter === "custom" */
+  rating: number
+  /** Used only when filter === "custom" */
+  votes: number
 }
 
-/**
- * The full return value of useDiscoverFilms.
- *
- * All range state is a [min, max] tuple matching `DiscoverFilmParams` in map.ts.
- * `discoverTotalResults` is null until the first successful probe/fetch so that
- * the adaptive rating logic can distinguish "not yet loaded" from "0 results".
- */
 export interface UseDiscoverFilmsResult {
   suggestedFilmList: TMDBFilmSummary[]
-  page: DiscoverPageState
-  setPage: React.Dispatch<React.SetStateAction<DiscoverPageState>>
-  discoverBy: string
-  setDiscoverBy: React.Dispatch<React.SetStateAction<string>>
-  ratingRange: [number, number]
-  setRatingRange: React.Dispatch<React.SetStateAction<[number, number]>>
-  tempRatingRange: [number, number]
-  setTempRatingRange: React.Dispatch<React.SetStateAction<[number, number]>>
-  voteCountRange: [number, number]
-  setVoteCountRange: React.Dispatch<React.SetStateAction<[number, number]>>
-  tempVoteCountRange: [number, number]
-  setTempVoteCountRange: React.Dispatch<React.SetStateAction<[number, number]>>
-  discoverTotalResults: number | null
   isLoading: boolean
+  hasNextPage: boolean
   loadMoreTrigger: React.RefObject<HTMLDivElement | null>
 }
 
 /**
  * Manages paginated TMDB film discovery for the selected map country.
  *
- * All range state ([min, max] tuples) is typed as `[number, number]` rather
- * than `number[]` because the code always accesses index [1] for the filter
- * threshold — a plain `number[]` would allow empty arrays through without a
- * compile-time error, while the tuple ensures both elements always exist.
+ * Filter thresholds are resolved synchronously:
+ *   - "recommended" mode: static per-country lookup from countryDefaults.ts
+ *     (pre-calibrated offline, no async probe needed).
+ *   - "custom" mode: user-supplied rating/votes values from URL params.
  *
- * `discoverTotalResults` is `number | null` (not `number`) because null is the
- * explicit sentinel meaning "probe hasn't run yet" — the adaptive adjustment
- * effect guards on this before running, preventing premature re-adjustments.
+ * Uses useInfiniteQuery for per-country caching. The shuffled order for
+ * random mode is baked into the cache so revisiting a country restores the
+ * same list instantly. Switching away from random and back bumps an epoch
+ * in the query key, forcing a fresh fetch and new shuffle.
  */
 export function useDiscoverFilms({
   isDiscoverMode,
-  popupInfo,
+  isoA2,
+  dsort,
+  filter,
+  rating,
+  votes,
 }: UseDiscoverFilmsParams): UseDiscoverFilmsResult {
-  const [suggestedFilmList, setSuggestedFilmList] = usePersistedState<
-    TMDBFilmSummary[]
-  >("map-suggestedFilmList", [])
+  // Resolve filters synchronously — no async probe
+  const filters =
+    filter === "custom"
+      ? { rating, voteCount: votes }
+      : (COUNTRY_DEFAULTS[isoA2 ?? ""] ?? GLOBAL_DEFAULTS)
 
-  const [page, setPage] = usePersistedState<DiscoverPageState>("map-page", {
-    numPages: 1,
-    loadMore: false,
-    hasMore: true,
-  })
+  // Bump random epoch when switching back to random so the cached shuffle
+  // is discarded and a new one is fetched.
+  const prevDsortRef = useRef(dsort)
+  useEffect(() => {
+    const prev = prevDsortRef.current
+    prevDsortRef.current = dsort
+    if (prev !== "random" && dsort === "random" && isoA2) {
+      bumpEpoch(isoA2)
+    }
+  }, [dsort, isoA2])
 
-  const [discoverBy, setDiscoverBy] = usePersistedState<string>(
-    "map-discoverBy",
-    "random",
-  )
-
-  const [ratingRange, setRatingRange] = usePersistedState<[number, number]>(
-    "map-ratingRange",
-    [0, 7],
-  )
-
-  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>(ratingRange)
-
-  const [voteCountRange, setVoteCountRange] = usePersistedState<
-    [number, number]
-  >("map-voteCountRange", [0, 100])
-
-  const [tempVoteCountRange, setTempVoteCountRange] = useState<[number, number]>(voteCountRange)
-
-  const [discoverTotalResults, setDiscoverTotalResults] = useState<
-    number | null
-  >(null)
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const epoch = isoA2 && dsort === "random" ? getOrInitEpoch(isoA2) : null
 
   const loadMoreTrigger = useRef<HTMLDivElement | null>(null)
-  const isPageRefresh = useRef<boolean>(true)
-  const calibratedCountryRef = useRef<string | null>(null)
-  const lastFetchParamsRef = useRef<string | null>(null)
-  const autoAdjustedRef = useRef<boolean>(false)
 
-  /* Intersection Observer */
+  const {
+    data,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["discover", isoA2, dsort, filters.rating, filters.voteCount, epoch],
+    queryFn: async ({ queryKey, pageParam }) => {
+      // Destructure from key so the fn always uses the values it was keyed on,
+      // regardless of closure staleness.
+      const [, countryCode, sortBy, ratingMax, voteCountMax] = queryKey as [
+        string, string, string, number, number,
+      ]
+      const ratingRange: [number, number] = [0, ratingMax]
+      const voteCountRange: [number, number] = [0, voteCountMax]
+      const batchIndex = pageParam as number
+
+      if (sortBy === "random") {
+        const startPage = batchIndex * RANDOM_BATCH_SIZE + 1
+        const pageNums = Array.from(
+          { length: RANDOM_BATCH_SIZE },
+          (_, i) => startPage + i,
+        )
+        const responses = await Promise.all(
+          pageNums.map((p) =>
+            queryTopRatedFilmByCountryTMDB({
+              page: p,
+              countryCode,
+              sortBy,
+              ratingRange,
+              voteCountRange,
+            }),
+          ),
+        )
+        const results = responses
+          .flatMap((r) => r.results)
+          .filter((m) => m.backdrop_path !== null && m.poster_path !== null)
+        shuffleArray(results)
+        return { results, totalResults: responses[0].totalResults }
+      } else {
+        const { results, totalResults } = await queryTopRatedFilmByCountryTMDB({
+          page: batchIndex + 1,
+          countryCode,
+          sortBy,
+          ratingRange,
+          voteCountRange,
+        })
+        return {
+          results: results.filter(
+            (m) => m.backdrop_path !== null && m.poster_path !== null,
+          ),
+          totalResults,
+        }
+      }
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const batchSize = dsort === "random" ? RANDOM_BATCH_SIZE : 1
+      const tmdbPagesFetched = allPages.length * batchSize
+      const totalTmdbPages = Math.ceil(lastPage.totalResults / 20)
+      return tmdbPagesFetched < totalTmdbPages ? allPages.length : undefined
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: !!isoA2 && isDiscoverMode,
+  })
+
+  const suggestedFilmList = data?.pages.flatMap((p) => p.results) ?? []
+
+  /* Intersection Observer — triggers next page load */
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) =>
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            if (!isLoading && suggestedFilmList.length > 0) {
-              setPage((prevPage) => ({ ...prevPage, loadMore: true }))
-            }
-          } else {
-            setPage((prevPage) => ({ ...prevPage, loadMore: false }))
+          if (entry.isIntersecting && !isFetchingNextPage && hasNextPage) {
+            fetchNextPage()
           }
         }),
-      // rootMargin pre-fires 400px before the sentinel enters the viewport so
-      // the next page loads before the user visually reaches the bottom.
-      // threshold: 0 fires as soon as any part of the element crosses the margin.
       { threshold: 0, rootMargin: "0px 0px 400px 0px" },
     )
-    if (loadMoreTrigger.current) {
-      observer.observe(loadMoreTrigger.current)
-    }
+    if (loadMoreTrigger.current) observer.observe(loadMoreTrigger.current)
     return () => {
-      if (loadMoreTrigger.current) {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        observer.unobserve(loadMoreTrigger.current)
-      }
-      setPage((prevPage) => ({ ...prevPage, loadMore: false }))
+      if (loadMoreTrigger.current) observer.unobserve(loadMoreTrigger.current)
     }
-  }, [isLoading])
-
-  /* Fetch New Page */
-  useEffect(() => {
-    const fetchNewPage = async () => {
-      if (!isLoading && page.loadMore === true) {
-        try {
-          setIsLoading(true)
-          if (
-            popupInfo &&
-            popupInfo.iso_a2 !== undefined &&
-            ratingRange.length === 2
-          ) {
-            if (discoverBy === "random") {
-              const pageNums = Array.from(
-                { length: RANDOM_BATCH_SIZE },
-                (_, i) => page.numPages + 1 + i,
-              )
-              const responses = await Promise.all(
-                pageNums.map((p) =>
-                  queryTopRatedFilmByCountryTMDB({
-                    page: p,
-                    countryCode: popupInfo.iso_a2,
-                    sortBy: discoverBy,
-                    ratingRange,
-                    voteCountRange,
-                  }),
-                ),
-              )
-              const combined = responses.flatMap((r) => r.results)
-              const filtered_results = combined.filter(
-                (movie) =>
-                  !(movie.backdrop_path === null || movie.poster_path === null),
-              )
-              if (filtered_results.length > 0) {
-                shuffleArray(filtered_results)
-                setSuggestedFilmList((prev) => [...prev, ...filtered_results])
-                const totalPages = Math.ceil(
-                  (discoverTotalResults ?? 0) / 20,
-                )
-                setPage((prevPage) => ({
-                  ...prevPage,
-                  numPages: prevPage.numPages + RANDOM_BATCH_SIZE,
-                  hasMore:
-                    prevPage.numPages + RANDOM_BATCH_SIZE < totalPages,
-                }))
-              } else {
-                setPage((prevPage) => ({
-                  ...prevPage,
-                  loadMore: false,
-                  hasMore: false,
-                }))
-                console.log("No more pages to load.")
-              }
-            } else {
-              const { results } = await queryTopRatedFilmByCountryTMDB({
-                page: page.numPages + 1,
-                countryCode: popupInfo.iso_a2,
-                sortBy: discoverBy,
-                ratingRange,
-                voteCountRange,
-              })
-              const filtered_results = results.filter(
-                (movie) =>
-                  !(movie.backdrop_path === null || movie.poster_path === null),
-              )
-              if (filtered_results.length > 0) {
-                setSuggestedFilmList((prev) => [...prev, ...filtered_results])
-                setPage((prevPage) => ({
-                  ...prevPage,
-                  numPages: prevPage.numPages + 1,
-                }))
-              } else {
-                setPage((prevPage) => ({
-                  ...prevPage,
-                  loadMore: false,
-                  hasMore: false,
-                }))
-                console.log("No more pages to load.")
-              }
-            }
-          } else {
-            setSuggestedFilmList([])
-          }
-        } catch (err) {
-          console.log(err)
-          throw err
-        } finally {
-          setIsLoading(false)
-        }
-      }
-    }
-    fetchNewPage()
-  }, [page])
-
-  /* Fetch Initial Page */
-  useEffect(() => {
-    if (isPageRefresh.current) {
-      isPageRefresh.current = false
-      return
-    }
-    if (isDiscoverMode) {
-      const getSuggestions = async () => {
-        try {
-          setIsLoading(true)
-          if (
-            popupInfo &&
-            popupInfo.iso_a2 !== undefined &&
-            ratingRange.length === 2
-          ) {
-            const isoA2 = popupInfo.iso_a2
-            let effectiveRatingRange: [number, number] = ratingRange
-            let effectiveVoteCountRange: [number, number] = voteCountRange
-
-            if (calibratedCountryRef.current !== isoA2) {
-              autoAdjustedRef.current = false
-              setDiscoverTotalResults(null)
-              const defaults = await probeCountryDefaults(isoA2)
-              effectiveRatingRange = [0, defaults.rating]
-              effectiveVoteCountRange = [0, defaults.voteCount]
-              calibratedCountryRef.current = isoA2
-              setRatingRange(effectiveRatingRange)
-              setVoteCountRange(effectiveVoteCountRange)
-              setTempRatingRange(effectiveRatingRange)
-              setTempVoteCountRange(effectiveVoteCountRange)
-            }
-
-            const paramsKey = `${isoA2}-${discoverBy}-${effectiveRatingRange[1]}-${effectiveVoteCountRange[1]}`
-            if (lastFetchParamsRef.current === paramsKey) return
-            lastFetchParamsRef.current = paramsKey
-
-            if (discoverBy === "random") {
-              const pageNums = Array.from(
-                { length: RANDOM_BATCH_SIZE },
-                (_, i) => i + 1,
-              )
-              const responses = await Promise.all(
-                pageNums.map((p) =>
-                  queryTopRatedFilmByCountryTMDB({
-                    page: p,
-                    countryCode: isoA2,
-                    sortBy: discoverBy,
-                    ratingRange: effectiveRatingRange,
-                    voteCountRange: effectiveVoteCountRange,
-                  }),
-                ),
-              )
-              const { totalResults } = responses[0]
-              const combined = responses.flatMap((r) => r.results)
-              const filtered_results = combined.filter(
-                (movie) =>
-                  !(movie.backdrop_path === null || movie.poster_path === null),
-              )
-              shuffleArray(filtered_results)
-              setSuggestedFilmList(filtered_results)
-              setDiscoverTotalResults(totalResults)
-              setPage({
-                numPages: RANDOM_BATCH_SIZE,
-                loadMore: false,
-                hasMore: totalResults > RANDOM_BATCH_SIZE * 20,
-              })
-            } else {
-              setPage({ numPages: 1, loadMore: false, hasMore: true })
-              const { results, totalResults } =
-                await queryTopRatedFilmByCountryTMDB({
-                  page: 1,
-                  countryCode: isoA2,
-                  sortBy: discoverBy,
-                  ratingRange: effectiveRatingRange,
-                  voteCountRange: effectiveVoteCountRange,
-                })
-              const filtered_results = results.filter(
-                (movie) =>
-                  !(movie.backdrop_path === null || movie.poster_path === null),
-              )
-              setSuggestedFilmList(filtered_results)
-              setDiscoverTotalResults(totalResults)
-            }
-          } else {
-            setSuggestedFilmList([])
-            lastFetchParamsRef.current = null
-          }
-        } catch (err) {
-          console.log(err)
-          throw err
-        } finally {
-          setIsLoading(false)
-        }
-      }
-      getSuggestions()
-    }
-  }, [isDiscoverMode, popupInfo, discoverBy, ratingRange, voteCountRange])
-
-  /* Adaptive rating adjustment */
-  useEffect(() => {
-    if (
-      !isDiscoverMode ||
-      autoAdjustedRef.current ||
-      discoverTotalResults === null
-    )
-      return
-
-    const currentRating = ratingRange[1]
-    let nextRating: number | null = null
-
-    if (discoverTotalResults < 20 && currentRating > 0) {
-      const idx = RATING_STEPS.findIndex((s) => s >= currentRating)
-      const currentIdx = idx === -1 ? RATING_STEPS.length - 1 : idx
-      const nextIdx = Math.max(currentIdx - 1, 0)
-      if (RATING_STEPS[nextIdx] !== currentRating)
-        nextRating = RATING_STEPS[nextIdx]
-    } else if (discoverTotalResults > 200 && currentRating < 7.5) {
-      const idx = RATING_STEPS.findIndex((s) => s > currentRating)
-      const nextIdx = idx === -1 ? RATING_STEPS.length - 1 : idx
-      if (RATING_STEPS[nextIdx] !== currentRating)
-        nextRating = RATING_STEPS[nextIdx]
-    }
-
-    if (nextRating !== null) {
-      setRatingRange([0, nextRating])
-      setTempRatingRange([0, nextRating])
-    }
-
-    autoAdjustedRef.current = true
-  }, [discoverTotalResults, isDiscoverMode, ratingRange])
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
 
   return {
     suggestedFilmList,
-    page,
-    setPage,
-    discoverBy,
-    setDiscoverBy,
-    ratingRange,
-    setRatingRange,
-    tempRatingRange,
-    setTempRatingRange,
-    voteCountRange,
-    setVoteCountRange,
-    tempVoteCountRange,
-    setTempVoteCountRange,
-    discoverTotalResults,
-    isLoading,
+    isLoading: isFetching && !isFetchingNextPage,
+    hasNextPage: hasNextPage ?? false,
     loadMoreTrigger,
   }
 }

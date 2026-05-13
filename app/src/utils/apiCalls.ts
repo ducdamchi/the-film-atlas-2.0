@@ -9,7 +9,6 @@ import type {
 import type {
   OmdbResponse,
   WikidataAwardsResponse,
-  CountryDefaults,
 } from "@/types/api"
 import type { DiscoverFilmParams } from "@/types/map"
 
@@ -166,35 +165,6 @@ export function queryTopRatedFilmByCountryTMDB({
     })
 }
 
-/* Probe TMDB to determine appropriate vote_count and rating defaults for a country.
-Uses total_results from a permissive (unfiltered) query to tier the thresholds. */
-export async function probeCountryDefaults(
-  isoA2: string,
-): Promise<CountryDefaults> {
-  try {
-    const response = await axios.get(`${PROXY_URL}/tmdb/discover/movie`, {
-      params: {
-        with_origin_country: isoA2,
-        include_adult: false,
-        include_video: false,
-        "with_runtime.gte": 80,
-        page: 1,
-      },
-    })
-
-    const T: number = response.data.total_results
-
-    if (T < 40) return { voteCount: 0, rating: 0 }
-    if (T < 100) return { voteCount: 0, rating: 5.0 }
-    if (T < 300) return { voteCount: 5, rating: 5.5 }
-    if (T < 800) return { voteCount: 20, rating: 6.0 }
-    if (T < 2000) return { voteCount: 80, rating: 6.5 }
-    return { voteCount: 200, rating: 7.0 }
-  } catch (err) {
-    console.log("Client: Error probing country defaults", err)
-    return { voteCount: 0, rating: 0 }
-  }
-}
 
 export function fetchFilmAwardsFromWikidata(
   imdbId: string,

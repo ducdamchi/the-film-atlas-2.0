@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
@@ -24,7 +22,11 @@ import {
 } from "@/components/ui-shadcn/tooltip"
 import { PanelLeftIcon } from "lucide-react"
 import { useAtom, useAtomValue } from "jotai"
-import { sidebarHoveredAtom, sidebarPinnedAtom, sidebarAnchoredAtom } from "../../atoms/atoms"
+import {
+  sidebarHoveredAtom,
+  sidebarPinnedAtom,
+  sidebarAnchoredAtom,
+} from "../../atoms/atoms"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
