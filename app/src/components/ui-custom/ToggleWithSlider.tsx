@@ -66,11 +66,11 @@ export default function ToggleWithSlider<T>({
             {label}
           </div>
         )}
-        <div className="relative bg-muted-foreground/10 rounded-none w-[20rem] h-[2.5rem] text-sm @5xl:text-base @5xl:w-[25rem]inset-shadow-xs inset-shadow-muted-foreground">
-          <div className="relative flex w-full h-full ">
+        <div className="relative bg-muted-foreground/10 rounded-none w-[20rem] min-h-[2.5rem] text-sm @5xl:text-base @5xl:w-[25rem] inset-shadow-xs inset-shadow-muted-foreground">
+          <div className="relative flex w-full h-[2.5rem]">
             {/* Slider background */}
             <div
-              className={`absolute h-full bg-foreground rounded-none shadow-md transition-all duration-400 ease-in-out   ${sliderVisible ? "" : "invisible"}`}
+              className={`absolute bg-foreground rounded-none shadow-md transition-all duration-400 ease-in-out h-[2.5rem] ${sliderVisible ? "" : "invisible"}`}
               style={{
                 width: sliderWidth,
                 transform: sliderTranslate,
@@ -84,13 +84,13 @@ export default function ToggleWithSlider<T>({
                   setPendingIndex(idx)
                   onChange(opt.value)
                 }}
-                className={`flex-1 text-center py-2 rounded-none transition-all duration-100 ease-in z-10 flex items-center justify-center ${activeIndex === idx ? "text-background font-semibold" : "text-muted-foreground"}`}>
+                className={`flex-1 text-center py-2 rounded-none h-[2.5rem] transition-all duration-100 ease-in z-10 flex items-center justify-center ${activeIndex === idx ? "text-background font-semibold" : "text-muted-foreground"}`}>
                 {opt.label}
               </button>
             ))}
           </div>
           {(value as string) === "custom" && (
-            <div className="flex flex-col items-center justify-center gap-6 p-6 rounded-3xl bg-muted-foreground/10 w-[20rem] text-xs @5xl:text-sm @5xl:w-[25rem] text-muted-foreground">
+            <div className="flex flex-col items-center justify-center gap-6 p-6 rounded-3xl w-[20rem] text-xs @5xl:text-sm @5xl:w-[25rem] text-muted-foreground">
               <div className="w-full flex flex-col items-center justify-center gap-2 uppercase font-semibold ">
                 <div>Average Rating &#x2265; {`${tempRatingRange?.[1]}`}</div>
                 <CustomSlider

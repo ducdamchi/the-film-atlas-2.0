@@ -1,6 +1,10 @@
+import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 
-import { getReleaseYear, extractBorderColorFromElement } from "@/utils/helperFunctions"
+import {
+  getReleaseYear,
+  extractBorderColorFromElement,
+} from "@/utils/helperFunctions"
 import { useMarquee } from "@/hooks/useMarquee"
 import { useFilmCardFetch } from "@/hooks/useFilmCardFetch"
 
@@ -31,11 +35,11 @@ export default function TmdbFilmCard({
     fetchError,
     movieDetails,
     directors,
-    isPosterHovered,
-    setIsPosterHovered,
     handleCardHoverEnter,
     handleCardHoverLeave,
   } = useFilmCardFetch(filmObject.id)
+
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   const titleSpanRef = useMarquee(filmObject.title)
 
@@ -46,6 +50,7 @@ export default function TmdbFilmCard({
 
   // Mobile: dynamic border color from backdrop, runs when image finishes loading
   function handleImageLoad(el: HTMLImageElement) {
+    setImageLoaded(true)
     if (window.innerWidth >= 768) return
     if (!filmObject.backdrop_path) return
     const filmCard = document.getElementById(`film-card-${filmObject.id}`)
@@ -56,7 +61,7 @@ export default function TmdbFilmCard({
   return (
     <div
       id={`film-card-${filmObject.id}`}
-      className="filmCard-width md:aspect-16/10 flex flex-col justify-center items-center gap-0 text-background rounded-none pt-0 relative group/card hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-2xl border-1 md:border-0"
+      className={`filmCard-width md:aspect-16/10 flex flex-col justify-center items-center gap-0 text-background rounded-none pt-0 relative group/card hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-2xl border-1 md:border-0 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
       onMouseEnter={handleCardHoverEnter}
       onMouseLeave={handleCardHoverLeave}>
       <div className="relative w-full">
@@ -65,9 +70,8 @@ export default function TmdbFilmCard({
           backdropPath={filmObject.backdrop_path}
           filmId={filmObject.id}
           trailerKey={trailerKey}
-          isPosterHovered={isPosterHovered}
-          onPosterHoverEnter={() => setIsPosterHovered(true)}
-          onPosterHoverLeave={() => setIsPosterHovered(false)}
+          onPosterHoverEnter={() => {}}
+          onPosterHoverLeave={() => {}}
           onNavigate={() => {
             navigate({ to: `/films/${filmObject.id}` })
             setPage?.((prevPage) => ({ ...prevPage, loadMore: false }))

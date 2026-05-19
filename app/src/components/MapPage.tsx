@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { useAtom } from "jotai"
 import { useNavigate } from "@tanstack/react-router"
 import { Map, Popup, NavigationControl } from "react-map-gl/maplibre"
 
@@ -13,20 +14,23 @@ import { useMapInteraction } from "../hooks/useMapInteraction"
 import { useDiscoverFilms } from "../hooks/useDiscoverFilms"
 import { useUserFilms } from "../hooks/useUserFilms"
 import { useMapPanel } from "../hooks/useMapPanel"
-import { COUNTRY_DEFAULTS, GLOBAL_DEFAULTS } from "@/data/countryDefaults"
 import { Route } from "@/routes/map"
-import type {
-  MapMode,
-  DiscoverFilterMode,
-  DiscoverSort,
-  UserSort,
-  UserSortDir,
-} from "@/routes/map"
+import type { MapMode } from "@/routes/map"
+import {
+  map_modeAtom,
+  map_discoverSortAtom,
+  map_discoverFilterAtom,
+  map_ratingAtom,
+  map_votesAtom,
+  map_userSortAtom,
+  map_userSortDirAtom,
+  map_starsAtom,
+  map_userFilterAtom,
+} from "@/atoms/mapAtoms"
 
 import UserFilmGallery from "./films/UserFilmGallery"
 import TmdbFilmGallery from "./films/TmdbFilmGallery"
 import Toggle from "./ui-custom/Toggle"
-import LoadingPage from "./layout/LoadingPage"
 import MapCountriesLayer from "./map/MapCountriesLayer"
 import DiscoverControls from "./map/DiscoverControls"
 import MyFilmsControls from "./map/MyFilmsControls"
@@ -42,150 +46,20 @@ export default function MapPage() {
   const { authState } = useAuth()
   const [webGLSupported] = useState(() => checkWebGLSupport())
 
-  /* URL search params — single source of truth for all filter/mode state */
-  const {
-    country,
-    mode,
-    dsort: rawDsort,
-    filter: rawFilter,
-    rating: rawRating,
-    votes: rawVotes,
-    sort: rawSort,
-    dir: rawDir,
-    stars: rawStars,
-  } = Route.useSearch()
+  const { country } = Route.useSearch()
   const navigate = useNavigate({ from: "/map" })
 
-  // Defaults applied at the call site — omitted URL params mean "use default"
+  const [mode, setMapMode] = useAtom(map_modeAtom)
+  const [dsort] = useAtom(map_discoverSortAtom)
+  const [filter] = useAtom(map_discoverFilterAtom)
+  const [rating] = useAtom(map_ratingAtom)
+  const [votes] = useAtom(map_votesAtom)
+  const [sort] = useAtom(map_userSortAtom)
+  const [dir] = useAtom(map_userSortDirAtom)
+  const [stars] = useAtom(map_starsAtom)
+  const [ufilter] = useAtom(map_userFilterAtom)
+
   const isDiscoverMode = mode === "discover"
-  const dsort: DiscoverSort = rawDsort ?? "random"
-  const filter: DiscoverFilterMode = rawFilter ?? "recommended"
-  const rating = rawRating ?? 0
-  const votes = rawVotes ?? 0
-  const sort: UserSort = rawSort ?? "added_date"
-  const dir: UserSortDir = rawDir ?? "desc"
-  const stars = rawStars ?? 0
-
-  // Ephemeral: remembers last my-films sub-mode so switching back to "My Films"
-  // restores the previous filter (watched/watchlisted/rated) instead of defaulting.
-  const [lastMyFilmsMode, setLastMyFilmsMode] = useState<MapFilmMode>("watched")
-
-  /* URL setters — replace history entries so filter changes don't pollute back button */
-
-  // Strips irrelevant params on mode transition
-  const setMode = (val: MapMode) => {
-    if (val === "discover") {
-      navigate({
-        search: (prev) => ({
-          country: prev.country,
-          mode: "discover" as const,
-          ...(prev.filter === "custom" && {
-            filter: "custom" as const,
-            rating: prev.rating,
-            votes: prev.votes,
-          }),
-          ...(prev.dsort && { dsort: prev.dsort }),
-        }),
-        replace: true,
-      })
-    } else {
-      navigate({
-        search: (prev) => ({
-          country: prev.country,
-          mode: val,
-          ...(prev.sort && { sort: prev.sort }),
-          ...(prev.dir && { dir: prev.dir }),
-          ...(val === "rated" && prev.stars && { stars: prev.stars }),
-        }),
-        replace: true,
-      })
-    }
-  }
-  const setDsort = (val: DiscoverSort) =>
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        dsort: val === "random" ? undefined : val,
-      }),
-      replace: true,
-    })
-  const setFilter = (val: DiscoverFilterMode) => {
-    if (val === "custom") {
-      // Seed custom sliders from the current recommended values
-      const rec = COUNTRY_DEFAULTS[isoA2 ?? ""] ?? GLOBAL_DEFAULTS
-      navigate({
-        search: (prev) => ({
-          ...prev,
-          filter: "custom" as const,
-          rating: rec.rating,
-          votes: rec.voteCount,
-        }),
-        replace: true,
-      })
-    } else {
-      // Strip rating/votes; omitting filter key defaults to "recommended"
-      navigate({
-        search: (prev) => {
-          const { rating: _r, votes: _v, filter: _f, ...rest } = prev
-          return rest
-        },
-        replace: true,
-      })
-    }
-  }
-  const setRating = (val: number) =>
-    navigate({ search: (prev) => ({ ...prev, rating: val }), replace: true })
-  const setVotes = (val: number) =>
-    navigate({ search: (prev) => ({ ...prev, votes: val }), replace: true })
-
-  // Temp (in-drag) state for sliders — committed to URL on drag end
-  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([
-    0,
-    rating,
-  ])
-  const [tempVoteCountRange, setTempVoteCountRange] = useState<
-    [number, number]
-  >([0, votes])
-  // Sync temp state when URL params change externally (e.g. back/forward nav)
-  useEffect(() => setTempRatingRange([0, rating]), [rating])
-  useEffect(() => setTempVoteCountRange([0, votes]), [votes])
-
-  // "added_date" and "desc" are defaults — omit from URL
-  const setSort = (val: UserSort) =>
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        sort: val === "added_date" ? undefined : val,
-      }),
-      replace: true,
-    })
-  const setDir = (val: UserSortDir) =>
-    navigate({
-      search: (prev) => ({ ...prev, dir: val === "desc" ? undefined : val }),
-      replace: true,
-    })
-  // 0 means "all" — omit from URL
-  const setStars = (val: number) =>
-    navigate({
-      search: (prev) => ({ ...prev, stars: val > 0 ? val : undefined }),
-      replace: true,
-    })
-
-  /* Track mode changes for lastMyFilmsMode and stale-stars cleanup (back/forward nav) */
-  const prevModeRef = useRef(mode)
-  useEffect(() => {
-    const prev = prevModeRef.current
-    prevModeRef.current = mode
-    if (prev !== mode) {
-      if (prev !== "discover") setLastMyFilmsMode(prev as MapFilmMode)
-      if (mode !== "rated" && stars !== 0) {
-        navigate({
-          search: (prev) => ({ ...prev, stars: undefined }),
-          replace: true,
-        })
-      }
-    }
-  }, [mode])
 
   /* Hooks */
   const { filmsPerCountryData } = useMapFilmData(authState)
@@ -227,7 +101,6 @@ export default function MapPage() {
   })
 
   const innerScrollRef = useRef<HTMLDivElement | null>(null)
-  const isLoading = discoverLoading || userFilmsLoading
 
   /* Sync country URL param when the user clicks a new country on the map */
   const popupSyncMountedRef = useRef(false)
@@ -255,7 +128,7 @@ export default function MapPage() {
 
   /* Scroll restoration — per-country, stored in sessionStorage */
   useEffect(() => {
-    if (isLoading || !innerScrollRef.current) return
+    if (discoverLoading || userFilmsLoading || !innerScrollRef.current) return
     const key = `map-panel-scroll:${isoA2 ?? "none"}`
     const saved = sessionStorage.getItem(key)
     if (saved) {
@@ -264,7 +137,7 @@ export default function MapPage() {
         el.scrollTop = parseInt(saved, 10)
       }, 50)
     }
-  }, [isLoading, isoA2])
+  }, [discoverLoading, userFilmsLoading, isoA2])
 
   useEffect(() => {
     const el = innerScrollRef.current
@@ -285,8 +158,6 @@ export default function MapPage() {
 
   return (
     <div className="font-primary inset-0 overflow-hidden">
-      {isLoading && <LoadingPage />}
-
       {/* Map — fills the full viewport */}
       <div ref={mapContainerRef} className="absolute inset-0">
         {webGLSupported ? (
@@ -379,8 +250,8 @@ export default function MapPage() {
               label="Browse"
               value={isDiscoverMode ? "discover" : "my_films"}
               onChange={(val) => {
-                if (val === "discover") setMode("discover")
-                else setMode(lastMyFilmsMode)
+                if (val === "discover") setMapMode("discover")
+                else setMapMode(ufilter)
               }}
               options={[
                 { value: "discover", label: "Discover" },
@@ -389,55 +260,28 @@ export default function MapPage() {
             />
 
             {isDiscoverMode ? (
-              <DiscoverControls
-                isoA2={isoA2}
-                dsort={dsort}
-                filter={filter}
-                ratingRange={[0, rating]}
-                setRatingRange={(val) => setRating(val[1])}
-                tempRatingRange={tempRatingRange}
-                setTempRatingRange={setTempRatingRange}
-                voteCountRange={[0, votes]}
-                setVoteCountRange={(val) => setVotes(val[1])}
-                tempVoteCountRange={tempVoteCountRange}
-                setTempVoteCountRange={setTempVoteCountRange}
-                onDsortChange={setDsort}
-                onFilterChange={setFilter}
-              />
+              <DiscoverControls isoA2={isoA2} />
             ) : (
-              <MyFilmsControls
-                queryString={mode as MapFilmMode}
-                setQueryString={setMode}
-                sortBy={sort}
-                setSortBy={setSort}
-                sortDirection={dir}
-                setSortDirection={setDir}
-                numStars={stars}
-                setNumStars={setStars}
-              />
+              <MyFilmsControls />
             )}
           </div>
 
           <div className="flex flex-col items-center w-full">
             {isDiscoverMode ? (
-              suggestedFilmList.length > 0 ? (
-                <>
-                  <TmdbFilmGallery listOfFilmObjects={suggestedFilmList} />
-                  {hasNextPage ? (
+              <>
+                <TmdbFilmGallery
+                  listOfFilmObjects={suggestedFilmList}
+                />
+                {!discoverLoading && suggestedFilmList.length > 0 && (
+                  hasNextPage ? (
                     <div ref={loadMoreTrigger} className="w-full h-px mt-20" />
                   ) : (
                     <div className="w-full flex items-center justify-center m-10 text-base text-black">
                       You've reached the end!
                     </div>
-                  )}
-                </>
-              ) : (
-                !isLoading && (
-                  <div className="mt-10 mb-20 text-sm md:text-base">
-                    No films found based on current settings.
-                  </div>
-                )
-              )
+                  )
+                )}
+              </>
             ) : authState.status ? (
               <UserFilmGallery
                 listOfFilmObjects={userFilmList}
@@ -461,18 +305,14 @@ export default function MapPage() {
             "hidden md:flex absolute -right-7 top-1/2 -translate-y-1/2",
             "z-10 w-7 h-14",
             "flex-col items-center justify-center gap-[3px]",
-            "bg-background border border-border border-l-0",
-            "rounded-r-lg",
+            "bg-foreground",
             "inset-shadow-[2px_0px_5px_rgba(0,0,0,0.12)]",
             "cursor-ew-resize touch-none select-none",
             "transition-colors duration-150 ease-out",
-            "hover:bg-accent",
-            "active:bg-muted active:shadow-[1px_1px_4px_rgba(0,0,0,0.10)]",
-            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dark",
           ].join(" ")}
           onClick={handleDragAreaClick}
           onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}>
-          <GripVertical className="text-foreground" />
+          <GripVertical className="text-background hover:scale-110 transition-all duration-300 ease-out" />
         </button>
       </div>
     </div>

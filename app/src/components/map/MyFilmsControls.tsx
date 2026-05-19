@@ -1,37 +1,36 @@
+import { useAtom } from "jotai";
 import Toggle from "../ui-custom/Toggle";
 import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa";
+import {
+  map_modeAtom,
+  map_userSortAtom,
+  map_userSortDirAtom,
+  map_starsAtom,
+  map_userFilterAtom,
+} from "@/atoms/mapAtoms";
 
 type MapQueryString = "watched" | "watchlisted" | "rated";
-
 type SortBy = "added_date" | "released_date";
 type SortDirection = "asc" | "desc";
 
-interface MyFilmsControlsProps {
-  queryString: MapQueryString;
-  setQueryString: (val: MapQueryString | "discover") => void;
-  sortBy: SortBy;
-  setSortBy: (val: SortBy) => void;
-  sortDirection: SortDirection;
-  setSortDirection: (val: SortDirection) => void;
-  numStars: number;
-  setNumStars: (val: number) => void;
-}
+export default function MyFilmsControls() {
+  const [, setMapMode] = useAtom(map_modeAtom)
+  const [sortBy, setSortBy] = useAtom(map_userSortAtom)
+  const [sortDirection, setSortDirection] = useAtom(map_userSortDirAtom)
+  const [numStars, setNumStars] = useAtom(map_starsAtom)
+  const [ufilter, setUfilter] = useAtom(map_userFilterAtom)
 
-export default function MyFilmsControls({
-  queryString,
-  setQueryString,
-  sortBy,
-  setSortBy,
-  sortDirection,
-  setSortDirection,
-  numStars,
-  setNumStars,
-}: MyFilmsControlsProps) {
+  const setQueryString = (val: MapQueryString) => {
+    setMapMode(val)
+    if (val !== "rated") setNumStars(0)
+    setUfilter(val)
+  }
+
   return (
     <>
       <Toggle<MapQueryString>
         label="Filter"
-        value={queryString}
+        value={ufilter}
         onChange={setQueryString}
         options={[
           { value: "watched", label: "Watched" },
@@ -65,7 +64,7 @@ export default function MyFilmsControls({
           ]}
         />
       </div>
-      {queryString === "rated" && (
+      {ufilter === "rated" && (
         <Toggle<number>
           label="Rating"
           value={numStars}
