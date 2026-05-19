@@ -14,8 +14,14 @@ import { useDiscoverFilms } from "../hooks/useDiscoverFilms"
 import { useUserFilms } from "../hooks/useUserFilms"
 import { useMapPanel } from "../hooks/useMapPanel"
 import { COUNTRY_DEFAULTS, GLOBAL_DEFAULTS } from "@/data/countryDefaults"
-import { Route, ALIAS_TO_MODE } from "@/routes/map"
-import type { MapMode, MapModeAlias, FilterMode, DiscoverSort, UserSort, SortDir } from "@/routes/map"
+import { Route } from "@/routes/map"
+import type {
+  MapMode,
+  DiscoverFilterMode,
+  DiscoverSort,
+  UserSort,
+  UserSortDir,
+} from "@/routes/map"
 
 import UserFilmGallery from "./films/UserFilmGallery"
 import TmdbFilmGallery from "./films/TmdbFilmGallery"
@@ -24,37 +30,26 @@ import LoadingPage from "./layout/LoadingPage"
 import MapCountriesLayer from "./map/MapCountriesLayer"
 import DiscoverControls from "./map/DiscoverControls"
 import MyFilmsControls from "./map/MyFilmsControls"
-
+import { MapUnavailable } from "./map/MapUnavailable"
 import { FaGripLines } from "react-icons/fa6"
 import { GripVertical } from "lucide-react"
+import { checkWebGLSupport } from "../utils/helperFunctions"
 
-type MapFilmMode = Exclude<MapModeAlias, "discover">
+type MapFilmMode = Exclude<MapMode, "discover">
 type BrowseMode = "discover" | "my_films"
-
-function checkWebGLSupport(): boolean {
-  try {
-    const canvas = document.createElement("canvas")
-    return !!(
-      window.WebGLRenderingContext &&
-      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
-    )
-  } catch {
-    return false
-  }
-}
 
 export default function MapPage() {
   const { authState } = useAuth()
-  const [webglSupported] = useState(() => checkWebGLSupport())
+  const [webGLSupported] = useState(() => checkWebGLSupport())
 
   /* URL search params — single source of truth for all filter/mode state */
   const {
     country,
     mode,
+    dsort: rawDsort,
     filter: rawFilter,
     rating: rawRating,
     votes: rawVotes,
-    dsort: rawDsort,
     sort: rawSort,
     dir: rawDir,
     stars: rawStars,
@@ -62,17 +57,14 @@ export default function MapPage() {
   const navigate = useNavigate({ from: "/map" })
 
   // Defaults applied at the call site — omitted URL params mean "use default"
-  const filter: FilterMode = rawFilter ?? "recommended"
+  const isDiscoverMode = mode === "discover"
+  const dsort: DiscoverSort = rawDsort ?? "random"
+  const filter: DiscoverFilterMode = rawFilter ?? "recommended"
   const rating = rawRating ?? 0
   const votes = rawVotes ?? 0
-  const dsort: DiscoverSort = rawDsort ?? "random"
   const sort: UserSort = rawSort ?? "added_date"
-  const dir: SortDir = rawDir ?? "desc"
+  const dir: UserSortDir = rawDir ?? "desc"
   const stars = rawStars ?? 0
-
-  const isDiscoverMode = mode === "discover"
-  // Full internal mode string for hooks/API (strips the URL alias)
-  const internalMode: MapMode = ALIAS_TO_MODE[mode]
 
   // Ephemeral: remembers last my-films sub-mode so switching back to "My Films"
   // restores the previous filter (watched/watchlisted/rated) instead of defaulting.
@@ -81,7 +73,7 @@ export default function MapPage() {
   /* URL setters — replace history entries so filter changes don't pollute back button */
 
   // Strips irrelevant params on mode transition
-  const setMode = (val: MapModeAlias) => {
+  const setMode = (val: MapMode) => {
     if (val === "discover") {
       navigate({
         search: (prev) => ({
@@ -109,15 +101,15 @@ export default function MapPage() {
       })
     }
   }
-
-  // "random" is default — omit from URL
   const setDsort = (val: DiscoverSort) =>
     navigate({
-      search: (prev) => ({ ...prev, dsort: val === "random" ? undefined : val }),
+      search: (prev) => ({
+        ...prev,
+        dsort: val === "random" ? undefined : val,
+      }),
       replace: true,
     })
-
-  const setFilter = (val: FilterMode) => {
+  const setFilter = (val: DiscoverFilterMode) => {
     if (val === "custom") {
       // Seed custom sliders from the current recommended values
       const rec = COUNTRY_DEFAULTS[isoA2 ?? ""] ?? GLOBAL_DEFAULTS
@@ -141,16 +133,19 @@ export default function MapPage() {
       })
     }
   }
-
   const setRating = (val: number) =>
     navigate({ search: (prev) => ({ ...prev, rating: val }), replace: true })
   const setVotes = (val: number) =>
     navigate({ search: (prev) => ({ ...prev, votes: val }), replace: true })
 
   // Temp (in-drag) state for sliders — committed to URL on drag end
-  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, rating])
-  const [tempVoteCountRange, setTempVoteCountRange] = useState<[number, number]>([0, votes])
-
+  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([
+    0,
+    rating,
+  ])
+  const [tempVoteCountRange, setTempVoteCountRange] = useState<
+    [number, number]
+  >([0, votes])
   // Sync temp state when URL params change externally (e.g. back/forward nav)
   useEffect(() => setTempRatingRange([0, rating]), [rating])
   useEffect(() => setTempVoteCountRange([0, votes]), [votes])
@@ -158,10 +153,13 @@ export default function MapPage() {
   // "added_date" and "desc" are defaults — omit from URL
   const setSort = (val: UserSort) =>
     navigate({
-      search: (prev) => ({ ...prev, sort: val === "added_date" ? undefined : val }),
+      search: (prev) => ({
+        ...prev,
+        sort: val === "added_date" ? undefined : val,
+      }),
       replace: true,
     })
-  const setDir = (val: SortDir) =>
+  const setDir = (val: UserSortDir) =>
     navigate({
       search: (prev) => ({ ...prev, dir: val === "desc" ? undefined : val }),
       replace: true,
@@ -181,15 +179,24 @@ export default function MapPage() {
     if (prev !== mode) {
       if (prev !== "discover") setLastMyFilmsMode(prev as MapFilmMode)
       if (mode !== "rated" && stars !== 0) {
-        navigate({ search: (prev) => ({ ...prev, stars: undefined }), replace: true })
+        navigate({
+          search: (prev) => ({ ...prev, stars: undefined }),
+          replace: true,
+        })
       }
     }
   }, [mode])
 
   /* Hooks */
   const { filmsPerCountryData } = useMapFilmData(authState)
-  const { mapRef, firstSymbolId, popupInfo, setPopupInfo, onMapLoad, onMapClick } =
-    useMapInteraction(filmsPerCountryData)
+  const {
+    mapRef,
+    firstSymbolId,
+    popupInfo,
+    setPopupInfo,
+    onMapLoad,
+    onMapClick,
+  } = useMapInteraction(filmsPerCountryData)
   const {
     panelRef,
     mapContainerRef,
@@ -202,14 +209,18 @@ export default function MapPage() {
   // initial load / navigation. popupInfo takes precedence since it has coordinates.
   const isoA2 = popupInfo?.iso_a2 ?? country
 
-  const { suggestedFilmList, isLoading: discoverLoading, hasNextPage, loadMoreTrigger } =
-    useDiscoverFilms({ isDiscoverMode, isoA2, dsort, filter, rating, votes })
+  const {
+    suggestedFilmList,
+    isLoading: discoverLoading,
+    hasNextPage,
+    loadMoreTrigger,
+  } = useDiscoverFilms({ isDiscoverMode, isoA2, dsort, filter, rating, votes })
 
   const { userFilmList, isLoading: userFilmsLoading } = useUserFilms({
     authState,
     isDiscoverMode,
     isoA2,
-    queryString: internalMode,
+    mode: mode as MapFilmMode,
     sortBy: sort,
     sortDirection: dir,
     numStars: stars,
@@ -249,7 +260,9 @@ export default function MapPage() {
     const saved = sessionStorage.getItem(key)
     if (saved) {
       const el = innerScrollRef.current
-      setTimeout(() => { el.scrollTop = parseInt(saved, 10) }, 50)
+      setTimeout(() => {
+        el.scrollTop = parseInt(saved, 10)
+      }, 50)
     }
   }, [isLoading, isoA2])
 
@@ -264,9 +277,11 @@ export default function MapPage() {
 
   // Derive the queryString for UserFilmGallery (strips /by_country suffix)
   const galleryQueryString =
-    mode === "watchlisted" ? "watchlisted"
-    : mode === "rated"     ? "watched/rated"
-    : "watched"
+    mode === "watchlisted"
+      ? "watchlisted"
+      : mode === "rated"
+        ? "watched/rated"
+        : "watched"
 
   return (
     <div className="font-primary inset-0 overflow-hidden">
@@ -274,7 +289,7 @@ export default function MapPage() {
 
       {/* Map — fills the full viewport */}
       <div ref={mapContainerRef} className="absolute inset-0">
-        {webglSupported ? (
+        {webGLSupported ? (
           <Map
             ref={mapRef as React.Ref<unknown> as React.RefObject<null>}
             onLoad={
@@ -286,7 +301,7 @@ export default function MapPage() {
             mapStyle={MAPTILER_STYLE_URL}>
             <NavigationControl
               position="top-right"
-              showCompass={false}
+              showCompass={true}
               showZoom={true}
               visualizePitch={true}
             />
@@ -318,35 +333,7 @@ export default function MapPage() {
             )}
           </Map>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-[#e8f1f7] px-6 text-center">
-            <div className="text-4xl">🗺️</div>
-            <p className="text-lg font-semibold text-[#2c4a5e]">
-              Map unavailable — graphics acceleration is disabled
-            </p>
-            <p className="text-sm text-[#4a6a80] max-w-md">
-              The interactive map requires WebGL, which needs hardware
-              acceleration to be enabled in your browser.
-            </p>
-            <div className="text-sm text-[#4a6a80] max-w-md text-left bg-white/60 rounded-xl p-4 space-y-2">
-              <p className="font-semibold text-[#2c4a5e]">How to enable it:</p>
-              <p>
-                <span className="font-medium">Chrome / Edge:</span> Settings →
-                System → turn on{" "}
-                <em>Use graphics acceleration when available</em>, then relaunch
-                the browser.
-              </p>
-              <p>
-                <span className="font-medium">Firefox:</span> Settings → General
-                → Performance → check{" "}
-                <em>Use hardware acceleration when available</em>, then
-                relaunch.
-              </p>
-              <p>
-                <span className="font-medium">Safari:</span> Develop menu →
-                Experimental Features → ensure WebGL is enabled.
-              </p>
-            </div>
-          </div>
+          <MapUnavailable />
         )}
       </div>
 
@@ -447,7 +434,7 @@ export default function MapPage() {
               ) : (
                 !isLoading && (
                   <div className="mt-10 mb-20 text-sm md:text-base">
-                    No films found.
+                    No films found based on current settings.
                   </div>
                 )
               )

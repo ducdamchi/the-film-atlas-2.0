@@ -293,9 +293,9 @@ export default function CollectionCarousel({
                 }}>
                 <button
                   style={{ width: innerWidth, height: innerHeight }}
-                  className="flex items-center justify-center border-1 border-muted/40 bg-muted/40 rounded-md hover:bg-muted transition-all ease-out duration-200"
+                  className="flex items-center justify-center border-1 border-muted-foreground/30 bg-muted-foreground/20 text-muted-foreground rounded-md hover:bg-muted-foreground/10 transition-all ease-out duration-200"
                   onClick={() => setIsAddModalOpen(true)}>
-                  <span className="text-base text-muted flex items-center justify-center gap-1">
+                  <span className="text-base flex items-center justify-center gap-1">
                     <CirclePlus className="size-[24px]" />
                     Add films
                   </span>

@@ -20,7 +20,7 @@ const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL
 interface FilmUser_CardProps {
   filmObject: UserFilm
   queryString: string | null
-  imgRef: (node: HTMLImageElement | null) => void
+  imgRef?: (node: HTMLImageElement | null) => void
 }
 
 export default function UserFilmCard({

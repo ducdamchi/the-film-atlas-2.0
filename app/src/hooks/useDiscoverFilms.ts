@@ -4,7 +4,7 @@ import { queryTopRatedFilmByCountryTMDB } from "@/utils/apiCalls"
 import { shuffleArray } from "@/utils/helperFunctions"
 import { COUNTRY_DEFAULTS, GLOBAL_DEFAULTS } from "@/data/countryDefaults"
 import type { TMDBFilmSummary } from "@/types/tmdb"
-import type { FilterMode, DiscoverSort } from "@/routes/map"
+import type { DiscoverFilterMode, DiscoverSort } from "@/routes/map"
 
 const RANDOM_BATCH_SIZE = 3
 
@@ -24,7 +24,7 @@ interface UseDiscoverFilmsParams {
   isDiscoverMode: boolean
   isoA2: string | null | undefined
   dsort: DiscoverSort
-  filter: FilterMode
+  filter: DiscoverFilterMode
   /** Used only when filter === "custom" */
   rating: number
   /** Used only when filter === "custom" */
@@ -80,72 +80,79 @@ export function useDiscoverFilms({
 
   const loadMoreTrigger = useRef<HTMLDivElement | null>(null)
 
-  const {
-    data,
-    isFetching,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useInfiniteQuery({
-    queryKey: ["discover", isoA2, dsort, filters.rating, filters.voteCount, epoch],
-    queryFn: async ({ queryKey, pageParam }) => {
-      // Destructure from key so the fn always uses the values it was keyed on,
-      // regardless of closure staleness.
-      const [, countryCode, sortBy, ratingMax, voteCountMax] = queryKey as [
-        string, string, string, number, number,
-      ]
-      const ratingRange: [number, number] = [0, ratingMax]
-      const voteCountRange: [number, number] = [0, voteCountMax]
-      const batchIndex = pageParam as number
+  const { data, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    useInfiniteQuery({
+      queryKey: [
+        "discover",
+        isoA2,
+        dsort,
+        filters.rating,
+        filters.voteCount,
+        epoch,
+      ],
+      queryFn: async ({ queryKey, pageParam }) => {
+        // Destructure from key so the fn always uses the values it was keyed on,
+        // regardless of closure staleness.
+        const [, countryCode, sortBy, ratingMax, voteCountMax] = queryKey as [
+          string,
+          string,
+          string,
+          number,
+          number,
+        ]
+        const ratingRange: [number, number] = [0, ratingMax]
+        const voteCountRange: [number, number] = [0, voteCountMax]
+        const batchIndex = pageParam as number
 
-      if (sortBy === "random") {
-        const startPage = batchIndex * RANDOM_BATCH_SIZE + 1
-        const pageNums = Array.from(
-          { length: RANDOM_BATCH_SIZE },
-          (_, i) => startPage + i,
-        )
-        const responses = await Promise.all(
-          pageNums.map((p) =>
-            queryTopRatedFilmByCountryTMDB({
-              page: p,
+        if (sortBy === "random") {
+          const startPage = batchIndex * RANDOM_BATCH_SIZE + 1
+          const pageNums = Array.from(
+            { length: RANDOM_BATCH_SIZE },
+            (_, i) => startPage + i,
+          )
+          const responses = await Promise.all(
+            pageNums.map((p) =>
+              queryTopRatedFilmByCountryTMDB({
+                page: p,
+                countryCode,
+                sortBy,
+                ratingRange,
+                voteCountRange,
+              }),
+            ),
+          )
+          const results = responses
+            .flatMap((r) => r.results)
+            .filter((m) => m.backdrop_path !== null && m.poster_path !== null)
+          shuffleArray(results)
+          return { results, totalResults: responses[0].totalResults }
+        } else {
+          const { results, totalResults } =
+            await queryTopRatedFilmByCountryTMDB({
+              page: batchIndex + 1,
               countryCode,
               sortBy,
               ratingRange,
               voteCountRange,
-            }),
-          ),
-        )
-        const results = responses
-          .flatMap((r) => r.results)
-          .filter((m) => m.backdrop_path !== null && m.poster_path !== null)
-        shuffleArray(results)
-        return { results, totalResults: responses[0].totalResults }
-      } else {
-        const { results, totalResults } = await queryTopRatedFilmByCountryTMDB({
-          page: batchIndex + 1,
-          countryCode,
-          sortBy,
-          ratingRange,
-          voteCountRange,
-        })
-        return {
-          results: results.filter(
-            (m) => m.backdrop_path !== null && m.poster_path !== null,
-          ),
-          totalResults,
+            })
+          return {
+            results: results.filter(
+              (m) => m.backdrop_path !== null && m.poster_path !== null,
+            ),
+            totalResults,
+          }
         }
-      }
-    },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      const batchSize = dsort === "random" ? RANDOM_BATCH_SIZE : 1
-      const tmdbPagesFetched = allPages.length * batchSize
-      const totalTmdbPages = Math.ceil(lastPage.totalResults / 20)
-      return tmdbPagesFetched < totalTmdbPages ? allPages.length : undefined
-    },
-    staleTime: 5 * 60 * 1000,
-    enabled: !!isoA2 && isDiscoverMode,
-  })
+      },
+      initialPageParam: 0,
+      getNextPageParam: (lastPage, allPages) => {
+        const batchSize = dsort === "random" ? RANDOM_BATCH_SIZE : 1
+        const tmdbPagesFetched = allPages.length * batchSize
+        const totalTmdbPages = Math.ceil(lastPage.totalResults / 20)
+        return tmdbPagesFetched < totalTmdbPages ? allPages.length : undefined
+      },
+      staleTime: 5 * 60 * 1000,
+      enabled: !!isoA2 && isDiscoverMode,
+    })
 
   const suggestedFilmList = data?.pages.flatMap((p) => p.results) ?? []
 

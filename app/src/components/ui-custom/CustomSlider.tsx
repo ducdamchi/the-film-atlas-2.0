@@ -33,7 +33,7 @@ export default function CustomSlider({
       <div className="w-full flex justify-center">
         <RangeSlider
           id={id}
-          className="range-slider-rating"
+          className="range-slider-rating inset-shadow-2xs inset-shadow-muted-foreground"
           min={min}
           max={max}
           step={step}

@@ -217,10 +217,8 @@ export function extractBorderColorFromElement(
     const lms_s = Math.cbrt(
       0.0482003018 * X + 0.2643662691 * Y + 0.633851707 * Z,
     )
-    const L =
-      0.2104542553 * lms_l + 0.793617785 * lms_m - 0.0040720468 * lms_s
-    const a =
-      1.9779984951 * lms_l - 2.428592205 * lms_m + 0.4505937099 * lms_s
+    const L = 0.2104542553 * lms_l + 0.793617785 * lms_m - 0.0040720468 * lms_s
+    const a = 1.9779984951 * lms_l - 2.428592205 * lms_m + 0.4505937099 * lms_s
     const bLab =
       0.0259040371 * lms_l + 0.4072969751 * lms_m - 0.4332046721 * lms_s
     const C = Math.sqrt(a * a + bLab * bLab)
@@ -290,4 +288,16 @@ export const ensureContrast = (
   }
 
   return textColor
+}
+
+export function checkWebGLSupport(): boolean {
+  try {
+    const canvas = document.createElement("canvas")
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+    )
+  } catch {
+    return false
+  }
 }

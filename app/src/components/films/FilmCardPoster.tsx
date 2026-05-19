@@ -49,7 +49,6 @@ export default function FilmCardPoster({
               ? `${imgBaseUrl}${backdropPath}`
               : "backdropnotfound.jpg"
           }
-          crossOrigin="anonymous"
           onLoad={(e) => onImageLoad?.(e.currentTarget)}
           alt=""
           onClick={onNavigate}

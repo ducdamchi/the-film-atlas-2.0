@@ -11,7 +11,7 @@ interface UseUserFilmsParams {
   authState: AuthState;
   isDiscoverMode: boolean;
   isoA2: string | null | undefined;
-  queryString: string;
+  mode: "watched" | "watchlisted" | "rated";
   sortBy: string | null;
   sortDirection: string | null;
   numStars: number | null;
@@ -21,15 +21,15 @@ export function useUserFilms({
   authState,
   isDiscoverMode,
   isoA2,
-  queryString,
+  mode,
   sortBy,
   sortDirection,
   numStars,
 }: UseUserFilmsParams) {
   const enabled = !!authState.status && !isDiscoverMode && !!isoA2;
 
-  const isWatchlisted = queryString === "watchlisted/by_country";
-  const isRated = queryString === "watched/rated/by_country";
+  const isWatchlisted = mode === "watchlisted";
+  const isRated = mode === "rated";
 
   const { data: watchedList = [], isLoading: watchedLoading } = useQuery({
     ...watchedFilmsQueryOptions,

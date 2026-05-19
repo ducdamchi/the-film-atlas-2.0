@@ -228,34 +228,6 @@
     @apply @container overflow-visible w-full flex flex-col items-start justify-center mt-10 md:mr-5 lg:mr-8;
   }
 
-  .toggleButton-whole {
-    @apply flex flex-col items-center p-2 w-full gap-2 @3xl:flex-row @3xl:justify-center @3xl:gap-5 @3xl:mr-20;
-  }
-
-  .toggleButton-label {
-    @apply w-[7rem] flex self-center mr-45 @3xl:mr-0 @3xl:ml-0 @3xl:justify-end uppercase text-xs @5xl:text-sm;
-  }
-
-  .toggleButton-buttonsContainer {
-    @apply relative bg-muted rounded-full w-[20rem] h-[2.5rem] text-sm @5xl:text-base @5xl:w-[25rem];
-  }
-
-  .filterButton-container {
-    @apply w-[20rem] text-xs @5xl:text-sm @5xl:w-[25rem];
-  }
-
-  .toggleButton-bg {
-    @apply absolute h-full bg-background rounded-full shadow-md transition-all duration-400 ease-in-out;
-  }
-
-  .toggleButton-button {
-    @apply flex-1 text-center py-2 rounded-full transition-colors duration-300 z-10 flex items-center justify-center text-muted-foreground;
-  }
-
-  .toggleButton-buttonActive {
-    @apply text-foreground font-semibold;
-  }
-
   .auth-whole {
     @apply flex flex-col items-center w-screen h-screen overflow-hidden;
   }
@@ -510,18 +482,6 @@
 }
 
 #slider-simple .range-slider .range-slider-rating {
-}
-
-[data-sonner-toast] {
-  background: var(--color-bg-background) !important;
-  color: var(--color-text-foreground) !important;
-  border-color: var(--color-bg-muted) !important;
-  border-radius: 2px !important;
-  font-size: 14px !important;
-}
-
-[data-sonner-toast] [data-description] {
-  color: var(--color-text-muted) !important;
 }
 
 .swal2-popup {
