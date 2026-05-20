@@ -38,6 +38,7 @@ import { MapUnavailable } from "./map/MapUnavailable"
 import { FaGripLines } from "react-icons/fa6"
 import { GripVertical } from "lucide-react"
 import { checkWebGLSupport } from "../utils/helperFunctions"
+import { Spinner } from "./ui-shadcn/spinner"
 
 type MapFilmMode = Exclude<MapMode, "discover">
 type BrowseMode = "discover" | "my_films"
@@ -86,6 +87,7 @@ export default function MapPage() {
   const {
     suggestedFilmList,
     isLoading: discoverLoading,
+    isFetchingNextPage,
     hasNextPage,
     loadMoreTrigger,
   } = useDiscoverFilms({ isDiscoverMode, isoA2, dsort, filter, rating, votes })
@@ -126,28 +128,6 @@ export default function MapPage() {
     setShowPanel(!!isoA2)
   }, [isoA2])
 
-  /* Scroll restoration — per-country, stored in sessionStorage */
-  useEffect(() => {
-    if (discoverLoading || userFilmsLoading || !innerScrollRef.current) return
-    const key = `map-panel-scroll:${isoA2 ?? "none"}`
-    const saved = sessionStorage.getItem(key)
-    if (saved) {
-      const el = innerScrollRef.current
-      setTimeout(() => {
-        el.scrollTop = parseInt(saved, 10)
-      }, 50)
-    }
-  }, [discoverLoading, userFilmsLoading, isoA2])
-
-  useEffect(() => {
-    const el = innerScrollRef.current
-    if (!el) return
-    const key = `map-panel-scroll:${isoA2 ?? "none"}`
-    const handleScroll = () => sessionStorage.setItem(key, String(el.scrollTop))
-    el.addEventListener("scroll", handleScroll, { passive: true })
-    return () => el.removeEventListener("scroll", handleScroll)
-  }, [isoA2])
-
   // Derive the queryString for UserFilmGallery (strips /by_country suffix)
   const galleryQueryString =
     mode === "watchlisted"
@@ -159,7 +139,7 @@ export default function MapPage() {
   return (
     <div className="font-primary inset-0 overflow-hidden">
       {/* Map — fills the full viewport */}
-      <div ref={mapContainerRef} className="absolute inset-0">
+      <div ref={mapContainerRef} className="absolute inset-0 cursor-pointer">
         {webGLSupported ? (
           <Map
             ref={mapRef as React.Ref<unknown> as React.RefObject<null>}
@@ -271,16 +251,24 @@ export default function MapPage() {
               <>
                 <TmdbFilmGallery
                   listOfFilmObjects={suggestedFilmList}
+                  isLoading={discoverLoading}
                 />
-                {!discoverLoading && suggestedFilmList.length > 0 && (
-                  hasNextPage ? (
+                {!discoverLoading &&
+                  suggestedFilmList.length > 0 &&
+                  isFetchingNextPage && (
+                    <div className="w-full flex items-center justify-center my-6">
+                      <Spinner className="size-10" />
+                    </div>
+                  )}
+                {!discoverLoading &&
+                  suggestedFilmList.length > 0 &&
+                  (hasNextPage ? (
                     <div ref={loadMoreTrigger} className="w-full h-px mt-20" />
                   ) : (
                     <div className="w-full flex items-center justify-center m-10 text-base text-black">
                       You've reached the end!
                     </div>
-                  )
-                )}
+                  ))}
               </>
             ) : authState.status ? (
               <UserFilmGallery
@@ -288,6 +276,7 @@ export default function MapPage() {
                 queryString={galleryQueryString}
                 sortDirection={dir}
                 sortBy={sort}
+                isLoading={userFilmsLoading}
               />
             ) : (
               <div className="mt-10 mb-20 text-sm md:text-base">

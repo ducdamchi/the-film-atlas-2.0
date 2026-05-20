@@ -62,5 +62,11 @@ export function NavMenuItem({ item }: { item: NavItem }) {
 }
 
 export function NavMain({ items }: { items: NavItem[] }) {
-  return <>{items.map((item) => <NavMenuItem key={item.title} item={item} />)}</>
+  return (
+    <>
+      {items.map((item) => (
+        <NavMenuItem key={item.title} item={item} />
+      ))}
+    </>
+  )
 }

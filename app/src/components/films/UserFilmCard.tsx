@@ -110,6 +110,7 @@ export default function UserFilmCard({
                       }>
                       <div className="relative max-w-[8rem] h-[2.5rem] aspect-1/1 overflow-hidden rounded-full">
                         <img
+                          loading="lazy"
                           className="object-cover grayscale transform -translate-y-1 hover:scale-[1.05]"
                           src={
                             dir.profile_path !== null

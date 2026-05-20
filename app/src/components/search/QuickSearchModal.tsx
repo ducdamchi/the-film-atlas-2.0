@@ -89,6 +89,7 @@ function SearchResultItem({
       to={to}>
       <div className="group/thumbnail relative max-h-[5rem] max-w-[8rem] aspect-16/10 h-full">
         <img
+          loading="lazy"
           className="h-full w-auto object-cover transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03]"
           src={imageSrc}
           alt=""

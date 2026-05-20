@@ -44,6 +44,7 @@ export default function TmdbDirectorGallery({
                 {/* Profile */}
                 <div className="relative group/thumbnail aspect-10/13 overflow-hidden w-[18rem] md:w-[25rem] md:min-w-[20rem] border-3 border-foreground">
                   <img
+                    loading="lazy"
                     className="object-cover w-full transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03] grayscale transform -translate-y-1/10 z-10 brightness-110"
                     src={
                       directorObject.profile_path !== null

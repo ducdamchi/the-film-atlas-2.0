@@ -94,6 +94,7 @@ export default function PersonLanding() {
       <div className="landing-main-img-container text-background">
         <div className="flex w-screen grayscale">
           <img
+            loading="lazy"
             className="landing-main-img w-screen sm:w-[50%] xl:w-[33.3333%]"
             src={
               person.profile_path !== null
@@ -103,6 +104,7 @@ export default function PersonLanding() {
             alt=""
           />
           <img
+            loading="lazy"
             className="hidden sm:block landing-main-img w-[50%] xl:w-[33.3333%]"
             src={
               person.profile_path !== null
@@ -112,6 +114,7 @@ export default function PersonLanding() {
             alt=""
           />
           <img
+            loading="lazy"
             className="hidden xl:block landing-main-img w-[33.3333%]"
             src={
               person.profile_path !== null

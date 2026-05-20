@@ -4,10 +4,7 @@ import { useParams, useNavigate, ClientOnly } from "@tanstack/react-router"
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query"
 
 /* Custom functions */
-import {
-  getCountryName,
-  getReleaseYear,
-} from "../utils/helperFunctions"
+import { getCountryName, getReleaseYear } from "../utils/helperFunctions"
 import {
   filmQueryOptions,
   omdbQueryOptions,
@@ -187,7 +184,6 @@ export default function FilmLanding() {
     )
   }, [movieDetails])
 
-
   return (
     <div className="font-primary">
       {/* Landing Page content */}
@@ -197,6 +193,7 @@ export default function FilmLanding() {
           <div className="landing-main-img-container">
             {/* Main backdrop */}
             <img
+              loading="lazy"
               className="landing-main-img w-screen"
               src={
                 film.backdrop_path !== null

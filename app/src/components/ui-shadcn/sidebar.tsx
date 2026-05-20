@@ -26,13 +26,15 @@ import {
   sidebarHoveredAtom,
   sidebarPinnedAtom,
   sidebarAnchoredAtom,
-} from "../../atoms/atoms"
+} from "../../atoms/sidebarAtoms"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
+export const SIDEBAR_WIDTH_PX = 256 // must match SIDEBAR_WIDTH (16rem)
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
+export const SIDEBAR_WIDTH_ICON_PX = 48 // must match SIDEBAR_WIDTH_ICON (3rem)
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContextProps = {
@@ -287,7 +289,7 @@ function SidebarTrigger({
         // console.log("clicked button")
       }}
       {...props}>
-      <PanelLeftIcon />
+      <PanelLeftIcon className="size-4" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

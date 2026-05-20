@@ -28,7 +28,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui-shadcn/sidebar"
-import { sidebarAnchoredAtom } from "#/atoms/atoms"
+import { sidebarAnchoredAtom } from "#/atoms/sidebarAtoms"
 import { useSetAtom } from "jotai"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { clearAllPersistedState } from "#/utils/localStorage"

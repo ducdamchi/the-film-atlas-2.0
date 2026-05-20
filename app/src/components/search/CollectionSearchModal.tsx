@@ -391,6 +391,7 @@ export default function CollectionSearchModal({
                           }}>
                           <div className="group/thumbnail relative max-h-[5rem] max-w-[8rem] aspect-16/10 h-full flex-shrink-0">
                             <img
+                              loading="lazy"
                               className="h-full w-auto object-cover transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03]"
                               src={
                                 film.backdrop_path

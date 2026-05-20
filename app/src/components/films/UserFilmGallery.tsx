@@ -3,6 +3,7 @@ import { getReleaseYear, getNiceMonthYear } from "@/utils/helperFunctions"
 
 import UserFilmCard from "./UserFilmCard"
 import type { UserFilm } from "@/types/film"
+import FilmCardSkeleton from "./FilmCardSkeleton"
 
 /** A group bucket produced by the reduce() grouping logic. */
 interface FilmGroup {
@@ -21,6 +22,7 @@ interface FilmUser_GalleryProps {
   queryString: string
   sortDirection: "asc" | "desc"
   sortBy: "added_date" | "released_date"
+  isLoading?: boolean
 }
 
 export default function UserFilmGallery({
@@ -28,6 +30,7 @@ export default function UserFilmGallery({
   queryString,
   sortDirection,
   sortBy,
+  isLoading,
 }: FilmUser_GalleryProps) {
   // Grouped films stored as sorted [key, group] tuple pairs
   const [groupedFilms, setGroupedFilms] = useState<[string, FilmGroup][]>([])
@@ -103,6 +106,25 @@ export default function UserFilmGallery({
       setGroupedFilms(sortedFilmGroups)
     }
   }, [listOfFilmObjects, queryString, sortBy, sortDirection])
+
+  if (isLoading) {
+    return (
+      <div
+        className="w-full flex 
+            flex-col items-center">
+        <div
+          className="flex      
+           flex-col items-center gap-0 mt-5  
+           mb-20 w-full">
+          <div className="filmGallery-grid">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <FilmCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full flex flex-col items-center">

@@ -165,6 +165,7 @@ export default function UserDirectorGallery({
                         setHoverId(null)
                       }}>
                       <img
+                        loading="lazy"
                         className="object-cover w-full h-full max-h-[7.5rem] sm:max-h-[10.5rem] 2xl:max-h-[12rem] transition-all duration-300 ease-out group-hover/thumbnail:scale-[1.03] grayscale transform  brightness-110"
                         src={
                           groupObject.profile_path !== null

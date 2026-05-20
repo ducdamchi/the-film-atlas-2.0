@@ -186,6 +186,7 @@ export default function Docs() {
                         origin countries of the watched films.
                       </div>
                       <img
+                        loading="lazy"
                         src="/mapexample1.png"
                         alt="Image of a heat map of the world based on a user's watched films."
                         className="docs-img"
@@ -214,6 +215,7 @@ export default function Docs() {
                         ways.
                       </div>
                       <img
+                        loading="lazy"
                         src="/filmsexample1.png"
                         alt="Image of a heat map of the world based on a user's watched films."
                         className="docs-img"
@@ -233,6 +235,7 @@ export default function Docs() {
                         also be formed.
                       </div>
                       <img
+                        loading="lazy"
                         src="/directorsexample1.png"
                         alt="Image of a heat map of the world based on a user's watched films."
                         className="docs-img"
@@ -307,6 +310,7 @@ export default function Docs() {
                         the map.
                       </div>
                       <img
+                        loading="lazy"
                         src="/map1.png"
                         alt="Image of a popup container displaying how many films user has watched from selected country."
                         className="docs-img"
@@ -355,6 +359,7 @@ export default function Docs() {
                         </li>
                       </ul>
                       <img
+                        loading="lazy"
                         src="/map4.png"
                         alt="Discover Mode with three sort options: Random, Average Rating, and Vote Count."
                         className="docs-img"
@@ -376,6 +381,7 @@ export default function Docs() {
                         may be present within the database that we use.
                       </div>
                       <img
+                        loading="lazy"
                         src="/map2.png"
                         alt="Showing films from Iran that has average rating
                   greater than or equal to 5.8, vote count greater than or equal
@@ -430,6 +436,7 @@ export default function Docs() {
                         for more details on the rating system.
                       </div>
                       <img
+                        loading="lazy"
                         src="/films3.png"
                         alt="Image of films console."
                         className="docs-img"
@@ -453,6 +460,7 @@ export default function Docs() {
                         if you want to search for directors instead.
                       </div>
                       <img
+                        loading="lazy"
                         src="/films1.png"
                         alt="Image of Films Page when search bar is being actively used."
                         className="docs-img"
@@ -469,6 +477,7 @@ export default function Docs() {
                         picture on TMDB, they will be featured.
                       </div>
                       <img
+                        loading="lazy"
                         src="/filmlanding1.png"
                         alt="Image of Films Page when search bar is being actively used."
                         className="docs-img"
@@ -504,6 +513,7 @@ export default function Docs() {
                         them in several ways:
                       </div>
                       <img
+                        loading="lazy"
                         src="/directors1.png"
                         alt="Image of directors console."
                         className="docs-img"
@@ -566,6 +576,7 @@ export default function Docs() {
                         without one will appear with a placeholder picture.
                       </div>
                       <img
+                        loading="lazy"
                         src="/directors2.png"
                         alt="Directors search result for Kelly Rei."
                         className="docs-img"
@@ -595,6 +606,7 @@ export default function Docs() {
                         most recent to last recent.
                       </div>
                       <img
+                        loading="lazy"
                         src="/directorlanding.png"
                         alt="Image of Films Page when search bar is being actively used."
                         className="docs-img"
@@ -623,6 +635,7 @@ export default function Docs() {
                         required for this feature.
                       </div>
                       <img
+                        loading="lazy"
                         src="/quicksearch.png"
                         alt="Quick Search modal."
                         className="docs-img"
@@ -764,6 +777,7 @@ export default function Docs() {
                         </li>
                       </ul>
                       <img
+                        loading="lazy"
                         src="/rating1.png"
                         alt="Image of the rating console."
                         className="docs-img"
@@ -815,6 +829,7 @@ export default function Docs() {
                         collections at the same time.
                       </div>
                       <img
+                        loading="lazy"
                         src="/consoledemo.gif"
                         alt="Directors search result for Kelly Rei."
                         className="docs-img"
@@ -939,6 +954,7 @@ export default function Docs() {
                           </span>
                         </li>
                         <img
+                          loading="lazy"
                           src="/directoreq.png"
                           alt="log equation used to calculate watch score. credits: desmos.com"
                           className="docs-img"
@@ -1081,6 +1097,7 @@ export default function Docs() {
                           target="_blank"
                           rel="noopener noreferrer">
                           <img
+                            loading="lazy"
                             src="/productiondata.png"
                             alt="Statistics for countries prominent in anual film production."
                             className="docs-img border-2"
@@ -1141,6 +1158,7 @@ export default function Docs() {
                           target="_blank"
                           rel="noopener noreferrer">
                           <img
+                            loading="lazy"
                             src="/interstellar.png"
                             alt="Interstellar film card."
                             className="docs-img border-0"
@@ -1168,6 +1186,7 @@ export default function Docs() {
                           target="_blank"
                           rel="noopener noreferrer">
                           <img
+                            loading="lazy"
                             src="/dilwale.png"
                             alt="Interstellar film card."
                             className="docs-img border-0"
@@ -1219,6 +1238,7 @@ export default function Docs() {
                           target="_blank"
                           rel="noopener noreferrer">
                           <img
+                            loading="lazy"
                             src="/itsawonderfullife.png"
                             alt="Interstellar film card."
                             className="docs-img border-0"
@@ -1268,6 +1288,7 @@ export default function Docs() {
                           target="_blank"
                           rel="noopener noreferrer">
                           <img
+                            loading="lazy"
                             src="/nezha2.png"
                             alt="Interstellar film card."
                             className="docs-img border-0"
@@ -1294,6 +1315,7 @@ export default function Docs() {
                         Venn diagram.
                       </div>
                       <img
+                        loading="lazy"
                         src="/venn.png"
                         alt="Interstellar film card."
                         className="docs-img border-0"
@@ -1350,6 +1372,7 @@ export default function Docs() {
                           the red region?
                         </li>
                         <img
+                          loading="lazy"
                           src="/languages.png"
                           alt="Interstellar film card."
                           className="docs-img border-0"
@@ -1446,6 +1469,7 @@ export default function Docs() {
                         rel="noopener noreferrer"
                         className="max-w-[15rem]">
                         <img
+                          loading="lazy"
                           src="/tmdb.png"
                           alt="TMDB log."
                           className="docs-img border-0 max-w-[15rem]"
@@ -1469,6 +1493,7 @@ export default function Docs() {
                         rel="noopener noreferrer"
                         className="max-w-[15rem]">
                         <img
+                          loading="lazy"
                           src="/maplibre.png"
                           alt="Map Libre logo."
                           className="docs-img border-0 max-w-[15rem]"
@@ -1492,6 +1517,7 @@ export default function Docs() {
                         rel="noopener noreferrer"
                         className="max-w-[15rem]">
                         <img
+                          loading="lazy"
                           src="/maptiler.svg"
                           alt="Map Tiler logo."
                           className="docs-img border-0 max-w-[15rem]"

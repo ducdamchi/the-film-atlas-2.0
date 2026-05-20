@@ -34,6 +34,7 @@ interface UseDiscoverFilmsParams {
 export interface UseDiscoverFilmsResult {
   suggestedFilmList: TMDBFilmSummary[]
   isLoading: boolean
+  isFetchingNextPage: boolean
   hasNextPage: boolean
   loadMoreTrigger: React.RefObject<HTMLDivElement | null>
 }
@@ -176,6 +177,7 @@ export function useDiscoverFilms({
   return {
     suggestedFilmList,
     isLoading: isFetching && !isFetchingNextPage,
+    isFetchingNextPage,
     hasNextPage: hasNextPage ?? false,
     loadMoreTrigger,
   }

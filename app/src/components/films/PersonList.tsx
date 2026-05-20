@@ -49,6 +49,7 @@ export default function PersonList({
                   personRoute ? () => navigate({ to: personRoute }) : undefined
                 }>
                 <img
+                  loading="lazy"
                   className="object-cover grayscale w-full transform hover:scale-[1.05] transition-all duration-300 ease-out drop-shadow-2xl rounded-t-none transform -translate-y-2"
                   src={
                     person.profile_path !== null

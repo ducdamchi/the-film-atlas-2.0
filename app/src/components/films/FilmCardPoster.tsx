@@ -83,7 +83,8 @@ export default function FilmCardPoster({
     : "backdropnotfound.jpg"
 
   // Poster fades out when trailer is playing, fades back in otherwise
-  const posterVisible = !trailerKey || phase === "idle" || phase === "fading-out"
+  const posterVisible =
+    !trailerKey || phase === "idle" || phase === "fading-out"
   const iframeMounted =
     trailerKey &&
     (phase === "dimming" || phase === "playing" || phase === "fading-out")
@@ -99,13 +100,13 @@ export default function FilmCardPoster({
       onClick={onNavigate}>
       {/* Single img — always mounted with consistent crossOrigin to prevent CORS cache conflicts */}
       <img
+        loading="lazy"
         ref={imgRef}
         id={`thumbnail-${filmId}`}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
           posterVisible ? "opacity-100" : "opacity-0"
         }`}
         src={posterSrc}
-        crossOrigin="anonymous"
         onLoad={(e) => onImageLoad?.(e.currentTarget)}
         alt=""
       />
@@ -113,6 +114,7 @@ export default function FilmCardPoster({
       {/* Trailer iframe overlay — mounts during dimming to pre-load, visible only when playing */}
       {iframeMounted && (
         <iframe
+          loading="lazy"
           className={`absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-200 ${
             phase === "playing" ? "opacity-100" : "opacity-0"
           }`}

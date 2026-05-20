@@ -43,7 +43,7 @@ function ForgotPassword() {
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="relative hidden bg-muted lg:block overflow-hidden">
         <AuthBg></AuthBg>
-        {/* <img
+        {/* <img loading="lazy"
              src="/placeholder.svg"
              alt="Image"
              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"

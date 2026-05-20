@@ -24,6 +24,7 @@ export default function TrailerModal({
           </div>
           <div className="w-full h-full">
             <iframe
+              loading="lazy"
               className=""
               width="100%"
               height="100%"
