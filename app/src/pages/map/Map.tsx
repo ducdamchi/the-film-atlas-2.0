@@ -1,19 +1,19 @@
 import { useEffect, useRef, useState } from "react"
 import { useAtom } from "jotai"
 import { useNavigate } from "@tanstack/react-router"
-import { Map, Popup, NavigationControl } from "react-map-gl/maplibre"
+import { Map as MapGL, Popup, NavigationControl } from "react-map-gl/maplibre"
 
 import "@maptiler/sdk/dist/maptiler-sdk.css"
 import "react-range-slider-input/dist/style.css"
 
-import { useAuth } from "../utils/authContext"
-import { getCountryName } from "../utils/helperFunctions"
-import { MAPTILER_API_KEY, MAPTILER_STYLE_URL } from "../utils/mapConstants"
-import { useMapFilmData } from "../hooks/useMapFilmData"
-import { useMapInteraction } from "../hooks/useMapInteraction"
-import { useDiscoverFilms } from "../hooks/useDiscoverFilms"
-import { useUserFilms } from "../hooks/useUserFilms"
-import { useMapPanel } from "../hooks/useMapPanel"
+import { useAuth } from "../../utils/authContext"
+import { getCountryName } from "../../utils/helperFunctions"
+import { MAPTILER_API_KEY, MAPTILER_STYLE_URL } from "../../utils/mapConstants"
+import { useMapFilmData } from "../../hooks/useMapFilmData"
+import { useMapInteraction } from "../../hooks/useMapInteraction"
+import { useDiscoverFilms } from "../../hooks/useDiscoverFilms"
+import { useUserFilms } from "../../hooks/useUserFilms"
+import { useMapPanel } from "../../hooks/useMapPanel"
 import { Route } from "@/routes/map"
 import type { MapMode } from "@/routes/map"
 import {
@@ -28,22 +28,22 @@ import {
   map_userFilterAtom,
 } from "@/atoms/mapAtoms"
 
-import UserFilmGallery from "./films/UserFilmGallery"
-import TmdbFilmGallery from "./films/TmdbFilmGallery"
-import Toggle from "./ui-custom/Toggle"
-import MapCountriesLayer from "./map/MapCountriesLayer"
-import DiscoverControls from "./map/DiscoverControls"
-import MyFilmsControls from "./map/MyFilmsControls"
-import { MapUnavailable } from "./map/MapUnavailable"
+import UserFilmGallery from "../../components/film/UserFilmGallery"
+import TmdbFilmGallery from "../../components/film/TmdbFilmGallery"
+import Toggle from "../../components/ui-custom/Toggle"
+import MapCountriesLayer from "./components/MapCountriesLayer"
+import DiscoverControls from "./components/DiscoverControls"
+import MyFilmsControls from "./components/MyFilmsControls"
+import { MapUnavailable } from "./components/MapUnavailable"
 import { FaGripLines } from "react-icons/fa6"
 import { GripVertical } from "lucide-react"
-import { checkWebGLSupport } from "../utils/helperFunctions"
-import { Spinner } from "./ui-shadcn/spinner"
+import { checkWebGLSupport } from "../../utils/helperFunctions"
+import { Spinner } from "../../components/ui-shadcn/spinner"
 
 type MapFilmMode = Exclude<MapMode, "discover">
 type BrowseMode = "discover" | "my_films"
 
-export default function MapPage() {
+export default function Map() {
   const { authState } = useAuth()
   const [webGLSupported] = useState(() => checkWebGLSupport())
 
@@ -141,7 +141,7 @@ export default function MapPage() {
       {/* Map — fills the full viewport */}
       <div ref={mapContainerRef} className="absolute inset-0 cursor-pointer">
         {webGLSupported ? (
-          <Map
+          <MapGL
             ref={mapRef as React.Ref<unknown> as React.RefObject<null>}
             onLoad={
               onMapLoad as unknown as (event: { target: unknown }) => void
@@ -182,7 +182,7 @@ export default function MapPage() {
                 </div>
               </Popup>
             )}
-          </Map>
+          </MapGL>
         ) : (
           <MapUnavailable />
         )}

@@ -183,6 +183,23 @@ function Sidebar({
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
   const [, setSidebarHovered] = useAtom(sidebarHoveredAtom)
   const [sidebarPinned, setSidebarPinned] = useAtom(sidebarPinnedAtom)
+  const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  React.useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
+    }
+  }, [])
+
+  function handleMouseEnter() {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
+    hoverTimerRef.current = setTimeout(() => setSidebarHovered(true), 150)
+  }
+
+  function handleMouseLeave() {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
+    hoverTimerRef.current = setTimeout(() => setSidebarHovered(false), 150)
+  }
 
   if (collapsible === "none") {
     return (
@@ -232,8 +249,8 @@ function Sidebar({
       data-side={side}
       data-slot="sidebar"
       data-pinned={String(sidebarPinned)}
-      onMouseEnter={() => setSidebarHovered(true)}
-      onMouseLeave={() => setSidebarHovered(false)}>
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}>
       {/* This is what handles the sidebar gap on desktop */}
       <div
         data-slot="sidebar-gap"

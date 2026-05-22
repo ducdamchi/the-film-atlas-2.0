@@ -8,8 +8,8 @@ import {
 import { useMarquee } from "@/hooks/useMarquee"
 import { useFilmCardFetch } from "@/hooks/useFilmCardFetch"
 
-import InteractionConsole from "../film-interaction/InteractionConsole"
-import CardHoverOverlay from "../film-interaction/CardHoverOverlay"
+import InteractionConsole from "./InteractionConsole"
+import CardHoverOverlay from "./FilmCardHoverOverlay"
 import FilmCardPoster from "./FilmCardPoster"
 import { MdStars, MdPeople } from "react-icons/md"
 
@@ -19,7 +19,7 @@ import type { DiscoverPageState } from "@/types/map"
 interface FilmTMDB_CardProps {
   filmObject: TMDBFilmSummary
   imgRef: (node: HTMLImageElement | null) => void
-  /** Optional — only needed on pages that use pagination (MapPage). */
+  /** Optional — only needed on pages that use pagination (Map). */
   setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>
 }
 

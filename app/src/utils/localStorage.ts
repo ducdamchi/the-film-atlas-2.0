@@ -22,9 +22,6 @@ export const PERSISTED_STATE_KEYS = [
   "films-sortDirection",
   "films-numStars",
   "films-queryString",
-  // /map panel layout (pending DB migration — localStorage-migrate.md Phase 6)
-  "map-showPanel",
-  "map-sidebarWidth",
   // /directors route (pending URL migration — localStorage-migrate.md Phase 5)
   "directors-sortBy",
   "directors-sortDirection",

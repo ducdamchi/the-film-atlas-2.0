@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/utils/authContext"
-import NavBar from "@/components/layout/navbar/NavBar"
 import { useNavigate } from "@tanstack/react-router"
-import { LocationPicker } from "./LocationPicker"
+import { LocationPicker } from "./components/LocationPicker"
 import { authClient } from "@/lib/authClient"
 
 function Section({

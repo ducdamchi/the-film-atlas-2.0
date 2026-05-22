@@ -6,7 +6,7 @@ import FilmCardSkeleton from "./FilmCardSkeleton"
 
 interface FilmTMDB_GalleryProps {
   listOfFilmObjects: TMDBFilmSummary[]
-  /** Optional — only needed on pages that have pagination (MapPage). */
+  /** Optional — only needed on pages that have pagination (Map). */
   setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>
   isLoading?: boolean
 }

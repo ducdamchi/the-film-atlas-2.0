@@ -1,129 +1,135 @@
 /* Libraries */
-import { useEffect, useState, useMemo } from "react";
-import { useLocation } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState, useMemo } from "react"
+import { useLocation } from "@tanstack/react-router"
+import { useQuery } from "@tanstack/react-query"
 
 /* Custom functions */
-import { useAuth } from "../utils/authContext";
-import { queryFilmFromTMDB } from "../utils/apiCalls";
-import { usePersistedState } from "../hooks/usePersistedState";
+import { useAuth } from "../utils/authContext"
+import { queryFilmFromTMDB } from "../utils/apiCalls"
+import { usePersistedState } from "../hooks/usePersistedState"
 import {
   watchedFilmsQueryOptions,
   watchlistedFilmsQueryOptions,
-} from "@/queries/collections.queries";
+} from "@/queries/collections.queries"
 
 /* Types */
-import type { TMDBFilmSummary } from "@/types/tmdb";
+import type { TMDBFilmSummary } from "@/types/tmdb"
 
 /* Components */
-import SearchBar from "./search/SearchBar";
-import UserFilmGallery from "./films/UserFilmGallery";
-import TmdbFilmGallery from "./films/TmdbFilmGallery";
-import Toggle from "./ui-custom/Toggle";
+import SearchBar from "./search/SearchBar"
+import UserFilmGallery from "./film/UserFilmGallery"
+import TmdbFilmGallery from "./film/TmdbFilmGallery"
+import Toggle from "./ui-custom/Toggle"
 
 /* Icons */
-import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa";
+import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa"
 
-type QueryString = "watched" | "watchlisted" | "watched/rated";
-type SortBy = "added_date" | "released_date";
-type SortDirection = "asc" | "desc";
+type QueryString = "watched" | "watchlisted" | "watched/rated"
+type SortBy = "added_date" | "released_date"
+type SortDirection = "asc" | "desc"
 
 export default function Films() {
-  const [searchInput, setSearchInput] = useState<string>("");
-  const [searchResult, setSearchResult] = useState<TMDBFilmSummary[]>([]);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [searchInput, setSearchInput] = useState<string>("")
+  const [searchResult, setSearchResult] = useState<TMDBFilmSummary[]>([])
+  const [isSearching, setIsSearching] = useState<boolean>(false)
   const [sortBy, setSortBy] = usePersistedState<SortBy>(
     "films-sortBy",
     "added_date",
-  );
+  )
   const [sortDirection, setSortDirection] = usePersistedState<SortDirection>(
     "films-sortDirection",
     "desc",
-  );
-  const [numStars, setNumStars] = usePersistedState<number>(
-    "films-numStars",
-    0,
-  );
+  )
+  const [numStars, setNumStars] = usePersistedState<number>("films-numStars", 0)
   const [queryString, setQueryString] = usePersistedState<QueryString>(
     "film-queryString",
     "watched",
-  );
-  const { authState } = useAuth();
-  const location = useLocation();
+  )
+  const { authState } = useAuth()
+  const location = useLocation()
 
   const { data: watchedList = [], isLoading: watchedLoading } = useQuery({
     ...watchedFilmsQueryOptions,
     enabled: !!authState.status,
-  });
-  const { data: watchlistedList = [], isLoading: watchlistedLoading } = useQuery({
-    ...watchlistedFilmsQueryOptions,
-    enabled: !!authState.status,
-  });
+  })
+  const { data: watchlistedList = [], isLoading: watchlistedLoading } =
+    useQuery({
+      ...watchlistedFilmsQueryOptions,
+      enabled: !!authState.status,
+    })
 
-  const isLoading = queryString === "watchlisted" ? watchlistedLoading : watchedLoading;
+  const isLoading =
+    queryString === "watchlisted" ? watchlistedLoading : watchedLoading
 
   const displayList = useMemo(() => {
-    const base = queryString === "watchlisted" ? watchlistedList : watchedList;
-    let list = [...base];
+    const base = queryString === "watchlisted" ? watchlistedList : watchedList
+    let list = [...base]
 
     if (queryString === "watched/rated") {
-      list = list.filter((f) => (f.stars ?? 0) > 0);
-      if (numStars > 0) list = list.filter((f) => f.stars === numStars);
+      list = list.filter((f) => (f.stars ?? 0) > 0)
+      if (numStars > 0) list = list.filter((f) => f.stars === numStars)
     }
 
     list.sort((a, b) => {
-      const key = sortBy === "released_date" ? "release_date" : "added_date";
-      const dir = sortDirection === "asc" ? 1 : -1;
-      return a[key] < b[key] ? -dir : a[key] > b[key] ? dir : 0;
-    });
+      const key = sortBy === "released_date" ? "release_date" : "added_date"
+      const dir = sortDirection === "asc" ? 1 : -1
+      return a[key] < b[key] ? -dir : a[key] > b[key] ? dir : 0
+    })
 
-    return list;
-  }, [watchedList, watchlistedList, queryString, numStars, sortBy, sortDirection]);
+    return list
+  }, [
+    watchedList,
+    watchlistedList,
+    queryString,
+    numStars,
+    sortBy,
+    sortDirection,
+  ])
 
   /* Query films from TMDB when user navigates back from Quick Search Modal */
   useEffect(() => {
     try {
       if (location.state) {
         const { searchInputFromQuickSearch } =
-          (location.state as { searchInputFromQuickSearch?: string }) || {};
+          (location.state as { searchInputFromQuickSearch?: string }) || {}
         if (typeof searchInputFromQuickSearch === "string") {
           if (searchInputFromQuickSearch.trim().length > 0) {
-            setSearchInput(searchInputFromQuickSearch);
+            setSearchInput(searchInputFromQuickSearch)
           }
         }
       }
     } catch (err) {
-      console.log(err);
+      console.log(err)
     }
-  }, [location.state]);
+  }, [location.state])
 
   /* Query films from TMDB with Search Bar — debounced 500ms */
   useEffect(() => {
     if (searchInput.trim().length === 0 || searchInput === null) {
-      setIsSearching(false);
-      return;
+      setIsSearching(false)
+      return
     }
 
-    setIsSearching(true);
+    setIsSearching(true)
 
     const timer = setTimeout(async () => {
       try {
-        const original_results = await queryFilmFromTMDB(searchInput);
+        const original_results = await queryFilmFromTMDB(searchInput)
         const filtered_results = original_results.filter(
           (movie) =>
             !(movie.backdrop_path === null || movie.poster_path === null),
-        );
+        )
         const sorted_filtered_results = filtered_results.sort(
           (a, b) => b.popularity - a.popularity,
-        );
-        setSearchResult(sorted_filtered_results);
+        )
+        setSearchResult(sorted_filtered_results)
       } catch (err) {
-        console.log("Error Querying Film: ", err);
+        console.log("Error Querying Film: ", err)
       }
-    }, 500);
+    }, 500)
 
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+    return () => clearTimeout(timer)
+  }, [searchInput])
 
   return (
     <div className="font-primary mt-20 min-h-screen">
@@ -249,5 +255,5 @@ export default function Films() {
         </div>
       </div>
     </div>
-  );
+  )
 }

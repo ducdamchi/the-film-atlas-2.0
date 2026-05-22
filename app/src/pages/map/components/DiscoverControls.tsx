@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react"
 import { useAtom } from "jotai"
-import Toggle from "../ui-custom/Toggle"
+import Toggle from "../../../components/ui-custom/Toggle"
 import type { DiscoverFilterMode, DiscoverSort } from "@/routes/map"
-import ToggleWithSlider from "../ui-custom/ToggleWithSlider"
+import ToggleWithSlider from "../../../components/ui-custom/ToggleWithSlider"
 import {
   map_discoverSortAtom,
   map_discoverFilterAtom,
@@ -24,8 +24,13 @@ export default function DiscoverControls({ isoA2 }: DiscoverControlsProps) {
   const ratingRange: [number, number] = [0, rating]
   const voteCountRange: [number, number] = [0, votes]
 
-  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, rating])
-  const [tempVoteCountRange, setTempVoteCountRange] = useState<[number, number]>([0, votes])
+  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([
+    0,
+    rating,
+  ])
+  const [tempVoteCountRange, setTempVoteCountRange] = useState<
+    [number, number]
+  >([0, votes])
 
   // Sync temp when committed value changes (e.g. filter switched to custom, seeding defaults)
   useEffect(() => setTempRatingRange([0, rating]), [rating])

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { directorsQueryOptions } from "@/queries/directors.queries"
-import Directors from "../components/Directors"
+import Directors from "../pages/directors/Directors"
 import LoadingPage from "../components/layout/LoadingPage"
 
 export const Route = createFileRoute("/directors")({

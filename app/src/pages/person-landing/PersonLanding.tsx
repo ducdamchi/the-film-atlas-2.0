@@ -4,19 +4,19 @@ import { useParams } from "@tanstack/react-router"
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query"
 
 /* Custom functions */
-import { useAuth } from "../utils/authContext"
-import { useApp } from "../utils/appContext"
-import { getNiceMonthDateYear, getAge } from "../utils/helperFunctions"
+import { useAuth } from "../../utils/authContext"
+import { useApp } from "../../utils/appContext"
+import { getNiceMonthDateYear, getAge } from "../../utils/helperFunctions"
 import {
   personQueryOptions,
   directorStatusQueryOptions,
-} from "../queries/person.queries"
+} from "../../queries/person.queries"
 import { computeDirectorScore } from "@/utils/directorScore"
 /* Types */
 import type { TMDBPerson, TMDBFilmSummary } from "@/types/tmdb"
 
 /* Components */
-import TmdbFilmGallery from "./films/TmdbFilmGallery"
+import TmdbFilmGallery from "../../components/film/TmdbFilmGallery"
 
 export default function PersonLanding() {
   const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL

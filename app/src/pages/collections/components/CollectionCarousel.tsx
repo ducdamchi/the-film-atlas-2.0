@@ -6,11 +6,11 @@ import {
   useCallback,
 } from "react"
 
-import UserFilmCard from "../films/UserFilmCard"
-import LoadingPage from "../layout/LoadingPage"
+import UserFilmCard from "#/components/film/UserFilmCard"
+import LoadingPage from "#/components/layout/LoadingPage"
 import CollectionHeader from "./CollectionHeader"
 import CarouselNavPanel from "./CarouselNavPanel"
-import CollectionSearchModal from "../search/CollectionSearchModal"
+import CollectionSearchModal from "#/components/search/CollectionSearchModal"
 import CollectionFooter from "./CollectionFooter"
 import type { UserFilm } from "@/types/film"
 import type { CollectionData } from "@/hooks/useCollections"

@@ -5,7 +5,7 @@ import {
   watchedFilmsQueryOptions,
   watchlistedFilmsQueryOptions,
 } from "@/queries/collections.queries"
-import Collections from "../components/Collections"
+import Collections from "../pages/collections/Collections"
 import LoadingPage from "../components/layout/LoadingPage"
 import type { AppCollection } from "@/types/api"
 
@@ -22,7 +22,10 @@ export const Route = createFileRoute("/collections")({
       void queryClient.prefetchQuery(watchlistedFilmsQueryOptions)
       cachedCollections
         .filter((c) => c.collection_type === "standard")
-        .forEach((c) => void queryClient.prefetchQuery(collectionDetailQueryOptions(c.id)))
+        .forEach(
+          (c) =>
+            void queryClient.prefetchQuery(collectionDetailQueryOptions(c.id)),
+        )
       return
     }
     // First visit — await fetches so the page has data before rendering
@@ -34,7 +37,9 @@ export const Route = createFileRoute("/collections")({
       queryClient.prefetchQuery(watchlistedFilmsQueryOptions),
       ...collections
         .filter((c) => c.collection_type === "standard")
-        .map((c) => queryClient.prefetchQuery(collectionDetailQueryOptions(c.id))),
+        .map((c) =>
+          queryClient.prefetchQuery(collectionDetailQueryOptions(c.id)),
+        ),
     ])
   },
   pendingComponent: () => <LoadingPage variant="loading" />,

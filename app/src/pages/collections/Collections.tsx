@@ -23,8 +23,8 @@ import type { AppCollection } from "@/types/api"
 import type { UserFilm } from "@/types/film"
 
 /* Components */
-import SearchBar from "./search/SearchBar"
-import CollectionCarousel from "./collections/CollectionCarousel"
+import SearchBar from "@/components/search/SearchBar"
+import CollectionCarousel from "./components/CollectionCarousel"
 
 import { VscNewCollection } from "react-icons/vsc"
 

@@ -6,7 +6,7 @@ import {
   ytsQueryOptions,
   subtitlesQueryOptions,
 } from "@/queries/film.queries"
-import FilmLanding from "../../components/FilmLanding"
+import FilmLanding from "../../pages/film-landing/FilmLanding"
 import LoadingPage from "../../components/layout/LoadingPage"
 import type { TMDBFilm } from "@/types/tmdb"
 

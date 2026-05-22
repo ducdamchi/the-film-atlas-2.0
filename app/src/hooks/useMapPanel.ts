@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from "react"
-import { usePersistedState } from "./usePersistedState"
 import { useAtomValue, getDefaultStore } from "jotai"
 import { sidebarPinnedAtom } from "#/atoms/sidebarAtoms"
 import {
@@ -68,27 +67,13 @@ export function useMapPanel(): MapPanelState {
   const isDragEndRef = useRef<boolean>(false)
   const dragClickGuardRef = useRef<boolean>(false)
 
-  const [showPanel, setShowPanel] = usePersistedState<boolean>(
-    "map-showPanel",
-    true,
-  )
-  const [sidebarWidth, setSidebarWidth] = usePersistedState<number>(
-    "map-sidebarWidth",
-    SNAP_B,
-  )
+  const [showPanel, setShowPanel] = useState<boolean>(false)
+  const [sidebarWidth, setSidebarWidth] = useState<number>(SNAP_B)
   // Safe initial value — no window access at call time (SSR-safe).
   const [screenWidth, setScreenWidth] = useState<number>(1280)
-  const [effectiveWidth, setEffectiveWidth] = useState<number>(
-    1280 - SIDEBAR_WIDTH_ICON_PX,
-  )
+  const effectiveWidthRef = useRef<number>(1280 - SIDEBAR_WIDTH_ICON_PX)
   const isMobile = screenWidth < 768
   const sidebarPinned = useAtomValue(sidebarPinnedAtom, { store: getDefaultStore() })
-  // const effectiveWidth =
-  //   screenWidth - (sidebarPinned ? SIDEBAR_WIDTH_PX : SIDEBAR_WIDTH_ICON_PX)
-  // const effectiveWidthRef = useRef(effectiveWidth)
-  // useEffect(() => {
-  //   effectiveWidth = effectiveWidth
-  // }, [effectiveWidth])
 
   // Sync screenWidth on mount and on every resize.
   useEffect(() => {
@@ -98,23 +83,21 @@ export function useMapPanel(): MapPanelState {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
+  // Update effectiveWidthRef and clamp sidebarWidth whenever viewport or
+  // sidebar pinned state changes (§3e).
   useEffect(() => {
-    console.log("sidebarPinned:", sidebarPinned)
-    setEffectiveWidth(
-      screenWidth - (sidebarPinned ? SIDEBAR_WIDTH_PX : SIDEBAR_WIDTH_ICON_PX),
-    )
-  }, [screenWidth, sidebarPinned])
+    const effectiveWidth =
+      screenWidth - (sidebarPinned ? SIDEBAR_WIDTH_PX : SIDEBAR_WIDTH_ICON_PX)
+    effectiveWidthRef.current = effectiveWidth
+    console.log("effectiveWidth:", effectiveWidth, "sidebarPinned:", sidebarPinned)
 
-  // §3e — Clamp persisted sidebarWidth to an available snap when the viewport
-  // changes (e.g. persisted from a wider screen, now unusably wide on smaller).
-  useEffect(() => {
     if (isMobile) return
-    const snaps = getSnaps(effectiveWidth).filter((s) => s > SNAP_A)
+    const snaps = getSnaps(effectiveWidthRef.current).filter((s) => s > SNAP_A)
     console.log("available snaps:", snaps)
     if (snaps.length === 0) return
     const clamped = nearestSnap(sidebarWidth, snaps)
     if (clamped !== sidebarWidth) setSidebarWidth(clamped)
-  }, [effectiveWidth]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [screenWidth, sidebarPinned, isMobile]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // §3f — Clear conflicting inline styles when the user crosses the
   // mobile ↔ desktop breakpoint so neither axis bleeds into the other.
@@ -163,7 +146,8 @@ export function useMapPanel(): MapPanelState {
       panelRef.current.style.transition = "top 0.5s ease-in-out"
       panelRef.current.style.top = `${showPanel ? expanded : peek}px`
     } else {
-      panelRef.current.style.transition = "transform 0.4s ease-in-out"
+      panelRef.current.style.transition =
+        "transform 0.4s ease-in-out, width 0.2s linear"
       panelRef.current.style.width = `${sidebarWidth}px`
       panelRef.current.style.transform = showPanel
         ? "translateX(0)"
@@ -240,7 +224,7 @@ export function useMapPanel(): MapPanelState {
           // the user drags it open from a closed state.
           panelRef.current.style.transform = "translateX(0)"
         }
-        const raw = Math.max(0, Math.min(initialWidth + delta, effectiveWidth))
+        const raw = Math.max(0, Math.min(initialWidth + delta, effectiveWidthRef.current))
         panelRef.current.style.width = `${raw}px`
       }
 
@@ -261,7 +245,7 @@ export function useMapPanel(): MapPanelState {
           panelRef.current.style.width = `${sidebarWidth}px`
           panelRef.current.style.transform = "translateX(-100%)"
         } else {
-          const snapped = nearestSnap(raw, getSnaps(effectiveWidth))
+          const snapped = nearestSnap(raw, getSnaps(effectiveWidthRef.current))
           if (snapped === SNAP_A) {
             setShowPanel(false)
             panelRef.current.style.transition = "transform 0.4s ease-in-out"
@@ -300,7 +284,7 @@ export function useMapPanel(): MapPanelState {
       if (showPanel) {
         setShowPanel(false)
       } else {
-        const snaps = getSnaps(effectiveWidth).filter((s) => s > SNAP_A)
+        const snaps = getSnaps(effectiveWidthRef.current).filter((s) => s > SNAP_A)
         if (snaps.length > 0) {
           setSidebarWidth(snaps[0])
           setShowPanel(true)

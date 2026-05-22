@@ -4,9 +4,9 @@ import { useLocation } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 
 /* Custom functions */
-import { useAuth } from "../utils/authContext"
-import { queryPersonFromTMDB } from "../utils/apiCalls"
-import { usePersistedState } from "../hooks/usePersistedState"
+import { useAuth } from "@/utils/authContext"
+import { queryPersonFromTMDB } from "@/utils/apiCalls"
+import { usePersistedState } from "@/hooks/usePersistedState"
 import { directorsQueryOptions } from "@/queries/directors.queries"
 
 /**
@@ -28,10 +28,10 @@ interface DirectorSearchResult {
 }
 
 /* Components */
-import SearchBar from "./search/SearchBar"
-import TmdbDirectorGallery from "./directors/TmdbDirectorGallery"
-import UserDirectorGallery from "./directors/UserDirectorGallery"
-import Toggle from "./ui-custom/Toggle"
+import SearchBar from "../../components/search/SearchBar"
+import TmdbDirectorGallery from "./components/TmdbDirectorGallery"
+import UserDirectorGallery from "./components/UserDirectorGallery"
+import Toggle from "../../components/ui-custom/Toggle"
 
 /* Icons */
 import {

@@ -9,8 +9,8 @@ import {
 } from "@/utils/helperFunctions"
 import { useMarquee } from "@/hooks/useMarquee"
 
-import InteractionConsole from "../film-interaction/InteractionConsole"
-import CardHoverOverlay from "../film-interaction/CardHoverOverlay"
+import InteractionConsole from "./InteractionConsole"
+import CardHoverOverlay from "./FilmCardHoverOverlay"
 import FilmCardPoster from "./FilmCardPoster"
 
 import type { UserFilm } from "@/types/film"

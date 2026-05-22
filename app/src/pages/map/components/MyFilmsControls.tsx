@@ -1,17 +1,17 @@
-import { useAtom } from "jotai";
-import Toggle from "../ui-custom/Toggle";
-import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa";
+import { useAtom } from "jotai"
+import Toggle from "../../../components/ui-custom/Toggle"
+import { FaSortNumericDown, FaSortNumericDownAlt } from "react-icons/fa"
 import {
   map_modeAtom,
   map_userSortAtom,
   map_userSortDirAtom,
   map_starsAtom,
   map_userFilterAtom,
-} from "@/atoms/mapAtoms";
+} from "@/atoms/mapAtoms"
 
-type MapQueryString = "watched" | "watchlisted" | "rated";
-type SortBy = "added_date" | "released_date";
-type SortDirection = "asc" | "desc";
+type MapQueryString = "watched" | "watchlisted" | "rated"
+type SortBy = "added_date" | "released_date"
+type SortDirection = "asc" | "desc"
 
 export default function MyFilmsControls() {
   const [, setMapMode] = useAtom(map_modeAtom)
@@ -93,5 +93,5 @@ export default function MyFilmsControls() {
         />
       )}
     </>
-  );
+  )
 }

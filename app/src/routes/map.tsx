@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Provider } from "jotai"
-import MapPage from "../components/MapPage"
+import Map from "../pages/map/Map"
 import { mapStore } from "@/atoms/mapAtoms"
 
 /** Short aliases used in the URL */
@@ -14,10 +14,10 @@ export interface MapSearch {
   country?: string
 }
 
-function MapPageProvider() {
+function MapProvider() {
   return (
     <Provider store={mapStore}>
-      <MapPage />
+      <Map />
     </Provider>
   )
 }
@@ -27,5 +27,5 @@ export const Route = createFileRoute("/map")({
   validateSearch: (search: Record<string, unknown>): MapSearch => ({
     country: typeof search.country === "string" ? search.country : undefined,
   }),
-  component: MapPageProvider,
+  component: MapProvider,
 })

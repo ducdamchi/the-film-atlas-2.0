@@ -4,26 +4,26 @@ import { useParams, useNavigate, ClientOnly } from "@tanstack/react-router"
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query"
 
 /* Custom functions */
-import { getCountryName, getReleaseYear } from "../utils/helperFunctions"
+import { getCountryName, getReleaseYear } from "../../utils/helperFunctions"
 import {
   filmQueryOptions,
   omdbQueryOptions,
   wikidataQueryOptions,
   ytsQueryOptions,
   subtitlesQueryOptions,
-} from "../queries/film.queries"
-import useCommandKey from "../hooks/useCommandKey"
-import { useApp } from "../utils/appContext"
+} from "../../queries/film.queries"
+import useCommandKey from "../../hooks/useCommandKey"
+import { useApp } from "../../utils/appContext"
 
 /* Types */
 import type { TMDBFilm, TMDBCrewMember } from "@/types/tmdb"
 
 /* Components */
-import InteractionConsole from "./film-interaction/InteractionConsole"
-import PersonList from "./films/PersonList"
-import TrailerModal from "./films/TrailerModal"
-import Torrents from "./films/Torrents"
-import Subtitles from "./films/Subtitles"
+import InteractionConsole from "../../components/film/InteractionConsole"
+import PersonList from "./components/PersonList"
+import TrailerModal from "./components/TrailerModal"
+import Torrents from "./components/Torrents"
+import Subtitles from "./components/Subtitles"
 
 import { IoMdCalendar, IoIosTimer } from "react-icons/io"
 import { BiPlay } from "react-icons/bi"

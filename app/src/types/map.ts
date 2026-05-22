@@ -5,7 +5,7 @@
  * properties, and TMDB discover query parameters.
  *
  * Derived from:
- *   - src/components/MapPage.jsx
+ *   - src/components/Map.jsx
  *   - src/hooks/useMapInteraction.js   (popupInfo shape set in onMapClick)
  *   - src/hooks/useDiscoverFilms.js    (queryTopRatedFilmByCountryTMDB params)
  *   - src/utils/apiCalls.jsx           (queryTopRatedFilmByCountryTMDB signature)
@@ -20,29 +20,26 @@
  *   'discover'  → browse TMDB films from the selected country
  *   'myFilms'   → browse the logged-in user's own films from that country
  */
-export type MapMode = 'discover' | 'myFilms'
+export type MapMode = "discover" | "myFilms"
 
 /**
  * The filter applied in My Films mode, matching the `queryString` values used
- * in MapPage.jsx and the backend route segments.
+ * in Map.jsx and the backend route segments.
  *
  * The `by_country` suffix is appended by the component before calling
  * fetchListByParams, so these are the "canonical" filter names.
  */
-export type MyFilmsFilter =
-  | 'watched'
-  | 'watchlisted'
-  | 'rated'
+export type MyFilmsFilter = "watched" | "watchlisted" | "rated"
 
 /**
  * The full queryString values passed to fetchListByParams on the map page.
  * These include the `/by_country` suffix used for geographic filtering.
  */
 export type MapQueryString =
-  | 'discover'
-  | 'watched/by_country'
-  | 'watchlisted/by_country'
-  | 'watched/rated/by_country'
+  | "discover"
+  | "watched/by_country"
+  | "watchlisted/by_country"
+  | "watched/rated/by_country"
 
 // ---------------------------------------------------------------------------
 // Map interaction state
@@ -54,7 +51,7 @@ export type MapQueryString =
  * `iso_a2` is the ISO 3166-1 alpha-2 country code from the GeoJSON feature.
  * It is `undefined` when no country feature was under the click point and
  * `null` is not valid — the hook guards on `iso_a2 !== undefined` in
- * MapPage.jsx popupInfo checks.
+ * Map.jsx popupInfo checks.
  *
  * `custom_name` is set only for edge cases like Palestine (feature IDs 921/907)
  * where the raw GeoJSON name is incorrect.
