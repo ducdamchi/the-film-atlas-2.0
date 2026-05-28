@@ -256,9 +256,6 @@
     @apply w-[18rem] p-2      font-light transition-all ease-out duration-300 rounded-none;
   }
 
-  .console-button {
-    @apply flex items-center gap-1 border-1 rounded-full max-h-[2.5rem] backdrop-blur-2xl;
-  }
 
   .landing-main-img-container {
     @apply overflow-hidden relative;

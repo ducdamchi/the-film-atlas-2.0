@@ -315,7 +315,6 @@ export default function FilmLanding() {
                   directors={directors}
                   movieDetails={movieDetails}
                   variant="landing-sm"
-                  showOverview={false}
                 />
               </ClientOnly>
             </div>
@@ -326,7 +325,6 @@ export default function FilmLanding() {
                   directors={directors}
                   movieDetails={movieDetails}
                   variant="landing-lg"
-                  showOverview={false}
                 />
               </ClientOnly>
             </div>

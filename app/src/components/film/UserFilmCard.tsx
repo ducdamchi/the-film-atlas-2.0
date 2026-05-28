@@ -141,7 +141,6 @@ export default function UserFilmCard({
         movieDetails={filmObject}
         isLoading={false}
         fetchError={false}
-        showOverview={true}
         slideDown={true}
       />
     </div>

@@ -31,7 +31,6 @@ const baseProps = {
   movieDetails: {} as Record<string, never>,
   isLoading: false,
   fetchError: false,
-  showOverview: true,
   slideDown: true,
 }
 

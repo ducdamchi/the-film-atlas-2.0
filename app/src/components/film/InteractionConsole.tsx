@@ -32,106 +32,132 @@ import type {
 
 type ConsoleVariant = "card" | "landing-sm" | "landing-lg"
 
-export interface ConsoleConfig {
-  /** CSS color value for text and inactive borders */
-  text: string
-  fontSize: string
-  likeSize: string
-  saveSize: string
-  starSize: string
-  gap: string
-  buttonPadding: string
-  paddingTB: string
-  paddingLR: string
-  buttonHeight: string
-  /** Complete Tailwind hover:text-* class, e.g. "hover:text-hover-dark" */
-  hoverTextClass: string
-}
-
-export const VARIANT_CONFIG: Record<ConsoleVariant, ConsoleConfig> = {
-  card: {
-    text: "var(--foreground)",
-    fontSize: "13px",
-    likeSize: "1.1rem",
-    saveSize: "1.5rem",
-    starSize: "1.3rem",
-    gap: "2px",
-    buttonPadding: "2px",
-    paddingTB: "0",
-    paddingLR: "10px",
-    buttonHeight: "2rem",
-    hoverTextClass: "hover:text-hover-dark",
-  },
-  "landing-sm": {
-    text: "inherit",
-    fontSize: "14px",
-    likeSize: "1.1rem",
-    saveSize: "1.6rem",
-    starSize: "1.4rem",
-    gap: "10px",
-    buttonPadding: "0",
-    paddingTB: "0",
-    paddingLR: "10px",
-    buttonHeight: "2.5rem",
-    hoverTextClass: "hover:text-hover-light",
-  },
-  "landing-lg": {
-    text: "inherit",
-    fontSize: "16px",
-    likeSize: "1.3rem",
-    saveSize: "1.8rem",
-    starSize: "1.6rem",
-    gap: "15px",
-    buttonPadding: "0",
-    paddingTB: "10px",
-    paddingLR: "15px",
-    buttonHeight: "3rem",
-    hoverTextClass: "hover:text-hover-light",
-  },
-}
-
+// Root console container
 const consoleVariants = cva(
   "flex flex-col z-30 items-center justify-center gap-0",
   {
     variants: {
       variant: {
-        card: "",
+        card: "text-foreground",
         "landing-sm": "",
         "landing-lg": "",
       },
     },
+    defaultVariants: { variant: "card" },
   },
 )
 
-// ─── TripleStarRating (internal — not for direct use outside InteractionConsole) ─
+// Flex row holding the three pill buttons
+const rowVariants = cva("flex justify-center items-end w-full", {
+  variants: {
+    variant: {
+      card: "gap-[2px]",
+      "landing-sm": "gap-2.5",
+      "landing-lg": "gap-[15px]",
+    },
+  },
+  defaultVariants: { variant: "card" },
+})
+
+// Outer button/div wrapper — hover color + padding
+const buttonWrapperVariants = cva(
+  "transition-all duration-200 ease-out h-full flex items-center",
+  {
+    variants: {
+      variant: {
+        card: "p-0.5 hover:text-hover-dark",
+        "landing-sm": "hover:text-hover-light",
+        "landing-lg": "hover:text-hover-light",
+      },
+    },
+    defaultVariants: { variant: "card" },
+  },
+)
+
+// The rounded pill container
+const pillVariants = cva(
+  "flex items-center gap-1 border rounded-full backdrop-blur-2xl",
+  {
+    variants: {
+      state: {
+        default: "border-current",
+        watched: "bg-liked border-liked text-white",
+        saved:   "bg-saved border-saved text-white",
+        rated:   "bg-star/15 border-star",
+      },
+      size: {
+        card:         "h-8 w-8 justify-center",
+        "card-wide":  "h-8 px-2.5",
+        "landing-sm": "h-10 px-2.5",
+        "landing-lg": "h-12 py-2.5 px-[15px]",
+      },
+    },
+    defaultVariants: { state: "default", size: "card" },
+  },
+)
+
+// Icon font sizes — compound: variant × icon type
+// Note: in card (icon-only) mode, save icons use the same size as like icons.
+const iconVariants = cva("", {
+  variants: {
+    variant: { card: "", "landing-sm": "", "landing-lg": "" },
+    type:    { like: "", save: "", star: "" },
+  },
+  compoundVariants: [
+    { variant: "card",        type: "like", class: "text-[1.1rem]" },
+    { variant: "landing-sm",  type: "like", class: "text-[1.1rem]" },
+    { variant: "landing-lg",  type: "like", class: "text-[1.3rem]" },
+    { variant: "card",        type: "save", class: "text-[1.1rem]" },
+    { variant: "landing-sm",  type: "save", class: "text-[1.6rem]" },
+    { variant: "landing-lg",  type: "save", class: "text-[1.8rem]" },
+    { variant: "card",        type: "star", class: "text-[1.3rem]" },
+    { variant: "landing-sm",  type: "star", class: "text-[1.4rem]" },
+    { variant: "landing-lg",  type: "star", class: "text-[1.6rem]" },
+  ],
+  defaultVariants: { variant: "card", type: "like" },
+})
+
+// Label text next to icons — only rendered when variant !== "card"
+const labelVariants = cva("", {
+  variants: {
+    variant: {
+      card:         "",
+      "landing-sm": "text-[14px]",
+      "landing-lg": "text-base",
+    },
+  },
+  defaultVariants: { variant: "card" },
+})
+
+// ─── TripleStarRating ─────────────────────────────────────────────────────────
 
 interface TripleStarRatingProps {
   officialRating: StarRating | null
   setRequestedRating: React.Dispatch<React.SetStateAction<StarRating | -1>>
-  showText: boolean
-  config?: ConsoleConfig
+  variant: ConsoleVariant
   className?: string
 }
 
 export function TripleStarRating({
   officialRating,
   setRequestedRating,
-  showText,
-  config = VARIANT_CONFIG.card,
+  variant,
   className,
 }: TripleStarRatingProps) {
   const [starHover, setStarHover] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const hasRating = (officialRating ?? 0) >= 1
+  const showText = variant !== "card"
+
   return (
     <div
       className={cn(
-        "transition-all duration-200 ease-out h-full group flex items-center justify-center",
-        config.hoverTextClass,
+        buttonWrapperVariants({ variant }),
+        "justify-center group",
         className,
       )}
-      style={{ padding: config.buttonPadding }}
       onMouseEnter={() => {
         if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
         setIsHovered(true)
@@ -141,101 +167,70 @@ export function TripleStarRating({
       }}
     >
       <div
-        className={`console-button justify-center group/rating ${(officialRating ?? 0) >= 1 ? "bg-star/15" : ""}`}
-        style={{
-          borderColor:
-            (officialRating ?? 0) >= 1
-              ? "oklch(65.6% 0.241 354.308)"
-              : config.text,
-          height: config.buttonHeight,
-          padding: `${config.paddingTB} ${config.paddingLR}`,
-        }}
+        className={cn(
+          pillVariants({
+            state: hasRating ? "rated" : "default",
+            size: variant === "card" ? "card-wide" : variant,
+          }),
+          "group/rating",
+        )}
       >
+        {/* Star buttons */}
         <div
           className={cn(
-            "flex items-center justify-center transition-all duration-200 ease-out",
-            config.hoverTextClass,
+            "flex items-center justify-center",
+            iconVariants({ variant, type: "star" }),
           )}
-          style={{ fontSize: config.starSize }}
         >
-          <button
-            onMouseEnter={() => setStarHover(1)}
-            onMouseLeave={() => setStarHover(0)}
-            onClick={() =>
-              setRequestedRating(!showText && officialRating === 1 ? 0 : 1)
-            }
-          >
-            {starHover >= 1 || (officialRating ?? 0) >= 1 ? (
-              <span className="text-star">&#10048;</span>
-            ) : (
-              <span>&#10048;</span>
-            )}
-          </button>
-          <button
-            onMouseEnter={() => setStarHover(2)}
-            onMouseLeave={() => setStarHover(0)}
-            onClick={() =>
-              setRequestedRating(!showText && officialRating === 2 ? 0 : 2)
-            }
-          >
-            {starHover >= 2 || (officialRating ?? 0) >= 2 ? (
-              <span className="text-star">&#10048;</span>
-            ) : (
-              <span>&#10048;</span>
-            )}
-          </button>
-          <button
-            onMouseEnter={() => setStarHover(3)}
-            onMouseLeave={() => setStarHover(0)}
-            onClick={() =>
-              setRequestedRating(!showText && officialRating === 3 ? 0 : 3)
-            }
-          >
-            {starHover === 3 || (officialRating ?? 0) >= 3 ? (
-              <span className="text-star">&#10048;</span>
-            ) : (
-              <span>&#10048;</span>
-            )}
-          </button>
+          {([1, 2, 3] as StarRating[]).map((n) => (
+            <button
+              key={n}
+              onMouseEnter={() => setStarHover(n)}
+              onMouseLeave={() => setStarHover(0)}
+              onClick={() =>
+                setRequestedRating(!showText && officialRating === n ? 0 : n)
+              }
+            >
+              {starHover >= n || (officialRating ?? 0) >= n ? (
+                <span className="text-star">&#10048;</span>
+              ) : (
+                <span>&#10048;</span>
+              )}
+            </button>
+          ))}
         </div>
 
-        {isHovered && !showText && (officialRating ?? 0) >= 1 && (
-          <div className="w-0 overflow-hidden flex transition-[width,opacity] duration-200 ease-out group-hover/rating:w-[0.75rem] flex items-center justify-center">
+        {/* × clear button — card mode only, visible on hover when rated */}
+        {isHovered && !showText && hasRating && (
+          <div className="w-0 overflow-hidden flex transition-[width,opacity] duration-200 ease-out group-hover/rating:w-[0.75rem] items-center justify-center">
             <button
               onClick={() => setRequestedRating(0)}
-              className="text-black hover:text-hover-dark transition-colors duration-200 flex items-center"
-              style={{ fontSize: "0.5rem", lineHeight: 1 }}
+              className="text-black hover:text-hover-dark transition-colors duration-200 flex items-center text-[0.5rem] leading-none"
             >
               ✕
             </button>
           </div>
         )}
 
+        {/* Rate / Unrate text — landing modes only */}
         {showText && (
           <div className="h-full flex items-center justify-center">
-            {officialRating !== 0 &&
-              officialRating !== undefined &&
-              officialRating !== null && (
-                <button
-                  onClick={() => setRequestedRating(0)}
-                  className={cn(
-                    "transition-all duration-200 ease-out text-star",
-                    config.hoverTextClass,
-                  )}
-                  style={{ fontSize: config.fontSize }}
-                >
-                  Unrate
-                </button>
-              )}
-            {(officialRating === 0 ||
-              officialRating === undefined ||
-              officialRating === null) && (
+            {hasRating ? (
+              <button
+                onClick={() => setRequestedRating(0)}
+                className={cn(
+                  "transition-all duration-200 ease-out text-star",
+                  labelVariants({ variant }),
+                )}
+              >
+                Unrate
+              </button>
+            ) : (
               <span
                 className={cn(
                   "transition-all duration-200 ease-out",
-                  config.hoverTextClass,
+                  labelVariants({ variant }),
                 )}
-                style={{ color: config.text, fontSize: config.fontSize }}
               >
                 Rate
               </span>
@@ -256,11 +251,10 @@ export interface InteractionConsoleProps {
   movieDetails: TMDBFilm | UserFilm | Record<string, never>
   /**
    * @param {"card"|"landing-sm"|"landing-lg"} variant
-   * Controls sizing, spacing, and color tokens. All values are defined in
-   * VARIANT_CONFIG inside this file — no global CSS custom properties.
+   * Controls sizing, spacing, and color tokens. All values are defined via
+   * CVA variants inside this file — no global CSS custom properties.
    */
   variant: ConsoleVariant
-  showOverview: boolean
   /** Merged onto the root wrapper div */
   className?: string
   /** Per-slot class overrides */
@@ -278,7 +272,6 @@ export default function InteractionConsole({
   directors,
   movieDetails,
   variant,
-  showOverview,
   className,
   classNames,
 }: InteractionConsoleProps) {
@@ -289,7 +282,7 @@ export default function InteractionConsole({
   const queryClient = useQueryClient()
 
   const filmId = Number(tmdbId)
-  const config = VARIANT_CONFIG[variant]
+  const showText = variant !== "card"
 
   /* Derive like/save/rating status from the shared cached lists */
   const { data: watchedList = [], isLoading: isWatchedLoading } = useQuery({
@@ -604,97 +597,42 @@ export default function InteractionConsole({
     }
   }, [requestedRating])
 
-  const details = movieDetails as TMDBFilm
-  const showText = variant !== "card"
-
   return (
     <>
       {!isStatusLoading && (
         <div
-          className={cn(consoleVariants({ variant }), classNames?.root, className)}
-          style={{ color: config.text }}
-        >
-          {showOverview && (
-            <div
-              className="text-white w-[85%] pr-4 pl-4 pb-2 mb-5"
-              onClick={() => {
-                navigate({ to: `/films/${details.id}` })
-              }}
-            >
-              <span className="text-[9.5px]/1">
-                {details.overview?.slice(0, 180)}
-              </span>
-              {details.overview?.length >= 181 && <span>{`...`}</span>}
-            </div>
+          className={cn(
+            consoleVariants({ variant }),
+            classNames?.root,
+            className,
           )}
-
-          <div
-            className={cn(
-              "flex justify-center items-end w-full",
-              classNames?.buttonRow,
-            )}
-            style={{ gap: config.gap, height: "auto" }}
-          >
+        >
+          <div className={cn(rowVariants({ variant }), classNames?.buttonRow)}>
             {/* Watchlist button */}
             <button
               aria-label="Add to watchlist"
               title="Add to watchlist"
               className={cn(
-                "transition-all duration-200 ease-out h-full flex items-center",
-                config.hoverTextClass,
+                buttonWrapperVariants({ variant }),
                 classNames?.watchlistButton,
               )}
-              style={{ padding: config.buttonPadding }}
               onClick={handleSave}
             >
-              {isSaved ? (
-                <div
-                  className="console-button"
-                  style={{
-                    backgroundColor: "var(--color-saved)",
-                    borderColor: "var(--color-saved)",
-                    padding: showText
-                      ? `${config.paddingTB} ${config.paddingLR}`
-                      : undefined,
-                    height: config.buttonHeight,
-                    width: showText ? undefined : config.buttonHeight,
-                    ...(showText ? {} : { aspectRatio: "1", justifyContent: "center", borderRadius: "9999px" }),
-                  }}
-                >
-                  <BiListCheck
-                    style={{
-                      color: "white",
-                      fontSize: showText ? config.saveSize : config.likeSize,
-                    }}
-                  />
-                  {showText && (
-                    <span style={{ color: "white", fontSize: config.fontSize }}>
-                      Watchlist
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div
-                  className="console-button"
-                  style={{
-                    padding: showText
-                      ? `${config.paddingTB} ${config.paddingLR}`
-                      : undefined,
-                    height: config.buttonHeight,
-                    width: showText ? undefined : config.buttonHeight,
-                    ...(showText ? {} : { aspectRatio: "1", justifyContent: "center", borderRadius: "9999px" }),
-                  }}
-                >
-                  <BiListPlus
-                    style={{
-                      fontSize: showText ? config.saveSize : config.likeSize,
-                    }}
-                  />
-                  {showText && (
-                    <span style={{ fontSize: config.fontSize }}>Watchlist</span>
-                  )}
-                </div>
-              )}
+              <div
+                className={pillVariants({
+                  state: isSaved ? "saved" : "default",
+                  size: variant,
+                })}
+              >
+                {isSaved ? (
+                  <BiListCheck className={iconVariants({ variant, type: "save" })} />
+                ) : (
+                  <BiListPlus className={iconVariants({ variant, type: "save" })} />
+                )}
+                {showText && (
+                  <span className={labelVariants({ variant })}>Watchlist</span>
+                )}
+              </div>
             </button>
 
             {/* Watched button */}
@@ -702,61 +640,32 @@ export default function InteractionConsole({
               aria-label="Add to watched"
               title="Add to watched"
               className={cn(
-                "transition-all duration-200 ease-out h-full flex items-center",
-                config.hoverTextClass,
+                buttonWrapperVariants({ variant }),
                 classNames?.watchedButton,
               )}
-              style={{ padding: config.buttonPadding }}
               onClick={handleLike}
             >
-              {isLiked ? (
-                <div
-                  className="console-button"
-                  style={{
-                    backgroundColor: "var(--color-liked)",
-                    borderColor: "var(--color-liked)",
-                    padding: showText
-                      ? `${config.paddingTB} ${config.paddingLR}`
-                      : undefined,
-                    height: config.buttonHeight,
-                    width: showText ? undefined : config.buttonHeight,
-                    ...(showText ? {} : { aspectRatio: "1", justifyContent: "center", borderRadius: "9999px" }),
-                  }}
-                >
-                  <BiSolidHeart
-                    style={{ color: "white", fontSize: config.likeSize }}
-                  />
-                  {showText && (
-                    <span style={{ color: "white", fontSize: config.fontSize }}>
-                      Watched
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div
-                  className="console-button"
-                  style={{
-                    padding: showText
-                      ? `${config.paddingTB} ${config.paddingLR}`
-                      : undefined,
-                    height: config.buttonHeight,
-                    width: showText ? undefined : config.buttonHeight,
-                    ...(showText ? {} : { aspectRatio: "1", justifyContent: "center", borderRadius: "9999px" }),
-                  }}
-                >
-                  <BiHeart style={{ fontSize: config.likeSize }} />
-                  {showText && (
-                    <span style={{ fontSize: config.fontSize }}>Watched</span>
-                  )}
-                </div>
-              )}
+              <div
+                className={pillVariants({
+                  state: isLiked ? "watched" : "default",
+                  size: variant,
+                })}
+              >
+                {isLiked ? (
+                  <BiSolidHeart className={iconVariants({ variant, type: "like" })} />
+                ) : (
+                  <BiHeart className={iconVariants({ variant, type: "like" })} />
+                )}
+                {showText && (
+                  <span className={labelVariants({ variant })}>Watched</span>
+                )}
+              </div>
             </button>
 
             <TripleStarRating
               officialRating={officialRating}
               setRequestedRating={setRequestedRating}
-              showText={showText}
-              config={config}
+              variant={variant}
               className={classNames?.ratingButton}
             />
           </div>

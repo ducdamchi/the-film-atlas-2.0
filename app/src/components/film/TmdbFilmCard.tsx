@@ -128,7 +128,6 @@ export default function TmdbFilmCard({
         movieDetails={movieDetails}
         isLoading={isLoading}
         fetchError={fetchError}
-        showOverview={true}
         slideDown={true}
         setPage={setPage}
       />

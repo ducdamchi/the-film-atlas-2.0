@@ -34,7 +34,6 @@ interface CardHoverOverlayProps {
   movieDetails: TMDBFilm | UserFilm | Record<string, never>
   isLoading: boolean
   fetchError?: boolean
-  showOverview: boolean
   setPage?: React.Dispatch<React.SetStateAction<DiscoverPageState>>
   /** When true: renders as a slide-down panel below the card (Phase 2 behavior).
    *  Visibility is CSS group-hover driven — hoverId is ignored. */
@@ -48,7 +47,6 @@ export default function CardHoverOverlay({
   movieDetails,
   isLoading,
   fetchError = false,
-  showOverview,
   setPage,
   slideDown = false,
 }: CardHoverOverlayProps) {
@@ -74,7 +72,6 @@ export default function CardHoverOverlay({
                 directors={directors}
                 movieDetails={movieDetails}
                 variant="card"
-                showOverview={false}
               />
             </div>
             {/* <div>
@@ -140,56 +137,4 @@ export default function CardHoverOverlay({
       </div>
     )
   }
-  // return (
-  //   <div
-  //     className={`hidden md:flex absolute inset-0 items-center justify-center z-10 ${!isHovered ? "pointer-events-none" : ""}`}
-  //   >
-  //     {/* Black overlay in its own div so its opacity transition doesn't create a stacking context
-  //         around the InteractionConsole — backdrop-filter on console buttons requires no
-  //         opacity-animated ancestor to correctly blur through to the film poster. */}
-  //     <div
-  //       className={`absolute inset-0 bg-black/70 transition-opacity duration-200 ${isHovered ? "opacity-100" : "opacity-0"}`}
-  //     />
-
-  //     {isHovered && showOverview && (
-  //       <div className="flex flex-col justify-end items-center pb-4 @5xl:pb-6 relative z-10">
-  //         <div
-  //           className="w-full text-light px-7 pb-5 @5xl:pb-6"
-  //           onClick={handleNavigate}
-  //         >
-  //           <span className="text-sm @5xl:text-base italic font-light line-clamp-4">
-  //             {details?.overview || (filmObject as TMDBFilmSummary).overview}
-  //           </span>
-  //         </div>
-  //         <InteractionConsole
-  //           tmdbId={hoverId}
-  //           directors={directors}
-  //           movieDetails={movieDetails}
-  //           isLoading={isLoading}
-  //           setIsLoading={setIsLoading}
-  //           variant={overlayVariant}
-  //           showOverview={false}
-  //         />
-  //       </div>
-  //     )}
-
-  //     {isHovered && !showOverview && (
-  //       <div className="flex flex-col justify-center items-center h-full pb-4 @5xl:pb-6 relative z-10">
-  //         <InteractionConsole
-  //           tmdbId={hoverId}
-  //           directors={directors}
-  //           movieDetails={movieDetails}
-  //           isLoading={isLoading}
-  //           setIsLoading={setIsLoading}
-  //           variant={overlayVariant}
-  //           showOverview={false}
-  //         />
-  //         <div
-  //           className="absolute w-full h-full z-0 bottom-0"
-  //           onClick={handleNavigate}
-  //         />
-  //       </div>
-  //     )}
-  //   </div>
-  // );
 }
