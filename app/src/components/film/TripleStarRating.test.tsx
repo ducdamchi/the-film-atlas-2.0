@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, act } from "@testing-library/react"
-import TripleStarRating from "./TripleStarRating"
+import { TripleStarRating } from "./InteractionConsole"
 import type { StarRating } from "@/types/film"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

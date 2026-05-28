@@ -352,59 +352,6 @@
     @apply flex flex-col pl-4 justify-center items-start gap-1 border-l-1;
   }
 
-  .console-card,
-  .console-landing-sm,
-  .console-landing-lg {
-    --console-hover-bg: none;
-  }
-
-  .console-card {
-    --console-text: var(--color-foreground);
-    --console-font-size: 13px;
-    --console-like-size: 1.1rem;
-    --console-save-size: 1.5rem;
-    --console-star-size: 1.3rem;
-    --console-gap: 2px;
-    --console-height: auto;
-    --console-button-padding: 2px;
-    --console-padding-tb: 0;
-    --console-padding-lr: 10px;
-    --console-button-height: 2rem;
-    --console-hover-text: var(--color-hover-dark);
-    --console-border-color: var(--color-foreground);
-  }
-
-  .console-landing-sm {
-    --console-text: var(--color-);
-    --console-font-size: 14px;
-    --console-like-size: 1.1rem;
-    --console-save-size: 1.6rem;
-    --console-star-size: 1.4rem;
-    --console-gap: 10px;
-    --console-height: auto;
-    --console-button-padding: 0;
-    --console-padding-tb: 0;
-    --console-padding-lr: 10px;
-    --console-button-height: 2.5rem;
-    --console-hover-text: var(--color-hover-light);
-    --console-border-color: var(--color-text-background);
-  }
-
-  .console-landing-lg {
-    --console-text: var(--color-);
-    --console-font-size: 16px;
-    --console-like-size: 1.3rem;
-    --console-save-size: 1.8rem;
-    --console-star-size: 1.6rem;
-    --console-gap: 15px;
-    --console-height: auto;
-    --console-button-padding: 0;
-    --console-padding-tb: 10px;
-    --console-padding-lr: 15px;
-    --console-button-height: 3rem;
-    --console-hover-text: var(--color-hover-light);
-    --console-border-color: var(--color-text-background);
-  }
 }
 
 @keyframes footer-fade-in {

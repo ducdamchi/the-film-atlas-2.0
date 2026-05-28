@@ -1,8 +1,9 @@
 /* Libraries */
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { cva } from "class-variance-authority"
 
 /* Custom functions */
 import { likeFilmFn, unlikeFilmFn, rateFilmFn } from "@/server/watched"
@@ -13,8 +14,7 @@ import {
 } from "@/queries/collections.queries"
 import { directorsQueryOptions } from "@/queries/directors.queries"
 import { useAuth } from "@/utils/authContext"
-
-import TripleStarRating from "./TripleStarRating"
+import { cn } from "@/lib/utils"
 
 /* Icons */
 import { BiListPlus, BiListCheck, BiHeart, BiSolidHeart } from "react-icons/bi"
@@ -28,11 +28,226 @@ import type {
   UserFilm,
 } from "@/types/film"
 
-/**
- * The variants that drive CSS custom property styling via .console-{variant}.
- * Adding the union here means passing an invalid string like "hover" is a compile error.
- */
+// ─── Variant system ───────────────────────────────────────────────────────────
+
 type ConsoleVariant = "card" | "landing-sm" | "landing-lg"
+
+export interface ConsoleConfig {
+  /** CSS color value for text and inactive borders */
+  text: string
+  fontSize: string
+  likeSize: string
+  saveSize: string
+  starSize: string
+  gap: string
+  buttonPadding: string
+  paddingTB: string
+  paddingLR: string
+  buttonHeight: string
+  /** Complete Tailwind hover:text-* class, e.g. "hover:text-hover-dark" */
+  hoverTextClass: string
+}
+
+export const VARIANT_CONFIG: Record<ConsoleVariant, ConsoleConfig> = {
+  card: {
+    text: "var(--foreground)",
+    fontSize: "13px",
+    likeSize: "1.1rem",
+    saveSize: "1.5rem",
+    starSize: "1.3rem",
+    gap: "2px",
+    buttonPadding: "2px",
+    paddingTB: "0",
+    paddingLR: "10px",
+    buttonHeight: "2rem",
+    hoverTextClass: "hover:text-hover-dark",
+  },
+  "landing-sm": {
+    text: "inherit",
+    fontSize: "14px",
+    likeSize: "1.1rem",
+    saveSize: "1.6rem",
+    starSize: "1.4rem",
+    gap: "10px",
+    buttonPadding: "0",
+    paddingTB: "0",
+    paddingLR: "10px",
+    buttonHeight: "2.5rem",
+    hoverTextClass: "hover:text-hover-light",
+  },
+  "landing-lg": {
+    text: "inherit",
+    fontSize: "16px",
+    likeSize: "1.3rem",
+    saveSize: "1.8rem",
+    starSize: "1.6rem",
+    gap: "15px",
+    buttonPadding: "0",
+    paddingTB: "10px",
+    paddingLR: "15px",
+    buttonHeight: "3rem",
+    hoverTextClass: "hover:text-hover-light",
+  },
+}
+
+const consoleVariants = cva(
+  "flex flex-col z-30 items-center justify-center gap-0",
+  {
+    variants: {
+      variant: {
+        card: "",
+        "landing-sm": "",
+        "landing-lg": "",
+      },
+    },
+  },
+)
+
+// ─── TripleStarRating (internal — not for direct use outside InteractionConsole) ─
+
+interface TripleStarRatingProps {
+  officialRating: StarRating | null
+  setRequestedRating: React.Dispatch<React.SetStateAction<StarRating | -1>>
+  showText: boolean
+  config?: ConsoleConfig
+  className?: string
+}
+
+export function TripleStarRating({
+  officialRating,
+  setRequestedRating,
+  showText,
+  config = VARIANT_CONFIG.card,
+  className,
+}: TripleStarRatingProps) {
+  const [starHover, setStarHover] = useState(0)
+  const [isHovered, setIsHovered] = useState(false)
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  return (
+    <div
+      className={cn(
+        "transition-all duration-200 ease-out h-full group flex items-center justify-center",
+        config.hoverTextClass,
+        className,
+      )}
+      style={{ padding: config.buttonPadding }}
+      onMouseEnter={() => {
+        if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+        setIsHovered(true)
+      }}
+      onMouseLeave={() => {
+        hoverTimeoutRef.current = setTimeout(() => setIsHovered(false), 200)
+      }}
+    >
+      <div
+        className={`console-button justify-center group/rating ${(officialRating ?? 0) >= 1 ? "bg-star/15" : ""}`}
+        style={{
+          borderColor:
+            (officialRating ?? 0) >= 1
+              ? "oklch(65.6% 0.241 354.308)"
+              : config.text,
+          height: config.buttonHeight,
+          padding: `${config.paddingTB} ${config.paddingLR}`,
+        }}
+      >
+        <div
+          className={cn(
+            "flex items-center justify-center transition-all duration-200 ease-out",
+            config.hoverTextClass,
+          )}
+          style={{ fontSize: config.starSize }}
+        >
+          <button
+            onMouseEnter={() => setStarHover(1)}
+            onMouseLeave={() => setStarHover(0)}
+            onClick={() =>
+              setRequestedRating(!showText && officialRating === 1 ? 0 : 1)
+            }
+          >
+            {starHover >= 1 || (officialRating ?? 0) >= 1 ? (
+              <span className="text-star">&#10048;</span>
+            ) : (
+              <span>&#10048;</span>
+            )}
+          </button>
+          <button
+            onMouseEnter={() => setStarHover(2)}
+            onMouseLeave={() => setStarHover(0)}
+            onClick={() =>
+              setRequestedRating(!showText && officialRating === 2 ? 0 : 2)
+            }
+          >
+            {starHover >= 2 || (officialRating ?? 0) >= 2 ? (
+              <span className="text-star">&#10048;</span>
+            ) : (
+              <span>&#10048;</span>
+            )}
+          </button>
+          <button
+            onMouseEnter={() => setStarHover(3)}
+            onMouseLeave={() => setStarHover(0)}
+            onClick={() =>
+              setRequestedRating(!showText && officialRating === 3 ? 0 : 3)
+            }
+          >
+            {starHover === 3 || (officialRating ?? 0) >= 3 ? (
+              <span className="text-star">&#10048;</span>
+            ) : (
+              <span>&#10048;</span>
+            )}
+          </button>
+        </div>
+
+        {isHovered && !showText && (officialRating ?? 0) >= 1 && (
+          <div className="w-0 overflow-hidden flex transition-[width,opacity] duration-200 ease-out group-hover/rating:w-[0.75rem] flex items-center justify-center">
+            <button
+              onClick={() => setRequestedRating(0)}
+              className="text-black hover:text-hover-dark transition-colors duration-200 flex items-center"
+              style={{ fontSize: "0.5rem", lineHeight: 1 }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {showText && (
+          <div className="h-full flex items-center justify-center">
+            {officialRating !== 0 &&
+              officialRating !== undefined &&
+              officialRating !== null && (
+                <button
+                  onClick={() => setRequestedRating(0)}
+                  className={cn(
+                    "transition-all duration-200 ease-out text-star",
+                    config.hoverTextClass,
+                  )}
+                  style={{ fontSize: config.fontSize }}
+                >
+                  Unrate
+                </button>
+              )}
+            {(officialRating === 0 ||
+              officialRating === undefined ||
+              officialRating === null) && (
+              <span
+                className={cn(
+                  "transition-all duration-200 ease-out",
+                  config.hoverTextClass,
+                )}
+                style={{ color: config.text, fontSize: config.fontSize }}
+              >
+                Rate
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── InteractionConsole ───────────────────────────────────────────────────────
 
 export interface InteractionConsoleProps {
   tmdbId: number | string | null | undefined
@@ -41,10 +256,21 @@ export interface InteractionConsoleProps {
   movieDetails: TMDBFilm | UserFilm | Record<string, never>
   /**
    * @param {"card"|"landing-sm"|"landing-lg"} variant
-   * Styling is driven by CSS custom properties set on .console-{variant} in styles.css
+   * Controls sizing, spacing, and color tokens. All values are defined in
+   * VARIANT_CONFIG inside this file — no global CSS custom properties.
    */
   variant: ConsoleVariant
   showOverview: boolean
+  /** Merged onto the root wrapper div */
+  className?: string
+  /** Per-slot class overrides */
+  classNames?: {
+    root?: string
+    buttonRow?: string
+    watchlistButton?: string
+    watchedButton?: string
+    ratingButton?: string
+  }
 }
 
 export default function InteractionConsole({
@@ -53,6 +279,8 @@ export default function InteractionConsole({
   movieDetails,
   variant,
   showOverview,
+  className,
+  classNames,
 }: InteractionConsoleProps) {
   const [requestedRating, setRequestedRating] = useState<StarRating | -1>(-1)
 
@@ -61,6 +289,7 @@ export default function InteractionConsole({
   const queryClient = useQueryClient()
 
   const filmId = Number(tmdbId)
+  const config = VARIANT_CONFIG[variant]
 
   /* Derive like/save/rating status from the shared cached lists */
   const { data: watchedList = [], isLoading: isWatchedLoading } = useQuery({
@@ -382,14 +611,16 @@ export default function InteractionConsole({
     <>
       {!isStatusLoading && (
         <div
-          className={`console-${variant} flex flex-col z-30 items-center justify-center gap-0`}
-          style={{ color: "var(--console-text)" }}>
+          className={cn(consoleVariants({ variant }), classNames?.root, className)}
+          style={{ color: config.text }}
+        >
           {showOverview && (
             <div
               className="text-white w-[85%] pr-4 pl-4 pb-2 mb-5"
               onClick={() => {
                 navigate({ to: `/films/${details.id}` })
-              }}>
+              }}
+            >
               <span className="text-[9.5px]/1">
                 {details.overview?.slice(0, 180)}
               </span>
@@ -398,84 +629,69 @@ export default function InteractionConsole({
           )}
 
           <div
-            className="flex justify-center items-end w-full"
-            style={{
-              gap: "var(--console-gap)",
-              height: "var(--console-height)",
-            }}>
+            className={cn(
+              "flex justify-center items-end w-full",
+              classNames?.buttonRow,
+            )}
+            style={{ gap: config.gap, height: "auto" }}
+          >
             {/* Watchlist button */}
             <button
               aria-label="Add to watchlist"
               title="Add to watchlist"
-              className="hover:text-[var(--console-hover-text)] transition-all duration-200 ease-out hover:bg-[var(--console-hover-bg)] h-full flex items-center"
-              style={{
-                padding: "var(--console-button-padding)",
-                borderColor: "var(--console-border-color)",
-              }}
-              onClick={handleSave}>
+              className={cn(
+                "transition-all duration-200 ease-out h-full flex items-center",
+                config.hoverTextClass,
+                classNames?.watchlistButton,
+              )}
+              style={{ padding: config.buttonPadding }}
+              onClick={handleSave}
+            >
               {isSaved ? (
                 <div
-                  className={
-                    showText
-                      ? "console-button"
-                      : "console-button aspect-square rounded-full justify-center"
-                  }
+                  className="console-button"
                   style={{
                     backgroundColor: "var(--color-saved)",
                     borderColor: "var(--color-saved)",
                     padding: showText
-                      ? "var(--console-padding-tb) var(--console-padding-lr)"
+                      ? `${config.paddingTB} ${config.paddingLR}`
                       : undefined,
-                    height: "var(--console-button-height)",
-                    width: showText
-                      ? undefined
-                      : "var(--console-button-height)",
-                  }}>
+                    height: config.buttonHeight,
+                    width: showText ? undefined : config.buttonHeight,
+                    ...(showText ? {} : { aspectRatio: "1", justifyContent: "center", borderRadius: "9999px" }),
+                  }}
+                >
                   <BiListCheck
                     style={{
                       color: "white",
-                      fontSize: showText
-                        ? "var(--console-save-size)"
-                        : "var(--console-like-size)",
+                      fontSize: showText ? config.saveSize : config.likeSize,
                     }}
                   />
                   {showText && (
-                    <span
-                      style={{
-                        color: "white",
-                        fontSize: "var(--console-font-size)",
-                      }}>
+                    <span style={{ color: "white", fontSize: config.fontSize }}>
                       Watchlist
                     </span>
                   )}
                 </div>
               ) : (
                 <div
-                  className={
-                    showText
-                      ? "console-button"
-                      : "console-button aspect-square rounded-full justify-center"
-                  }
+                  className="console-button"
                   style={{
                     padding: showText
-                      ? "var(--console-padding-tb) var(--console-padding-lr)"
+                      ? `${config.paddingTB} ${config.paddingLR}`
                       : undefined,
-                    height: "var(--console-button-height)",
-                    width: showText
-                      ? undefined
-                      : "var(--console-button-height)",
-                  }}>
+                    height: config.buttonHeight,
+                    width: showText ? undefined : config.buttonHeight,
+                    ...(showText ? {} : { aspectRatio: "1", justifyContent: "center", borderRadius: "9999px" }),
+                  }}
+                >
                   <BiListPlus
                     style={{
-                      fontSize: showText
-                        ? "var(--console-save-size)"
-                        : "var(--console-like-size)",
+                      fontSize: showText ? config.saveSize : config.likeSize,
                     }}
                   />
                   {showText && (
-                    <span style={{ fontSize: "var(--console-font-size)" }}>
-                      Watchlist
-                    </span>
+                    <span style={{ fontSize: config.fontSize }}>Watchlist</span>
                   )}
                 </div>
               )}
@@ -485,64 +701,52 @@ export default function InteractionConsole({
             <button
               aria-label="Add to watched"
               title="Add to watched"
-              className="hover:text-[var(--console-hover-text)] transition-all duration-200 ease-out hover:bg-[var(--console-hover-bg)] h-full flex items-center p-0 border-"
-              style={{ padding: "var(--console-button-padding)" }}
-              onClick={handleLike}>
+              className={cn(
+                "transition-all duration-200 ease-out h-full flex items-center",
+                config.hoverTextClass,
+                classNames?.watchedButton,
+              )}
+              style={{ padding: config.buttonPadding }}
+              onClick={handleLike}
+            >
               {isLiked ? (
                 <div
-                  className={
-                    showText
-                      ? "console-button"
-                      : "console-button aspect-square rounded-full justify-center"
-                  }
+                  className="console-button"
                   style={{
                     backgroundColor: "var(--color-liked)",
                     borderColor: "var(--color-liked)",
                     padding: showText
-                      ? "var(--console-padding-tb) var(--console-padding-lr)"
+                      ? `${config.paddingTB} ${config.paddingLR}`
                       : undefined,
-                    height: "var(--console-button-height)",
-                    width: showText
-                      ? undefined
-                      : "var(--console-button-height)",
-                  }}>
+                    height: config.buttonHeight,
+                    width: showText ? undefined : config.buttonHeight,
+                    ...(showText ? {} : { aspectRatio: "1", justifyContent: "center", borderRadius: "9999px" }),
+                  }}
+                >
                   <BiSolidHeart
-                    style={{
-                      color: "white",
-                      fontSize: "var(--console-like-size)",
-                    }}
+                    style={{ color: "white", fontSize: config.likeSize }}
                   />
                   {showText && (
-                    <span
-                      style={{
-                        color: "white",
-                        fontSize: "var(--console-font-size)",
-                      }}>
+                    <span style={{ color: "white", fontSize: config.fontSize }}>
                       Watched
                     </span>
                   )}
                 </div>
               ) : (
                 <div
-                  className={
-                    showText
-                      ? "console-button"
-                      : "console-button aspect-square rounded-full justify-center"
-                  }
+                  className="console-button"
                   style={{
                     padding: showText
-                      ? "var(--console-padding-tb) var(--console-padding-lr)"
+                      ? `${config.paddingTB} ${config.paddingLR}`
                       : undefined,
-                    height: "var(--console-button-height)",
-                    width: showText
-                      ? undefined
-                      : "var(--console-button-height)",
-                  }}>
-                  <BiHeart style={{ fontSize: "var(--console-like-size)" }} />
+                    height: config.buttonHeight,
+                    width: showText ? undefined : config.buttonHeight,
+                    ...(showText ? {} : { aspectRatio: "1", justifyContent: "center", borderRadius: "9999px" }),
+                  }}
+                >
+                  <BiHeart style={{ fontSize: config.likeSize }} />
                   {showText && (
-                    <span style={{ fontSize: "var(--console-font-size)" }}>
-                      Watched
-                    </span>
+                    <span style={{ fontSize: config.fontSize }}>Watched</span>
                   )}
                 </div>
               )}
@@ -552,6 +756,8 @@ export default function InteractionConsole({
               officialRating={officialRating}
               setRequestedRating={setRequestedRating}
               showText={showText}
+              config={config}
+              className={classNames?.ratingButton}
             />
           </div>
         </div>
