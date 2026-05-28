@@ -10,8 +10,6 @@ export interface ToggleProps<T> {
   value: T
   onChange: (value: T) => void
   label?: string
-  /** When true, the slider pill hides if value doesn't match any option */
-  allowNoSelection?: boolean
 }
 
 /**
@@ -24,7 +22,6 @@ export default function Toggle<T>({
   value,
   onChange,
   label,
-  allowNoSelection = false,
 }: ToggleProps<T>) {
   const urlIndex = options.findIndex((opt) => opt.value === value)
   const [pendingIndex, setPendingIndex] = useState<number | null>(null)
@@ -36,7 +33,6 @@ export default function Toggle<T>({
 
   const activeIndex = pendingIndex ?? urlIndex
 
-  const sliderVisible = !allowNoSelection || activeIndex !== -1
   const sliderWidth = `${100 / options.length}%`
   const sliderTranslate =
     activeIndex >= 0 ? `translateX(${activeIndex * 100}%)` : "translateX(0)"
@@ -52,7 +48,7 @@ export default function Toggle<T>({
         <div className="relative flex w-full h-full inset-shadow-xs inset-shadow-muted-foreground">
           {/* Slider background */}
           <div
-            className={`absolute h-full bg-foreground rounded-none shadow-md transition-all duration-400 ease-in-out   ${sliderVisible ? "" : "invisible"}`}
+            className="absolute h-full bg-foreground rounded-none shadow-md transition-all duration-400 ease-in-out"
             style={{
               width: sliderWidth,
               transform: sliderTranslate,

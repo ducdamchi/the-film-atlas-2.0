@@ -30,8 +30,8 @@ app.use(
 // BetterAuth handler must come before express.json()
 app.all("/api/auth/{*splat}", toNodeHandler(auth))
 
+// Express API endpoints
 app.use(express.json())
-
 app.use("/profile/me/watched", watchedRouter)
 app.use("/profile/me/watchlisted", watchlistedRouter)
 app.use("/profile/me/directors", directorsRouter)

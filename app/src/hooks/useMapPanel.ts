@@ -73,7 +73,9 @@ export function useMapPanel(): MapPanelState {
   const [screenWidth, setScreenWidth] = useState<number>(1280)
   const effectiveWidthRef = useRef<number>(1280 - SIDEBAR_WIDTH_ICON_PX)
   const isMobile = screenWidth < 768
-  const sidebarPinned = useAtomValue(sidebarPinnedAtom, { store: getDefaultStore() })
+  const sidebarPinned = useAtomValue(sidebarPinnedAtom, {
+    store: getDefaultStore(),
+  })
 
   // Sync screenWidth on mount and on every resize.
   useEffect(() => {
@@ -89,11 +91,11 @@ export function useMapPanel(): MapPanelState {
     const effectiveWidth =
       screenWidth - (sidebarPinned ? SIDEBAR_WIDTH_PX : SIDEBAR_WIDTH_ICON_PX)
     effectiveWidthRef.current = effectiveWidth
-    console.log("effectiveWidth:", effectiveWidth, "sidebarPinned:", sidebarPinned)
+    // console.log("effectiveWidth:", effectiveWidth, "sidebarPinned:", sidebarPinned)
 
     if (isMobile) return
     const snaps = getSnaps(effectiveWidthRef.current).filter((s) => s > SNAP_A)
-    console.log("available snaps:", snaps)
+    // console.log("available snaps:", snaps)
     if (snaps.length === 0) return
     const clamped = nearestSnap(sidebarWidth, snaps)
     if (clamped !== sidebarWidth) setSidebarWidth(clamped)
@@ -224,7 +226,10 @@ export function useMapPanel(): MapPanelState {
           // the user drags it open from a closed state.
           panelRef.current.style.transform = "translateX(0)"
         }
-        const raw = Math.max(0, Math.min(initialWidth + delta, effectiveWidthRef.current))
+        const raw = Math.max(
+          0,
+          Math.min(initialWidth + delta, effectiveWidthRef.current),
+        )
         panelRef.current.style.width = `${raw}px`
       }
 
@@ -284,7 +289,9 @@ export function useMapPanel(): MapPanelState {
       if (showPanel) {
         setShowPanel(false)
       } else {
-        const snaps = getSnaps(effectiveWidthRef.current).filter((s) => s > SNAP_A)
+        const snaps = getSnaps(effectiveWidthRef.current).filter(
+          (s) => s > SNAP_A,
+        )
         if (snaps.length > 0) {
           setSidebarWidth(snaps[0])
           setShowPanel(true)

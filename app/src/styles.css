@@ -359,7 +359,7 @@
   }
 
   .console-card {
-    --console-text: var(--color-text-foreground);
+    --console-text: var(--color-foreground);
     --console-font-size: 13px;
     --console-like-size: 1.1rem;
     --console-save-size: 1.5rem;
@@ -371,7 +371,7 @@
     --console-padding-lr: 10px;
     --console-button-height: 2rem;
     --console-hover-text: var(--color-hover-dark);
-    --console-border-color: var(--color-text-foreground);
+    --console-border-color: var(--color-foreground);
   }
 
   .console-landing-sm {

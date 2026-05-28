@@ -31,7 +31,7 @@ import {
 import UserFilmGallery from "../../components/film/UserFilmGallery"
 import TmdbFilmGallery from "../../components/film/TmdbFilmGallery"
 import Toggle from "../../components/ui-custom/Toggle"
-import MapCountriesLayer from "./components/MapCountriesLayer"
+import MapCountriesLayer from "./MapCountriesLayer"
 import DiscoverControls from "./components/DiscoverControls"
 import MyFilmsControls from "./components/MyFilmsControls"
 import { MapUnavailable } from "./components/MapUnavailable"
