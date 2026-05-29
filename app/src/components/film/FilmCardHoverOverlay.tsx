@@ -92,8 +92,7 @@ export default function CardHoverOverlay({
                 {isLoading ? (
                   <SkeletonBlock className="h-4 w-1/2" />
                 ) : (
-                  details?.original_title &&
-                  details.original_title !== filmObject.title && (
+                  details?.original_title && (
                     <span className="text-sm @7xl:text-base font-bold">
                       {details.original_title}
                     </span>

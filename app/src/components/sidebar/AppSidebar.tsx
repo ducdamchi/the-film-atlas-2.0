@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Settings2, Map, UserStar, CircleEllipsis } from "lucide-react"
+import { Map, UserStar, CircleEllipsis, Search, Command } from "lucide-react"
 
 import { NavMenuItem } from "#/components/sidebar/NavMain"
 import { NavCollections } from "#/components/sidebar/NavCollections"
@@ -14,16 +14,26 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui-shadcn/sidebar"
-import { Link } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
 import { useAuth } from "@/utils/authContext"
 import { NavUserAnon } from "./NavUserAnon"
+import { useApp } from "@/utils/appContext"
 
-const MAP_NAV = { title: "Map", url: "/map", icon: Map }
-const DIRECTORS_NAV = { title: "Directors", url: "/directors", icon: UserStar }
+const SEARCH_NAV = {
+  title: "Search",
+  icon: Search,
+  shortcut: (
+    <span className="text-[14px] flex items-center justify-center gap-0.5">
+      <Command /> K
+    </span>
+  ),
+}
+const MAP_NAV = { title: "Map", icon: Map }
+const DIRECTORS_NAV = { title: "Directors", icon: UserStar }
 const MORE_NAV = {
   title: "More",
-  url: "#",
   icon: CircleEllipsis,
   isActive: true,
   items: [
@@ -36,6 +46,9 @@ const MORE_NAV = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { authState } = useAuth()
+  const { state } = useSidebar()
+  const { setSearchModalOpen } = useApp()
+  const navigate = useNavigate()
   return (
     <Sidebar
       collapsible="icon"
@@ -46,25 +59,42 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center">
             <SidebarMenuButton size="lg" asChild>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <Link
+                to="/about"
+                className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium text-base font-logo">
-                  THE FILM ATLAS
+                  <span className="group-data-[collapsible=icon]:hidden uppercase">
+                    The Film Atlas
+                  </span>
+                  <span className="hidden group-data-[collapsible=icon]:inline">
+                    TFA
+                  </span>
                 </span>
-                <span className="truncate text-xs">
+                <span className="truncate text-sm font-thin transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
                   Discover. Share. Curate.
                 </span>
-              </div>
+              </Link>
             </SidebarMenuButton>
-            <SidebarTrigger />
+            {state === "expanded" && <SidebarTrigger className="ml-auto" />}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            <NavMenuItem item={MAP_NAV} />
+            <NavMenuItem
+              item={SEARCH_NAV}
+              onClick={() => setSearchModalOpen(true)}
+            />
+            <NavMenuItem
+              item={MAP_NAV}
+              onClick={() => navigate({ to: "/map" })}
+            />
             <NavCollections />
-            <NavMenuItem item={DIRECTORS_NAV} />
+            <NavMenuItem
+              item={DIRECTORS_NAV}
+              onClick={() => navigate({ to: "/directors" })}
+            />
             <NavMenuItem item={MORE_NAV} />
             {/* <NavMenuItem item={SETTINGS_NAV} /> */}
           </SidebarMenu>

@@ -89,9 +89,9 @@ export default function PersonLanding() {
   }, [personDetails, job])
 
   return (
-    <div className="font-primary">
+    <div className="font-primary ">
       {/* Text over backdrop */}
-      <div className="landing-main-img-container text-background">
+      <div className="landing-main-img-container text-background ">
         <div className="flex w-screen grayscale">
           <img
             loading="lazy"

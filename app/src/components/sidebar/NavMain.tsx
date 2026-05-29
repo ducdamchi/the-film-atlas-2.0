@@ -1,3 +1,4 @@
+import * as React from "react"
 import { ChevronRight, type LucideIcon } from "lucide-react"
 
 import {
@@ -17,21 +18,30 @@ import { Link } from "@tanstack/react-router"
 
 export interface NavItem {
   title: string
-  url: string
   icon: LucideIcon
+  shortcut?: React.ReactNode
   isActive?: boolean
   items?: { title: string; url: string }[]
 }
 
-export function NavMenuItem({ item }: { item: NavItem }) {
+export function NavMenuItem({
+  item,
+  onClick,
+}: {
+  item: NavItem
+  onClick?: () => void
+}) {
   return (
     <Collapsible asChild defaultOpen={item.isActive}>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip={item.title}>
-          <Link to={item.url}>
-            <item.icon />
-            <span>{item.title}</span>
-          </Link>
+        <SidebarMenuButton tooltip={item.title} onClick={onClick}>
+          <item.icon />
+          <span className="text-[16px] font-light">{item.title}</span>
+          {item.shortcut && (
+            <span className="ml-auto flex items-center text-muted-foreground group-data-[collapsible=icon]:hidden">
+              {item.shortcut}
+            </span>
+          )}
         </SidebarMenuButton>
         {item.items?.length ? (
           <>
@@ -47,7 +57,9 @@ export function NavMenuItem({ item }: { item: NavItem }) {
                   <SidebarMenuSubItem key={subItem.title}>
                     <SidebarMenuSubButton asChild>
                       <Link to={subItem.url}>
-                        <span>{subItem.title}</span>
+                        <span className="text-[16px] font-light">
+                          {subItem.title}
+                        </span>
                       </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>

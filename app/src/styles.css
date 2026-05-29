@@ -3,6 +3,8 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/outfit";
 @import "@fontsource-variable/roboto-slab";
+@import "@fontsource/noto-sans/400.css";
+@import "@fontsource/noto-sans/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -20,8 +22,8 @@
   --color-hover-dark: var(--color-hover-dark);
 
   /* shadcn */
-  --font-logo: "Rammetto One", sans-serif;
-  --font-sans: "Outfit Variable", sans-serif;
+  --font-logo: "Rammetto One", sans-serif, system-ui;
+  --font-sans: "Outfit Variable", system-ui, "Noto Sans", sans-serif;
   --font-heading: "Roboto Slab Variable", serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -64,59 +66,30 @@
 }
 
 :root {
-  /* --radius: 0.625rem; */
-
   --skeleton-base: oklch(88% 0 0);
   --skeleton-peak: oklch(94% 0 0);
 
-  /* --font-primary: "Outfit", "Optima", "Helvetica", sans-serif; */
-  /* --font-logo: "Rammetto One", "Optima", "Helvetica", sans-serif; */
-
-  /* --- Brand accent trio ---
-     These three pastels are the visual signature of the app: used as decorative
-     border accents on the navbar's animated slide-in panels and as the map border.
-     Pulled from L~85% to L~72% for more presence against the black nav without
-     losing the editorial pastel character. */
+  /* --- Brand accent trio --- */
   --color-atlas-blue: oklch(72% 0.07 220);
   --color-atlas-green: oklch(72% 0.08 140);
   --color-atlas-pink: oklch(72% 0.07 340);
 
-  /* --- Interaction state colors ---
-     Semantic, not decorative. Each has one job. --color-star is the canonical
-     value; components must reference the token rather than the raw oklch literal. */
+  /* --- Interaction state colors --- */
   --color-liked: oklch(44% 0.177 27); /* *-liked */
   --color-saved: oklch(45% 0.119 151); /* *-saved */
   --color-star: oklch(65% 0.241 354); /* *-star */
   --color-hover-light: oklch(71% 0.165 255); /* *-hover-light */
   --color-hover-dark: oklch(39% 0.195 269); /* *-hover-dark */
 
-  /* --- Text scale --- */
-  /* --color-text-foreground: oklch(18% 0.005 56); 
-  --color- : oklch(93% 0.003 48);
-  --color-text-muted: oklch(55.2% 0.016 285.938);
-  --color-text-muted: oklch(70.5% 0.015 286.067);
-  --color-text-muted: oklch(44.6% 0.03 256.802);  */
-
   /* --- Status colors --- */
   --color-status-error: oklch(55% 0.22 29); /* *-error */
   --color-status-success: oklch(55% 0.15 145); /* *-success */
 
-  /* --- Rating service brand colors (not Tailwind tokens — use var()) --- */
+  /* --- Rating service brand colors --- */
   --color-rating-imdb: #f5c518; /* var(--color-rating-imdb) */
   --color-rating-rt: #fa320a; /* var(--color-rating-rt) */
   --color-rating-mc: #1a4575; /* var(--color-rating-mc) */
   --color-rating-awards: oklch(87% 0.2 132); /* var(--color-rating-awards) */
-
-  /* --- Surface scale (4 stops: page < surface < control < void) --- */
-  /* --color-bg-page: oklch(96% 0.003 48);
-  --color-bg-background: oklch(100% 0 0); 
-  --color-bg-muted: oklch(92.8% 0.006 264.531); 
-  --color-  : oklch(0% 0 0);  */
-
-  /* --- Slider component border (not a Tailwind token — use var()) --- */
-  /* --slider-border: oklch(86% 0.007 269); var(--slider-border) */
-
-  /* --color-modal-border: oklch(21% 0.006 285.885); */
 
   --background: oklch(96.7% 0.001 286.375);
   --foreground: oklch(0.148 0.004 228.8);
@@ -154,18 +127,6 @@
 .dark {
   --skeleton-base: oklch(25% 0 0);
   --skeleton-peak: oklch(33% 0 0);
-
-  /* --- Dark mode surface scale ---
-     Warm-neutral dark (hue 56) keeps the cinematic feel rather than the cold
-     blue-grey that shadcn defaults ship with. Three stops give enough hierarchy
-     without multiplying tokens. */
-  /* --color-text-foreground: oklch(93% 0.003 49);
-  --color- : oklch(18% 0.005 56);
-  --color-text-muted: oklch(62% 0.006 56);
-  --color-bg-page: oklch(14% 0.003 56);
-  --color-bg-background: oklch(19% 0.003 56);
-  --color-bg-muted: oklch(27% 0.004 56); */
-
   --background: oklch(0.148 0.004 228.8);
   --foreground: oklch(0.987 0.002 197.1);
   --card: oklch(0.218 0.008 223.9);
@@ -255,7 +216,6 @@
   .accountSettings-formSubmitButton {
     @apply w-[18rem] p-2      font-light transition-all ease-out duration-300 rounded-none;
   }
-
 
   .landing-main-img-container {
     @apply overflow-hidden relative;
@@ -348,7 +308,6 @@
   .docs-menu-content {
     @apply flex flex-col pl-4 justify-center items-start gap-1 border-l-1;
   }
-
 }
 
 @keyframes footer-fade-in {

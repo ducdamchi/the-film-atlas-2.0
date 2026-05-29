@@ -8,12 +8,12 @@ import {
   extractBorderColorFromElement,
 } from "@/utils/helperFunctions"
 import { useMarquee } from "@/hooks/useMarquee"
-
-import InteractionConsole from "./InteractionConsole"
+import { useFilmCardFetch } from "@/hooks/useFilmCardFetch"
 import CardHoverOverlay from "./FilmCardHoverOverlay"
 import FilmCardPoster from "./FilmCardPoster"
 
 import type { UserFilm } from "@/types/film"
+import type { TMDBFilm } from "@/types/tmdb"
 
 const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL
 
@@ -32,6 +32,17 @@ export default function UserFilmCard({
 
   const [imageLoaded, setImageLoaded] = useState(false)
 
+  const {
+    movieDetails,
+    handleCardHoverEnter,
+    handleCardHoverLeave,
+  } = useFilmCardFetch(filmObject.id)
+
+  const trailerKey =
+    (movieDetails as TMDBFilm).videos?.results.find(
+      (v) => v.site === "YouTube" && v.type === "Trailer",
+    )?.key ?? null
+
   const titleSpanRef = useMarquee(filmObject.title)
   const countrySpanRef = useMarquee(filmObject.origin_country)
 
@@ -48,13 +59,15 @@ export default function UserFilmCard({
   return (
     <div
       id={`film-card-${filmObject.id}`}
-      className={`filmCard-width md:aspect-16/10 flex flex-col justify-center items-center gap-0 text-background rounded-none pt-0 relative group/card hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-[0_10px_15px_rgba(0,0,0,0.55)] border-1 md:border-0 ${imageLoaded ? "opacity-100" : "opacity-0"}`}>
+      className={`filmCard-width md:aspect-16/10 flex flex-col justify-center items-center gap-0 text-background rounded-none pt-0 relative group/card hover:z-[200] transition-all duration-200 ease-out hover:scale-105 hover:drop-shadow-[0_10px_15px_rgba(0,0,0,0.55)] border-1 md:border-0 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+      onMouseEnter={handleCardHoverEnter}
+      onMouseLeave={handleCardHoverLeave}>
       {/* Poster + title overlay — relative wrapper keeps bottom-0 anchored to poster */}
       <div className="relative w-full">
         <FilmCardPoster
           backdropPath={filmObject.backdrop_path}
           filmId={filmObject.id}
-          trailerKey={null}
+          trailerKey={trailerKey}
           onPosterHoverEnter={() => {}}
           onPosterHoverLeave={() => {}}
           onNavigate={() => navigate({ to: `/films/${filmObject.id}` })}

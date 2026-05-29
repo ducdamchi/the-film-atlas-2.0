@@ -37,7 +37,7 @@ export function NavCollections() {
         <SidebarMenuButton asChild tooltip="Collections">
           <Link to="/collections">
             <LibraryBig />
-            <span>Collections</span>
+            <span className="text-[16px] font-light">Collections</span>
           </Link>
         </SidebarMenuButton>
         {collections.length > 0 && (
@@ -55,7 +55,9 @@ export function NavCollections() {
                     <SidebarMenuSubButton asChild>
                       <Link to={collectionUrl(col)}>
                         <Folder />
-                        <span>{col.title}</span>
+                        <span className="text-[16px] font-light">
+                          {col.title}
+                        </span>
                       </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>

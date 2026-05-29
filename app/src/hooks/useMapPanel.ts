@@ -19,7 +19,7 @@ const CLOSE_THRESHOLD = 200 // dragging below this px width → snap to A (colla
 
 /** Returns ordered list of available snap widths for the given viewport width. */
 function getSnaps(effectiveWidth: number): number[] {
-  console.log("effectiveWidth:", effectiveWidth)
+  // console.log("effectiveWidth:", effectiveWidth)
   const candidates = [SNAP_A, SNAP_B, SNAP_C, SNAP_D, SNAP_E]
   return candidates.filter(
     (s) => s === SNAP_A || effectiveWidth - s >= MIN_MAP_WIDTH,

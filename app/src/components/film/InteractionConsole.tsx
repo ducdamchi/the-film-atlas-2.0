@@ -1,5 +1,5 @@
 /* Libraries */
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -65,9 +65,9 @@ const buttonWrapperVariants = cva(
   {
     variants: {
       variant: {
-        card: "p-0.5 hover:text-hover-dark",
-        "landing-sm": "hover:text-hover-light",
-        "landing-lg": "hover:text-hover-light",
+        card: "p-0.5 ",
+        "landing-sm": "",
+        "landing-lg": "",
       },
     },
     defaultVariants: { variant: "card" },
@@ -82,12 +82,12 @@ const pillVariants = cva(
       state: {
         default: "border-current",
         watched: "bg-liked border-liked text-white",
-        saved:   "bg-saved border-saved text-white",
-        rated:   "bg-star/15 border-star",
+        saved: "bg-saved border-saved text-white",
+        rated: "bg-star/15 border-star",
       },
       size: {
-        card:         "h-8 w-8 justify-center",
-        "card-wide":  "h-8 px-2.5",
+        card: "h-8 w-8 justify-center",
+        "card-wide": "h-8 px-2.5",
         "landing-sm": "h-10 px-2.5",
         "landing-lg": "h-12 py-2.5 px-[15px]",
       },
@@ -101,18 +101,18 @@ const pillVariants = cva(
 const iconVariants = cva("", {
   variants: {
     variant: { card: "", "landing-sm": "", "landing-lg": "" },
-    type:    { like: "", save: "", star: "" },
+    type: { like: "", save: "", star: "" },
   },
   compoundVariants: [
-    { variant: "card",        type: "like", class: "text-[1.1rem]" },
-    { variant: "landing-sm",  type: "like", class: "text-[1.1rem]" },
-    { variant: "landing-lg",  type: "like", class: "text-[1.3rem]" },
-    { variant: "card",        type: "save", class: "text-[1.1rem]" },
-    { variant: "landing-sm",  type: "save", class: "text-[1.6rem]" },
-    { variant: "landing-lg",  type: "save", class: "text-[1.8rem]" },
-    { variant: "card",        type: "star", class: "text-[1.3rem]" },
-    { variant: "landing-sm",  type: "star", class: "text-[1.4rem]" },
-    { variant: "landing-lg",  type: "star", class: "text-[1.6rem]" },
+    { variant: "card", type: "like", class: "text-[1.1rem]" },
+    { variant: "landing-sm", type: "like", class: "text-[1.1rem]" },
+    { variant: "landing-lg", type: "like", class: "text-[1.3rem]" },
+    { variant: "card", type: "save", class: "text-[1.1rem]" },
+    { variant: "landing-sm", type: "save", class: "text-[1.6rem]" },
+    { variant: "landing-lg", type: "save", class: "text-[1.8rem]" },
+    { variant: "card", type: "star", class: "text-[1.3rem]" },
+    { variant: "landing-sm", type: "star", class: "text-[1.4rem]" },
+    { variant: "landing-lg", type: "star", class: "text-[1.6rem]" },
   ],
   defaultVariants: { variant: "card", type: "like" },
 })
@@ -121,7 +121,7 @@ const iconVariants = cva("", {
 const labelVariants = cva("", {
   variants: {
     variant: {
-      card:         "",
+      card: "",
       "landing-sm": "text-[14px]",
       "landing-lg": "text-base",
     },
@@ -145,8 +145,6 @@ export function TripleStarRating({
   className,
 }: TripleStarRatingProps) {
   const [starHover, setStarHover] = useState(0)
-  const [isHovered, setIsHovered] = useState(false)
-  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const hasRating = (officialRating ?? 0) >= 1
   const showText = variant !== "card"
@@ -157,31 +155,24 @@ export function TripleStarRating({
         buttonWrapperVariants({ variant }),
         "justify-center group",
         className,
-      )}
-      onMouseEnter={() => {
-        if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
-        setIsHovered(true)
-      }}
-      onMouseLeave={() => {
-        hoverTimeoutRef.current = setTimeout(() => setIsHovered(false), 200)
-      }}
-    >
+      )}>
       <div
         className={cn(
           pillVariants({
             state: hasRating ? "rated" : "default",
             size: variant === "card" ? "card-wide" : variant,
           }),
-          "group/rating",
-        )}
-      >
+          "group/rating gap-0 hover:bg-star/10 hover:border-star transition-color ease-out duration-200",
+        )}>
+        {/* Left spacer — balances the × button gap so stars stay centered */}
+        {/* {!showText && hasRating && <div className="w-0" />} */}
+
         {/* Star buttons */}
         <div
           className={cn(
             "flex items-center justify-center",
             iconVariants({ variant, type: "star" }),
-          )}
-        >
+          )}>
           {([1, 2, 3] as StarRating[]).map((n) => (
             <button
               key={n}
@@ -189,8 +180,7 @@ export function TripleStarRating({
               onMouseLeave={() => setStarHover(0)}
               onClick={() =>
                 setRequestedRating(!showText && officialRating === n ? 0 : n)
-              }
-            >
+              }>
               {starHover >= n || (officialRating ?? 0) >= n ? (
                 <span className="text-star">&#10048;</span>
               ) : (
@@ -201,12 +191,11 @@ export function TripleStarRating({
         </div>
 
         {/* × clear button — card mode only, visible on hover when rated */}
-        {isHovered && !showText && hasRating && (
-          <div className="w-0 overflow-hidden flex transition-[width,opacity] duration-200 ease-out group-hover/rating:w-[0.75rem] items-center justify-center">
+        {!showText && hasRating && (
+          <div className="w-0 pl-0 overflow-hidden flex transition-[width] duration-200 ease-out group-hover/rating:w-[0.75rem] group-hover/rating:pl-1 items-center justify-center">
             <button
               onClick={() => setRequestedRating(0)}
-              className="text-black hover:text-hover-dark transition-colors duration-200 flex items-center text-[0.5rem] leading-none"
-            >
+              className="text-black hover:text-hover-dark transition-colors duration-200 flex items-center text-[0.5rem] leading-none">
               ✕
             </button>
           </div>
@@ -214,15 +203,14 @@ export function TripleStarRating({
 
         {/* Rate / Unrate text — landing modes only */}
         {showText && (
-          <div className="h-full flex items-center justify-center">
+          <div className="h-full flex items-center justify-center ml-1.5">
             {hasRating ? (
               <button
                 onClick={() => setRequestedRating(0)}
                 className={cn(
                   "transition-all duration-200 ease-out text-star",
                   labelVariants({ variant }),
-                )}
-              >
+                )}>
                 Unrate
               </button>
             ) : (
@@ -230,8 +218,7 @@ export function TripleStarRating({
                 className={cn(
                   "transition-all duration-200 ease-out",
                   labelVariants({ variant }),
-                )}
-              >
+                )}>
                 Rate
               </span>
             )}
@@ -278,7 +265,6 @@ export default function InteractionConsole({
   const [requestedRating, setRequestedRating] = useState<StarRating | -1>(-1)
 
   const { authState } = useAuth()
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   const filmId = Number(tmdbId)
@@ -296,12 +282,12 @@ export default function InteractionConsole({
     })
 
   const isStatusLoading = isWatchedLoading || isWatchlistedLoading
-
   const watchedFilm = watchedList.find((f) => f.id === filmId)
   const isLiked = !!watchedFilm
   const isSaved = watchlistedList.some((f) => f.id === filmId)
   const officialRating = (watchedFilm?.stars ?? null) as StarRating | null
 
+  /**************** HELPER FUNCTIONS ****************/
   /* Build the request body for API calls */
   function createReqBody(
     requestString: "like" | "save" | "rate",
@@ -347,7 +333,6 @@ export default function InteractionConsole({
       return req
     }
   }
-
   function buildOptimisticFilm(stars: StarRating | 0): UserFilm {
     const details = movieDetails as TMDBFilm
     return {
@@ -373,7 +358,7 @@ export default function InteractionConsole({
     }
   }
 
-  /* Watch mutation — optimistic: adds/removes from the watched list cache */
+  /**************** MUTATIONS (with optimistic updates) ****************/
   const watchMutation = useMutation({
     mutationFn: (shouldLike: boolean) => {
       if (shouldLike) {
@@ -451,8 +436,6 @@ export default function InteractionConsole({
       })
     },
   })
-
-  /* Watchlist mutation — optimistic, also clears liked state when saving */
   const watchlistMutation = useMutation({
     mutationFn: (shouldSave: boolean) =>
       shouldSave
@@ -520,8 +503,6 @@ export default function InteractionConsole({
       })
     },
   })
-
-  /* Rate mutation — optimistic: updates stars on the film in the watched list */
   const rateMutation = useMutation({
     mutationFn: (req: FilmRateRequest) => rateFilmFn({ data: req }),
     onMutate: async (req) => {
@@ -562,7 +543,7 @@ export default function InteractionConsole({
     },
   })
 
-  /* Handlers */
+  /**************** HANDLERS (for like, save, rate) ****************/
   function handleLike() {
     if (!authState.status) {
       alert("Log in to interact with films!")
@@ -570,7 +551,6 @@ export default function InteractionConsole({
     }
     watchMutation.mutate(!isLiked)
   }
-
   function handleSave() {
     if (!authState.status) {
       alert("Log in to interact with films!")
@@ -578,8 +558,7 @@ export default function InteractionConsole({
     }
     watchlistMutation.mutate(!isSaved)
   }
-
-  /* Rate trigger — fires when TripleStarRating changes requestedRating */
+  // Handler for rating adjustment
   useEffect(() => {
     if (requestedRating === -1 || requestedRating === officialRating) return
     if (!authState.status) {
@@ -605,8 +584,7 @@ export default function InteractionConsole({
             consoleVariants({ variant }),
             classNames?.root,
             className,
-          )}
-        >
+          )}>
           <div className={cn(rowVariants({ variant }), classNames?.buttonRow)}>
             {/* Watchlist button */}
             <button
@@ -616,18 +594,23 @@ export default function InteractionConsole({
                 buttonWrapperVariants({ variant }),
                 classNames?.watchlistButton,
               )}
-              onClick={handleSave}
-            >
+              onClick={handleSave}>
               <div
-                className={pillVariants({
-                  state: isSaved ? "saved" : "default",
-                  size: variant,
-                })}
-              >
+                className={cn(
+                  pillVariants({
+                    state: isSaved ? "saved" : "default",
+                    size: variant,
+                  }),
+                  "hover:bg-saved/10 hover:text-saved transition-color ease-out duration-200",
+                )}>
                 {isSaved ? (
-                  <BiListCheck className={iconVariants({ variant, type: "save" })} />
+                  <BiListCheck
+                    className={iconVariants({ variant, type: "save" })}
+                  />
                 ) : (
-                  <BiListPlus className={iconVariants({ variant, type: "save" })} />
+                  <BiListPlus
+                    className={iconVariants({ variant, type: "save" })}
+                  />
                 )}
                 {showText && (
                   <span className={labelVariants({ variant })}>Watchlist</span>
@@ -643,18 +626,23 @@ export default function InteractionConsole({
                 buttonWrapperVariants({ variant }),
                 classNames?.watchedButton,
               )}
-              onClick={handleLike}
-            >
+              onClick={handleLike}>
               <div
-                className={pillVariants({
-                  state: isLiked ? "watched" : "default",
-                  size: variant,
-                })}
-              >
+                className={cn(
+                  pillVariants({
+                    state: isLiked ? "watched" : "default",
+                    size: variant,
+                  }),
+                  "hover:bg-liked/10 hover:text-liked  transition-color ease-out duration-200",
+                )}>
                 {isLiked ? (
-                  <BiSolidHeart className={iconVariants({ variant, type: "like" })} />
+                  <BiSolidHeart
+                    className={iconVariants({ variant, type: "like" })}
+                  />
                 ) : (
-                  <BiHeart className={iconVariants({ variant, type: "like" })} />
+                  <BiHeart
+                    className={iconVariants({ variant, type: "like" })}
+                  />
                 )}
                 {showText && (
                   <span className={labelVariants({ variant })}>Watched</span>

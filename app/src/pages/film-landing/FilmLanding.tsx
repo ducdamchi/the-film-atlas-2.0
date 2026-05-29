@@ -315,6 +315,7 @@ export default function FilmLanding() {
                   directors={directors}
                   movieDetails={movieDetails}
                   variant="landing-sm"
+                  className="text-white border-white"
                 />
               </ClientOnly>
             </div>
@@ -325,6 +326,7 @@ export default function FilmLanding() {
                   directors={directors}
                   movieDetails={movieDetails}
                   variant="landing-lg"
+                  className="text-white border-white"
                 />
               </ClientOnly>
             </div>
