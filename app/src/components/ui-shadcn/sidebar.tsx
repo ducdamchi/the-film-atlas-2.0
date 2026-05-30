@@ -498,7 +498,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
     <li
       data-slot="sidebar-menu-item"
       data-sidebar="menu-item"
-      className={cn("group/menu-item relative pl-[7.5px] py-[2px]", className)}
+      className={cn("group/menu-item relative pl-[7px] py-[2px]", className)}
       {...props}
     />
   )

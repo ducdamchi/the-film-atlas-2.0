@@ -89,13 +89,13 @@ export default function PersonLanding() {
   }, [personDetails, job])
 
   return (
-    <div className="font-primary ">
+    <div className="font-primary">
       {/* Text over backdrop */}
       <div className="landing-main-img-container text-background ">
-        <div className="flex w-screen grayscale">
+        <div className="flex w-full grayscale">
           <img
             loading="lazy"
-            className="landing-main-img w-screen sm:w-[50%] xl:w-[33.3333%]"
+            className="landing-main-img w-full sm:w-[50%] xl:w-[33.3333%]"
             src={
               person.profile_path !== null
                 ? `${imgBaseUrl}${person.profile_path}`
@@ -182,10 +182,10 @@ export default function PersonLanding() {
           }}></div>
         {job === "director" && (
           <div className="absolute bottom-0 w-full flex items-center justify-center gap-2 text-light text-[12px] mb-4 xl:text-[16px] xl:mb-6">
-            <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Watched: ${numWatched}`}</div>
-            <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Starred: ${numStarred}`}</div>
-            <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Avg. Stars: ${avgRating}`}</div>
-            <div className="border-1 p-2 rounded-full backdrop-blur-2xl">{`Score: ${score.toFixed(2)}`}</div>
+            <div className="border-1 p-2 px-3.5 rounded-full backdrop-blur-2xl">{`Watched: ${numWatched}`}</div>
+            <div className="border-1 p-2 px-3.5 rounded-full backdrop-blur-2xl">{`Starred: ${numStarred}`}</div>
+            <div className="border-1 p-2 px-3.5 rounded-full backdrop-blur-2xl">{`Avg. Stars: ${avgRating}`}</div>
+            <div className="border-1 p-2 px-3.5 rounded-full backdrop-blur-2xl">{`Score: ${score.toFixed(2)}`}</div>
           </div>
         )}
       </div>
@@ -201,7 +201,7 @@ export default function PersonLanding() {
       </div>
 
       {/* Filmography */}
-      <div className="@container w-screen flex flex-col items-center justify-start bg-page">
+      <div className="@container w-full flex flex-col items-center justify-start bg-page">
         <div className="landing-sectionTitle self-start ml-4 md:ml-8 lg:ml-12 2xl:ml-20 pl-4">
           filmography
         </div>

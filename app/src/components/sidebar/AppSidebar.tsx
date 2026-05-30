@@ -57,8 +57,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       className="z-2000 border-foreground">
       <SidebarHeader>
         <SidebarMenu>
-          <SidebarMenuItem className="flex items-center">
-            <SidebarMenuButton size="lg" asChild>
+          <SidebarMenuItem className="flex items-center justify-center pl-0">
+            <SidebarMenuButton size="lg" asChild className="">
               <Link
                 to="/about"
                 className="grid flex-1 text-left text-sm leading-tight">
@@ -66,11 +66,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <span className="group-data-[collapsible=icon]:hidden uppercase">
                     The Film Atlas
                   </span>
-                  <span className="hidden group-data-[collapsible=icon]:inline">
+                  <span className="hidden group-data-[collapsible=icon]:flex pl-1">
                     TFA
                   </span>
                 </span>
-                <span className="truncate text-sm font-thin transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
+                <span className="truncate text-sm font-thin group-data-[collapsible=icon]:hidden">
                   Discover. Share. Curate.
                 </span>
               </Link>

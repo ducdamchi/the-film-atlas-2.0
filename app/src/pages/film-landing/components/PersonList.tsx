@@ -29,9 +29,9 @@ export default function PersonList({
   const navigate = useNavigate()
 
   return (
-    <div className="flex flex-col justify-start items-center pl-3 pr-3 pt-2 drop-shadow-2xl mr-0 ">
+    <div className="@container w-full flex flex-col justify-center items-start pl-3 pr-3 pt-2 drop-shadow-2xl mr-0 ">
       <div className="landing-sectionTitle mb-2 w-full">{title}</div>
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+      <div className="grid grid-cols-3 @2xl:grid-cols-4 @3xl:grid-cols-5 @5xl:grid-cols-6 gap-2">
         {listOfPeople.map((person, key) => {
           const personRoute = person.jobs?.includes("Director")
             ? `/person/director/${person.id}`
@@ -42,7 +42,7 @@ export default function PersonList({
           return (
             <div
               key={key}
-              className="relative w-[6.4rem] lg:w-[8rem] 2xl:w-[10rem] aspect-2/3 flex flex-col mb-1 bg-background rounded-none">
+              className="relative w-[6.4rem] @5xl:w-[8rem] aspect-2/3 flex flex-col mb-1 bg-background rounded-none">
               <div
                 className={`w-full h-[70%] aspect-square overflow-hidden z-10${personRoute ? " cursor-pointer" : ""}`}
                 onClick={
@@ -58,7 +58,7 @@ export default function PersonList({
                   }
                 />
               </div>
-              <div className="font-bold h-auto w-full flex flex-col items-start justify-start text-sm lg:text-base text-center text-left text-dark p-2 z-20 inline-block wrap-anywhere">
+              <div className="font-bold h-auto w-full flex flex-col items-start justify-start text-sm @5xl:text-base text-center text-left text-dark p-2 z-20 inline-block wrap-anywhere">
                 {person.jobs?.includes("Director") && (
                   <div
                     className="uppercase w-full hover:text-hover-dark"
@@ -82,10 +82,10 @@ export default function PersonList({
                     <div className="uppercase w-full">{person.name}</div>
                   )}
                 {type === "cast" && (
-                  <div className="font-extralight text-xs lg:text-sm">{`as ${person.character}`}</div>
+                  <div className="font-extralight text-xs @5xl:text-sm">{`as ${person.character}`}</div>
                 )}
                 {type === "crew" && person.jobs && (
-                  <div className="font-extralight text-xs lg:text-sm">
+                  <div className="font-extralight text-xs @5xl:text-sm">
                     {person.jobs.map((job, key) => (
                       <span key={key}>
                         {job}

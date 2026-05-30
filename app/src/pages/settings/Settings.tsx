@@ -12,7 +12,7 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="border   bg-background rounded-none p-6">
+    <section className="border-foreground border-1 bg-white rounded-none p-6">
       <h2 className="text-base font-semibold text-body mb-4">{title}</h2>
       {children}
     </section>
@@ -90,7 +90,7 @@ function ChangeUsername() {
       <div className="flex w-[18rem]">
         <input
           ref={inputRef}
-          className={`auth-formField   border-r-0 w-full transition-opacity ${!isEditing ? "cursor-not-allowed text-dark/80" : ""}`}
+          className={`auth-formField border-foreground border-r-0 w-full transition-opacity ${!isEditing ? "cursor-not-allowed text-foreground/80" : ""}`}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="New username"
@@ -102,14 +102,14 @@ function ChangeUsername() {
           <button
             type="button"
             onClick={handleCancel}
-            className="flex items-center justify-center min-w-[4rem] px-3 bg-red-800 text-light text-sm hover:bg-red-800/90 transition-colors cursor-pointer">
+            className="flex items-center justify-center min-w-[4rem] px-3 bg-red-800 text-background text-sm hover:bg-red-800/90 transition-colors cursor-pointer">
             Cancel
           </button>
         ) : (
           <button
             type="button"
             onClick={handleEdit}
-            className="flex items-center justify-center min-w-[4rem] px-3 bg-dark text-light text-sm hover:bg-dark/90 transition-colors cursor-pointer">
+            className="flex items-center bg-foreground text-background justify-center min-w-[4rem] px-3 text-sm hover:bg-foreground/90 transition-colors cursor-pointer">
             Edit
           </button>
         )}
@@ -165,14 +165,14 @@ function ChangePassword() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <input
-        className="auth-formField  "
+        className="auth-formField border-foreground"
         type="password"
         value={current}
         onChange={(e) => setCurrent(e.target.value)}
         placeholder="Current password *"
       />
       <input
-        className="auth-formField  "
+        className="auth-formField border-foreground"
         type="password"
         value={next}
         onChange={(e) => setNext(e.target.value)}
@@ -180,7 +180,7 @@ function ChangePassword() {
         minLength={8}
       />
       <input
-        className="auth-formField  "
+        className="auth-formField border-foreground"
         type="password"
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
@@ -263,10 +263,10 @@ export function AccountSettings() {
   }
 
   return (
-    <div className="font-primary min-h-screen text-body">
-      <div className="pt-24 pb-12 max-w-xl mx-auto px-4 flex flex-col gap-6">
-        <h1 className="text-2xl font-bold">Account Settings</h1>
+    <div className="font-primary min-h-screen text-body bg-background">
+      <div className="font-heading page-title">ACCOUNT SETTINGS</div>
 
+      <div className="pt-10 pb-12 max-w-xl mx-auto px-4 flex flex-col gap-6">
         <Section title="Change Username">
           <ChangeUsername />
         </Section>

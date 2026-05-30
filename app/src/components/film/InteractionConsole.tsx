@@ -281,8 +281,7 @@ export default function InteractionConsole({
       enabled: !!authState.status && !!tmdbId,
     })
 
-  const isStatusLoading = isWatchedLoading || isWatchlistedLoading
-  const watchedFilm = watchedList.find((f) => f.id === filmId)
+const watchedFilm = watchedList.find((f) => f.id === filmId)
   const isLiked = !!watchedFilm
   const isSaved = watchlistedList.some((f) => f.id === filmId)
   const officialRating = (watchedFilm?.stars ?? null) as StarRating | null
@@ -578,8 +577,7 @@ export default function InteractionConsole({
 
   return (
     <>
-      {!isStatusLoading && (
-        <div
+      <div
           className={cn(
             consoleVariants({ variant }),
             classNames?.root,
@@ -658,7 +656,6 @@ export default function InteractionConsole({
             />
           </div>
         </div>
-      )}
     </>
   )
 }

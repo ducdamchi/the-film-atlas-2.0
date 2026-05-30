@@ -12,6 +12,7 @@ export const filmQueryOptions = (tmdbId: string | number) =>
     queryKey: ["film", String(tmdbId)],
     queryFn: () => fetchFilmFromTMDB(tmdbId),
     staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 30,
   })
 
 export const omdbQueryOptions = (imdbId: string) =>
@@ -19,6 +20,7 @@ export const omdbQueryOptions = (imdbId: string) =>
     queryKey: ["omdb", imdbId],
     queryFn: () => fetchFilmRatingsFromOMDB(imdbId),
     staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 120,
   })
 
 export const wikidataQueryOptions = (imdbId: string) =>
@@ -26,6 +28,7 @@ export const wikidataQueryOptions = (imdbId: string) =>
     queryKey: ["wikidata", imdbId],
     queryFn: () => fetchFilmAwardsFromWikidata(imdbId),
     staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 120,
   })
 
 // Non-critical — prefetched by loader, not blocking

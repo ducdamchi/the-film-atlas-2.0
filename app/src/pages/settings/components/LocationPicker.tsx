@@ -53,9 +53,7 @@ export function LocationPicker({
           ...(country && { country }),
         })
 
-        const res = await fetch(
-          `${PROXY_URL}/geonames/search?${params}`,
-        )
+        const res = await fetch(`${PROXY_URL}/geonames/search?${params}`)
         const data = await res.json()
         const cities: GeonamesCity[] = data.geonames ?? []
 
@@ -101,7 +99,7 @@ export function LocationPicker({
             setNoResults(false)
             setOpen(false)
           }}
-          className="auth-formField  ">
+          className="auth-formField border-foreground">
           <option value="">Select your country</option>
           {COUNTRIES.map((c) => (
             <option key={c.code} value={c.code}>
@@ -118,7 +116,7 @@ export function LocationPicker({
         <div className="w-[18rem]   relative">
           <input
             type="text"
-            className="auth-formField w-full  "
+            className="auth-formField w-full border-foreground"
             placeholder={
               country ? "Start typing your city..." : "Select a country first"
             }

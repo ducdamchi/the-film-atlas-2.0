@@ -107,6 +107,11 @@ export default function UserDirectorGallery({
       let sortedDirectorGroups: [string, DirectorGroup][]
       if (directorGroups) {
         sortedDirectorGroups = Object.entries(directorGroups).sort((a, b) => {
+          if (sortBy === "name") {
+            return sortDirection === "asc"
+              ? b[0].localeCompare(a[0])
+              : a[0].localeCompare(b[0])
+          }
           const valueA = parseInt(a[0])
           const valueB = parseInt(b[0])
           return sortDirection === "desc" ? valueB - valueA : valueA - valueB
