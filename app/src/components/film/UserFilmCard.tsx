@@ -119,7 +119,7 @@ export default function UserFilmCard({
                       key={key}
                       className="flex flex-col items-center justify-center gap-1"
                       onClick={() =>
-                        navigate({ to: `/person/director/${dir.tmdbId}` })
+                        navigate({ to: `/director/${dir.tmdbId}` })
                       }>
                       <div className="relative max-w-[8rem] h-[2.5rem] aspect-1/1 overflow-hidden rounded-full">
                         <img

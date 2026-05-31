@@ -134,16 +134,16 @@ describe("TmdbDirectorGallery — rendering", () => {
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 describe("TmdbDirectorGallery — navigation", () => {
-  it("clicking the director image navigates to /person/director/{id}", () => {
+  it("clicking the director image navigates to /director/{id}", () => {
     const { container } = render(<TmdbDirectorGallery listOfDirectorObjects={[kubrick]} />)
     fireEvent.click(container.querySelector("img")!)
-    expect(mockNavigate).toHaveBeenCalledWith({ to: `/person/director/${kubrick.id}` })
+    expect(mockNavigate).toHaveBeenCalledWith({ to: `/director/${kubrick.id}` })
   })
 
-  it("clicking a director name word navigates to /person/director/{id}", () => {
+  it("clicking a director name word navigates to /director/{id}", () => {
     render(<TmdbDirectorGallery listOfDirectorObjects={[kubrick]} />)
     fireEvent.click(screen.getByText("Stanley"))
-    expect(mockNavigate).toHaveBeenCalledWith({ to: `/person/director/${kubrick.id}` })
+    expect(mockNavigate).toHaveBeenCalledWith({ to: `/director/${kubrick.id}` })
   })
 
   it("clicking a movie known_for title navigates to /films/{id}", () => {
@@ -171,6 +171,6 @@ describe("TmdbDirectorGallery — navigation", () => {
     const images = container.querySelectorAll("img")
     // Second image belongs to mixedKnownFor (Lynch, id=101)
     fireEvent.click(images[1])
-    expect(mockNavigate).toHaveBeenCalledWith({ to: `/person/director/${mixedKnownFor.id}` })
+    expect(mockNavigate).toHaveBeenCalledWith({ to: `/director/${mixedKnownFor.id}` })
   })
 })

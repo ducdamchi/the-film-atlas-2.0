@@ -273,7 +273,7 @@ export default function QuickSearchModal({
                     renderItem={(person, key) => (
                       <SearchResultItem
                         key={key}
-                        to={`/person/director/${person.id}`}
+                        to={`/director/${person.id}`}
                         imageSrc={
                           person.profile_path
                             ? `${imgBaseUrl}${person.profile_path}`
@@ -296,7 +296,7 @@ export default function QuickSearchModal({
                     renderItem={(person, key) => (
                       <SearchResultItem
                         key={key}
-                        to={`/person/actor/${person.id}`}
+                        to={`/actor/${person.id}`}
                         imageSrc={
                           person.profile_path
                             ? `${imgBaseUrl}${person.profile_path}`

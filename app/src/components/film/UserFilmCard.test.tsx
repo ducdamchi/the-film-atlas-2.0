@@ -139,11 +139,11 @@ describe("UserFilmCard — navigation", () => {
     expect(mockNavigate).toHaveBeenCalledWith({ to: `/films/${film.id}` })
   })
 
-  it("clicking a director thumbnail calls navigate to /person/director/{tmdbId}", () => {
+  it("clicking a director thumbnail calls navigate to /director/{tmdbId}", () => {
     render(<UserFilmCard filmObject={film} queryString="watched" />)
     fireEvent.click(screen.getByText("A. Kurosawa"))
     expect(mockNavigate).toHaveBeenCalledWith({
-      to: `/person/director/${film.directors[0].tmdbId}`,
+      to: `/director/${film.directors[0].tmdbId}`,
     })
   })
 })

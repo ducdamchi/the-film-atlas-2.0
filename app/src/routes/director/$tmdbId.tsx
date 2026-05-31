@@ -3,19 +3,21 @@ import {
   personQueryOptions,
   directorStatusQueryOptions,
 } from "@/queries/person.queries"
-import PersonLandingV2 from "../../../pages/person-landing/PersonLandingV2"
-import LoadingPage from "../../../components/layout/LoadingPage"
+import PersonLanding from "../../pages/person-landing/PersonLanding"
+import LoadingPage from "../../components/layout/LoadingPage"
 
-export const Route = createFileRoute("/person-v2/$job/$tmdbId")({
+const DirectorPage = () => <PersonLanding job="director" />
+
+export const Route = createFileRoute("/director/$tmdbId")({
   loader: async ({
-    params: { tmdbId, job },
+    params: { tmdbId },
     context: { queryClient, auth },
   }) => {
     await queryClient.ensureQueryData(personQueryOptions(tmdbId))
-    if (auth && job === "director") {
+    if (auth) {
       queryClient.prefetchQuery(directorStatusQueryOptions(tmdbId))
     }
   },
   pendingComponent: () => <LoadingPage variant="loading" />,
-  component: PersonLandingV2,
+  component: DirectorPage,
 })

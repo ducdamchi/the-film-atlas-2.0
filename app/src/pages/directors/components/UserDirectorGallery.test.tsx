@@ -447,12 +447,12 @@ describe("UserDirectorGallery — hover overlay", () => {
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 describe("UserDirectorGallery — navigation", () => {
-  it("clicking a director card navigates to /person/director/{id}", async () => {
+  it("clicking a director card navigates to /director/{id}", async () => {
     render(<UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorA]} />)
     await waitFor(() => expect(screen.getByText("Akira Kurosawa")).toBeTruthy())
 
     fireEvent.click(screen.getByText("Akira Kurosawa"))
-    expect(mockNavigate).toHaveBeenCalledWith({ to: `/person/director/${directorA.id}` })
+    expect(mockNavigate).toHaveBeenCalledWith({ to: `/director/${directorA.id}` })
   })
 
   it("clicking the correct director navigates to the right id when multiple directors are shown", async () => {
@@ -468,7 +468,7 @@ describe("UserDirectorGallery — navigation", () => {
     })
 
     fireEvent.click(screen.getByText("Bong Joon-ho"))
-    expect(mockNavigate).toHaveBeenCalledWith({ to: `/person/director/${directorB.id}` })
+    expect(mockNavigate).toHaveBeenCalledWith({ to: `/director/${directorB.id}` })
   })
 })
 

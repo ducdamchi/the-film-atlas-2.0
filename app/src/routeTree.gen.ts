@@ -25,9 +25,8 @@ import { Route as CollectionsRouteImport } from './routes/collections'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId_'
-import { Route as FilmsV2TmdbIdRouteImport } from './routes/films-v2/$tmdbId_'
-import { Route as PersonJobTmdbIdRouteImport } from './routes/person/$job/$tmdbId'
-import { Route as PersonV2JobTmdbIdRouteImport } from './routes/person-v2/$job/$tmdbId'
+import { Route as DirectorTmdbIdRouteImport } from './routes/director/$tmdbId'
+import { Route as ActorTmdbIdRouteImport } from './routes/actor/$tmdbId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -109,19 +108,14 @@ const FilmsTmdbIdRoute = FilmsTmdbIdRouteImport.update({
   path: '/films/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FilmsV2TmdbIdRoute = FilmsV2TmdbIdRouteImport.update({
-  id: '/films-v2/$tmdbId_',
-  path: '/films-v2/$tmdbId',
+const DirectorTmdbIdRoute = DirectorTmdbIdRouteImport.update({
+  id: '/director/$tmdbId',
+  path: '/director/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PersonJobTmdbIdRoute = PersonJobTmdbIdRouteImport.update({
-  id: '/person/$job/$tmdbId',
-  path: '/person/$job/$tmdbId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PersonV2JobTmdbIdRoute = PersonV2JobTmdbIdRouteImport.update({
-  id: '/person-v2/$job/$tmdbId',
-  path: '/person-v2/$job/$tmdbId',
+const ActorTmdbIdRoute = ActorTmdbIdRouteImport.update({
+  id: '/actor/$tmdbId',
+  path: '/actor/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -141,10 +135,9 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
-  '/films-v2/$tmdbId': typeof FilmsV2TmdbIdRoute
+  '/actor/$tmdbId': typeof ActorTmdbIdRoute
+  '/director/$tmdbId': typeof DirectorTmdbIdRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
-  '/person-v2/$job/$tmdbId': typeof PersonV2JobTmdbIdRoute
-  '/person/$job/$tmdbId': typeof PersonJobTmdbIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -162,10 +155,9 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
-  '/films-v2/$tmdbId': typeof FilmsV2TmdbIdRoute
+  '/actor/$tmdbId': typeof ActorTmdbIdRoute
+  '/director/$tmdbId': typeof DirectorTmdbIdRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
-  '/person-v2/$job/$tmdbId': typeof PersonV2JobTmdbIdRoute
-  '/person/$job/$tmdbId': typeof PersonJobTmdbIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -184,10 +176,9 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
-  '/films-v2/$tmdbId_': typeof FilmsV2TmdbIdRoute
+  '/actor/$tmdbId': typeof ActorTmdbIdRoute
+  '/director/$tmdbId': typeof DirectorTmdbIdRoute
   '/films/$tmdbId_': typeof FilmsTmdbIdRoute
-  '/person-v2/$job/$tmdbId': typeof PersonV2JobTmdbIdRoute
-  '/person/$job/$tmdbId': typeof PersonJobTmdbIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,10 +198,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/terms'
-    | '/films-v2/$tmdbId'
+    | '/actor/$tmdbId'
+    | '/director/$tmdbId'
     | '/films/$tmdbId'
-    | '/person-v2/$job/$tmdbId'
-    | '/person/$job/$tmdbId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -228,10 +218,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/terms'
-    | '/films-v2/$tmdbId'
+    | '/actor/$tmdbId'
+    | '/director/$tmdbId'
     | '/films/$tmdbId'
-    | '/person-v2/$job/$tmdbId'
-    | '/person/$job/$tmdbId'
   id:
     | '__root__'
     | '/'
@@ -249,10 +238,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/terms'
-    | '/films-v2/$tmdbId_'
+    | '/actor/$tmdbId'
+    | '/director/$tmdbId'
     | '/films/$tmdbId_'
-    | '/person-v2/$job/$tmdbId'
-    | '/person/$job/$tmdbId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -271,10 +259,9 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   TermsRoute: typeof TermsRoute
-  FilmsV2TmdbIdRoute: typeof FilmsV2TmdbIdRoute
+  ActorTmdbIdRoute: typeof ActorTmdbIdRoute
+  DirectorTmdbIdRoute: typeof DirectorTmdbIdRoute
   FilmsTmdbIdRoute: typeof FilmsTmdbIdRoute
-  PersonV2JobTmdbIdRoute: typeof PersonV2JobTmdbIdRoute
-  PersonJobTmdbIdRoute: typeof PersonJobTmdbIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -391,25 +378,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FilmsTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/films-v2/$tmdbId_': {
-      id: '/films-v2/$tmdbId_'
-      path: '/films-v2/$tmdbId'
-      fullPath: '/films-v2/$tmdbId'
-      preLoaderRoute: typeof FilmsV2TmdbIdRouteImport
+    '/director/$tmdbId': {
+      id: '/director/$tmdbId'
+      path: '/director/$tmdbId'
+      fullPath: '/director/$tmdbId'
+      preLoaderRoute: typeof DirectorTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/person/$job/$tmdbId': {
-      id: '/person/$job/$tmdbId'
-      path: '/person/$job/$tmdbId'
-      fullPath: '/person/$job/$tmdbId'
-      preLoaderRoute: typeof PersonJobTmdbIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/person-v2/$job/$tmdbId': {
-      id: '/person-v2/$job/$tmdbId'
-      path: '/person-v2/$job/$tmdbId'
-      fullPath: '/person-v2/$job/$tmdbId'
-      preLoaderRoute: typeof PersonV2JobTmdbIdRouteImport
+    '/actor/$tmdbId': {
+      id: '/actor/$tmdbId'
+      path: '/actor/$tmdbId'
+      fullPath: '/actor/$tmdbId'
+      preLoaderRoute: typeof ActorTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -431,10 +411,9 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   TermsRoute: TermsRoute,
-  FilmsV2TmdbIdRoute: FilmsV2TmdbIdRoute,
+  ActorTmdbIdRoute: ActorTmdbIdRoute,
+  DirectorTmdbIdRoute: DirectorTmdbIdRoute,
   FilmsTmdbIdRoute: FilmsTmdbIdRoute,
-  PersonV2JobTmdbIdRoute: PersonV2JobTmdbIdRoute,
-  PersonJobTmdbIdRoute: PersonJobTmdbIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

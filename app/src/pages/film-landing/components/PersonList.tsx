@@ -34,9 +34,9 @@ export default function PersonList({
       <div className="grid grid-cols-3 @2xl:grid-cols-4 @3xl:grid-cols-5 @5xl:grid-cols-6 gap-2">
         {listOfPeople.map((person, key) => {
           const personRoute = person.jobs?.includes("Director")
-            ? `/person/director/${person.id}`
+            ? `/director/${person.id}`
             : person.known_for_department?.includes("Acting") || type === "cast"
-              ? `/person/actor/${person.id}`
+              ? `/actor/${person.id}`
               : null
 
           return (
@@ -63,7 +63,7 @@ export default function PersonList({
                   <div
                     className="uppercase w-full hover:text-hover-dark"
                     onClick={() => {
-                      navigate({ to: `/person/director/${person.id}` })
+                      navigate({ to: `/director/${person.id}` })
                     }}>
                     {person.name}
                   </div>
@@ -72,7 +72,7 @@ export default function PersonList({
                   <div
                     className="uppercase w-full hover:text-hover-dark"
                     onClick={() => {
-                      navigate({ to: `/person/actor/${person.id}` })
+                      navigate({ to: `/actor/${person.id}` })
                     }}>
                     {person.name}
                   </div>

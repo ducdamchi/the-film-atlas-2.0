@@ -159,7 +159,7 @@ export default function UserDirectorGallery({
                   <div
                     className="flex flex-col gap-0 items-center justify-start  w-[5rem] h-[9rem] sm:w-[7rem] sm:h-[12.6rem] 2xl:w-[8rem] 2xl:h-[14.4rem] group/thumbnail overflow-hidden mb-1"
                     onClick={() => {
-                      navigate({ to: `/person/director/${groupObject.id}` })
+                      navigate({ to: `/director/${groupObject.id}` })
                     }}>
                     <div
                       className="relative w-full aspect-4/6 overflow-hidden border-3 border-foreground rounded-none flex justify-center items-center"

@@ -53,7 +53,7 @@ export default function TmdbDirectorGallery({
                     }
                     alt=""
                     onClick={() => {
-                      navigate({ to: `/person/director/${directorObject.id}` })
+                      navigate({ to: `/director/${directorObject.id}` })
                     }}
                   />
                   <div className="absolute bottom-0 left-0 h-[10rem] md:h-[15rem] w-full bg-gradient-to-t from-black/90 to-transparent"></div>
@@ -62,7 +62,7 @@ export default function TmdbDirectorGallery({
                       className="w-full hover:text-hover-light"
                       onClick={() => {
                         navigate({
-                          to: `/person/director/${directorObject.id}`,
+                          to: `/director/${directorObject.id}`,
                         })
                       }}>
                       {directorObject.name.split(" ").map((word, key) => (
