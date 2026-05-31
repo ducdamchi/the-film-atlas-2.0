@@ -135,7 +135,7 @@ export default function PersonLanding({ job }: { job: "director" | "actor" }) {
         />
 
         {/* ── 3-column overlay ── */}
-        <div className="absolute bottom-0 left-0 w-full z-30 grid grid-cols-1 @3xl:grid-cols-2 @7xl:grid-cols-3 px-4 pb-4 gap-4">
+        <div className="absolute bottom-0 left-0 w-full z-30 grid grid-cols-1 @3xl:grid-cols-2 @5xl:grid-cols-3 px-4 pb-4 gap-4">
           {/* LEFT */}
           <div className="p-4 min-h-40 rounded flex flex-col justify-start gap-0 border-0">
             <section className="mb-4 flex flex-col gap-0.5">
@@ -195,7 +195,7 @@ export default function PersonLanding({ job }: { job: "director" | "actor" }) {
 
             {/* Condensed stats pills — visible only when right col is hidden (< @7xl) */}
             {job === "director" && (
-              <div className="@7xl:hidden flex flex-wrap gap-1 mt-5">
+              <div className="@5xl:hidden flex flex-wrap gap-1 mt-5">
                 <div className="border-1 border-background/40 text-background text-xs p-1.5 px-3 rounded-full backdrop-blur-2xl">
                   Watched: {numWatched}
                 </div>
@@ -224,7 +224,8 @@ export default function PersonLanding({ job }: { job: "director" | "actor" }) {
             {person.biography &&
               (() => {
                 const words = person.biography.split(" ")
-                const isTruncated = !bioExpanded && words.length > BIO_WORD_LIMIT
+                const isTruncated =
+                  !bioExpanded && words.length > BIO_WORD_LIMIT
                 return (
                   <div
                     className={
@@ -253,13 +254,13 @@ export default function PersonLanding({ job }: { job: "director" | "actor" }) {
           </div>
 
           {/* RIGHT — xl and up */}
-          <div className="hidden @7xl:flex flex-col justify-start gap-2 border-0 p-4 min-h-40 rounded">
+          <div className="hidden @5xl:flex flex-col justify-start gap-1 border-0 p-4 min-h-40  rounded">
             {job === "director" && (
               <>
                 <span className="font-heading text-sm font-extrabold text-background uppercase">
                   Stats
                 </span>
-                <div className="grid grid-cols-4 gap-2 mt-1">
+                <div className="grid grid-cols-4 gap-1.5 mt-1 min-w-[300px]">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-xs font-extrabold text-background/50 uppercase">
                       Watched
@@ -309,7 +310,8 @@ export default function PersonLanding({ job }: { job: "director" | "actor" }) {
               <div className="landing-sectionContent">
                 {(() => {
                   const words = person.biography.split(" ")
-                  const isTruncated = !bioExpanded && words.length > BIO_WORD_LIMIT
+                  const isTruncated =
+                    !bioExpanded && words.length > BIO_WORD_LIMIT
                   return (
                     <>
                       {isTruncated
