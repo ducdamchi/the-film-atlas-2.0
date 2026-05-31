@@ -60,7 +60,9 @@ interface SubtitleItem {
   }
 }
 
-type SecretPanel = "torrents" | "subtitles" | null
+// type SecretPanel = "torrents" | "subtitles" | null
+
+const SYN_WORD_LIMIT = 80
 
 export default function FilmLandingV2() {
   const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL_FULL
@@ -70,7 +72,7 @@ export default function FilmLandingV2() {
   ])
 
   const [openTrailer, setOpenTrailer] = useState(false)
-  const [secretPanel, setSecretPanel] = useState<SecretPanel>(null)
+  // const [secretPanel, setSecretPanel] = useState<SecretPanel>(null)
   const [synopsisExpanded, setSynopsisExpanded] = useState(false)
   const [awardsExpanded, setAwardsExpanded] = useState(false)
   const [synopsisColMaxH, setSynopsisColMaxH] = useState<number | undefined>()
@@ -96,10 +98,10 @@ export default function FilmLandingV2() {
   const { tmdbId } = useParams({ strict: false })
   const navigate = useNavigate()
 
-  function toggleSecretPanel() {
-    setSecretPanel((cur) => (cur ? null : "torrents"))
-  }
-  useCommandKey(toggleSecretPanel, "j")
+  // function toggleSecretPanel() {
+  //   setSecretPanel((cur) => (cur ? null : "torrents"))
+  // }
+  // useCommandKey(toggleSecretPanel, "j")
 
   useEffect(() => {
     setSearchModalOpen(false)
@@ -127,20 +129,20 @@ export default function FilmLandingV2() {
       ? filmAwardsRaw
       : null
 
-  const { data: ytsRaw } = useQuery({
-    ...ytsQueryOptions(imdbId),
-    enabled: !!secretPanel && !!imdbId,
-  })
-  const ytsTorrents =
-    (ytsRaw as { data?: { movie?: { torrents?: YtsTorrent[] } } } | undefined)
-      ?.data?.movie?.torrents ?? []
+  // const { data: ytsRaw } = useQuery({
+  //   ...ytsQueryOptions(imdbId),
+  //   enabled: !!secretPanel && !!imdbId,
+  // })
+  // const ytsTorrents =
+  //   (ytsRaw as { data?: { movie?: { torrents?: YtsTorrent[] } } } | undefined)
+  //     ?.data?.movie?.torrents ?? []
 
-  const { data: subtitleRaw } = useQuery({
-    ...subtitlesQueryOptions(imdbId),
-    enabled: !!secretPanel && !!imdbId,
-  })
-  const subtitles =
-    (subtitleRaw as { data?: SubtitleItem[] } | undefined)?.data ?? []
+  // const { data: subtitleRaw } = useQuery({
+  //   ...subtitlesQueryOptions(imdbId),
+  //   enabled: !!secretPanel && !!imdbId,
+  // })
+  // const subtitles =
+  //   (subtitleRaw as { data?: SubtitleItem[] } | undefined)?.data ?? []
 
   const directors = useMemo(
     () => film.credits?.crew.filter((m) => m.job === "Director") ?? [],
@@ -184,13 +186,13 @@ export default function FilmLandingV2() {
   }, [film])
 
   return (
-    <div className="font-primary">
+    <div className="@container font-primary">
       <div className="w-full h-auto flex flex-col justify-center">
         <div className="w-[100%] h-[90%] top-[5%] text-light">
           {/* ── Hero / backdrop ── */}
           {/* min-h ensures the poster never collapses below this height on narrow screens;
               the image is positioned absolutely so it fills the container and center-crops. */}
-          <div className="landing-main-img-container min-h-[45rem] xl:min-h-[100vh]">
+          <div className="landing-main-img-container min-h-[45rem] @4xl:min-h-[100vh]">
             {/* Backdrop image — fills container, center-crops horizontally on narrow screens */}
             <img
               loading="lazy"
@@ -205,7 +207,7 @@ export default function FilmLandingV2() {
 
             {/* Bottom gradient — covers the 3-column overlay so white text is always readable */}
             <div
-              className="absolute bottom-0 left-0 w-full h-[45%] xl:h-[35%]"
+              className="absolute bottom-0 left-0 w-full h-[45%] @7xl:h-[35%]"
               style={{
                 background: "linear-gradient(to top, black, transparent)",
               }}
@@ -216,7 +218,7 @@ export default function FilmLandingV2() {
               <div className="absolute w-full top-0 left-0 h-[55%] flex items-end justify-center pb-6">
                 <button
                   onClick={() => setOpenTrailer(true)}
-                  className="flex items-center z-40 rounded-full p-3 pt-2 pb-2 drop-shadow-lg bg-background text-[var(--backdropColor)] hover:text-background hover:bg-[var(--backdropColor)] transition-all duration-300 ease-out"
+                  className="flex items-center z-40 rounded-full p-3 pt-2 pb-2 drop-shadow-lg bg-background text-foreground hover:text-background hover:bg-foreground transition-all duration-300 ease-out"
                   style={
                     {
                       "--backdropColor": `rgb(${backdropColor[0]}, ${backdropColor[1]}, ${backdropColor[2]})`,
@@ -229,7 +231,7 @@ export default function FilmLandingV2() {
             )}
 
             {/* ── 3-column overlay (Phase 1 skeleton) ── */}
-            <div className="absolute bottom-0 left-0 w-full z-30 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 px-4 pb-4 gap-4">
+            <div className="absolute bottom-0 left-0 w-full z-30 grid grid-cols-1 @3xl:grid-cols-2 @5xl:grid-cols-3 px-4 pb-4 gap-4">
               {/* LEFT — always visible */}
               <div className="p-4 min-h-40 rounded flex flex-col justify-start gap-0 border-0 border-red-400">
                 <section className="mb-4 flex flex-col gap-0.5">
@@ -331,7 +333,7 @@ export default function FilmLandingV2() {
               {/* MID — md and up */}
               <div
                 ref={synopsisColRef}
-                className="hidden md:flex flex-col justify-start gap-1 border-0 border-green-400 p-4 min-h-40 rounded"
+                className="hidden @3xl:flex flex-col justify-start gap-1 border-0 border-green-400 p-4 min-h-40 rounded"
                 style={
                   synopsisColMaxH ? { maxHeight: synopsisColMaxH } : undefined
                 }>
@@ -341,9 +343,9 @@ export default function FilmLandingV2() {
 
                 {film.overview &&
                   (() => {
-                    const LIMIT = 400
+                    const words = film.overview.split(" ")
                     const isTruncated =
-                      !synopsisExpanded && film.overview.length > LIMIT
+                      !synopsisExpanded && words.length > SYN_WORD_LIMIT
                     return (
                       <div
                         className={
@@ -353,7 +355,7 @@ export default function FilmLandingV2() {
                         }>
                         <p className="text-sm text-background leading-snug font-extralight">
                           {isTruncated
-                            ? film.overview.slice(0, LIMIT).trimEnd()
+                            ? words.slice(0, SYN_WORD_LIMIT).join(" ")
                             : film.overview}
                           {isTruncated && (
                             <>
@@ -374,7 +376,7 @@ export default function FilmLandingV2() {
               {/* RIGHT — xl and up */}
               <div
                 ref={awardsColRef}
-                className="hidden xl:flex flex-col justify-start gap-2 border-0 border-blue-400 p-4 min-h-40 rounded"
+                className="hidden @5xl:flex flex-col justify-start gap-2 border-0 border-blue-400 p-4 min-h-40 rounded"
                 style={
                   awardsColMaxH ? { maxHeight: awardsColMaxH } : undefined
                 }>
@@ -509,15 +511,47 @@ export default function FilmLandingV2() {
           </div>
 
           {/* ── Below-fold ── */}
-          <div className="flex flex-col items-start text-dark gap-2 relative bg-page landing-belowBackdropPadding pb-30 w-ful">
+          <div className="flex flex-col items-start  gap-2 relative bg-page landing-belowBackdropPadding pb-30 w-ful">
             <div className="flex flex-col w-full">
               {/* Synopsis — only shown here when MID overlay column is hidden (< md) */}
-              <div className="md:hidden">
+              <div className="@3xl:hidden">
                 {film.overview && (
                   <div className="p-4 pt-2">
                     <div className="landing-sectionTitle mb-1">overview</div>
                     <div className="landing-sectionContent">
-                      {film.overview}
+                      {(() => {
+                        const words = film.overview.split(" ")
+                        const isTruncated =
+                          !synopsisExpanded && words.length > SYN_WORD_LIMIT
+                        return (
+                          <>
+                            {isTruncated
+                              ? words.slice(0, SYN_WORD_LIMIT).join(" ")
+                              : film.overview}
+                            {isTruncated && (
+                              <>
+                                {"… "}
+                                <button
+                                  onClick={expandSynopsis}
+                                  className="text-foreground/50 hover:text-foreground transition-colors cursor-pointer">
+                                  more
+                                </button>
+                              </>
+                            )}
+                            {synopsisExpanded &&
+                              words.length > SYN_WORD_LIMIT && (
+                                <>
+                                  {" "}
+                                  <button
+                                    onClick={() => setSynopsisExpanded(false)}
+                                    className="text-foreground/50 hover:text-foreground transition-colors cursor-pointer">
+                                    less
+                                  </button>
+                                </>
+                              )}
+                          </>
+                        )
+                      })()}
                     </div>
                   </div>
                 )}
@@ -525,7 +559,7 @@ export default function FilmLandingV2() {
 
               {/* Ratings & Awards — only shown here when RIGHT overlay column is hidden (< xl) */}
               {(filmRatings || filmAwards) && (
-                <div className="xl:hidden p-4 pt-2">
+                <div className="@5xl:hidden p-4 pt-2">
                   <div className="landing-sectionTitle mb-2">
                     ratings &amp; awards
                   </div>
@@ -543,17 +577,19 @@ export default function FilmLandingV2() {
                                 </span>
                                 {filmRatings.imdbVotes &&
                                   filmRatings.imdbVotes !== "N/A" && (
-                                    <span className="text-dark text-xs lg:text-sm font-thin">
+                                    <span className=" text-xs @5xl:text-sm font-thin">
                                       {filmRatings.imdbVotes} votes
                                     </span>
                                   )}
                               </span>
                               <div className="flex items-baseline gap-1">
-                                <span className="text-sm lg:text-base">★</span>
-                                <span className="text-dark font-semibold text-base lg:text-lg leading-none">
+                                <span className="text-sm @5xl:text-base">
+                                  ★
+                                </span>
+                                <span className=" font-semibold text-base @5xl:text-lg leading-none">
                                   {filmRatings.imdbRating}
                                 </span>
-                                <span className="text-dark text-xs lg:text-sm font-thin">
+                                <span className=" text-xs @5xl:text-sm font-thin">
                                   /10
                                 </span>
                               </div>
@@ -567,8 +603,8 @@ export default function FilmLandingV2() {
                               Rotten Tomatoes
                             </span>
                             <div className="flex items-baseline gap-1">
-                              <span className="text-sm lg:text-base">🍅</span>
-                              <span className="text-dark font-semibold text-base lg:text-lg leading-none">
+                              <span className="text-sm @5xl:text-base">🍅</span>
+                              <span className=" font-semibold text-base @5xl:text-lg leading-none">
                                 {
                                   filmRatings.Ratings!.find(
                                     (r) => r.Source === "Rotten Tomatoes",
@@ -600,10 +636,10 @@ export default function FilmLandingV2() {
                                 </span>
                                 <div className="flex items-center gap-2 mt-1">
                                   <span
-                                    className={`${color} text-light font-bold text-sm lg:text-base px-2 py-0.5 rounded`}>
+                                    className={`${color} text-light font-bold text-sm @5xl:text-base px-2 py-0.5 rounded`}>
                                     {score}
                                   </span>
-                                  <span className="text-dark text-xs lg:text-sm font-thin">
+                                  <span className=" text-xs @5xl:text-sm font-thin">
                                     /100
                                   </span>
                                 </div>
@@ -614,66 +650,114 @@ export default function FilmLandingV2() {
                     )}
 
                     {/* Awards */}
-                    {filmAwards && (
-                      <div className="text-dark border-1 p-5 py-4 rounded-sm w-fit bg-[var(--color-rating-awards)]/85 border-[var(--color-rating-awards)]">
-                        {filmAwards.wins.length > 0 && (
-                          <div className="mb-3">
-                            <div className="text-base lg:text-lg uppercase font-bold mb-1">
-                              Won
-                            </div>
-                            <ul className="flex flex-col gap-1">
-                              {filmAwards.wins.map((w, i) => (
-                                <li
-                                  key={i}
-                                  className="flex items-baseline gap-1">
-                                  <span className="text-dark text-sm lg:text-base">
-                                    {w.award}
-                                  </span>
-                                  {w.year && (
-                                    <span className="text-dark text-xs lg:text-sm font-thin">
-                                      {w.year}
-                                    </span>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
+                    {filmAwards &&
+                      (() => {
+                        const LIMIT = 3
+                        const winsTruncated =
+                          !awardsExpanded && filmAwards.wins.length > LIMIT
+                        const nomsTruncated =
+                          !awardsExpanded &&
+                          filmAwards.nominations.length > LIMIT
+                        const shownWins = winsTruncated
+                          ? filmAwards.wins.slice(0, LIMIT)
+                          : filmAwards.wins
+                        const shownNoms = nomsTruncated
+                          ? filmAwards.nominations.slice(0, LIMIT)
+                          : filmAwards.nominations
+                        const canCollapse =
+                          awardsExpanded &&
+                          (filmAwards.wins.length > LIMIT ||
+                            filmAwards.nominations.length > LIMIT)
+                        return (
+                          <div className="border-1 p-5 py-4 rounded-sm w-fit bg-[var(--color-rating-awards)]/85 border-[var(--color-rating-awards)]">
+                            {filmAwards.wins.length > 0 && (
+                              <div className="mb-3">
+                                <div className="text-base @5xl:text-lg uppercase font-bold mb-1">
+                                  Won
+                                </div>
+                                <ul className="flex flex-col gap-1">
+                                  {shownWins.map((w, i) => (
+                                    <li
+                                      key={i}
+                                      className="flex items-baseline gap-1">
+                                      <span className=" text-sm @5xl:text-base">
+                                        {w.award}
+                                      </span>
+                                      {w.year && (
+                                        <span className=" text-xs @5xl:text-sm font-thin">
+                                          {w.year}
+                                        </span>
+                                      )}
+                                    </li>
+                                  ))}
+                                </ul>
+                                {winsTruncated && (
+                                  <p className="font-thin hover:font-normal transition-all east-out duration-200 mt-1">
+                                    {"… "}
+                                    <button
+                                      onClick={expandAwards}
+                                      className="hover: transition-colors cursor-pointer">
+                                      more
+                                    </button>
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            {filmAwards.nominations.length > 0 && (
+                              <div>
+                                <div className="text-base @5xl:text-lg uppercase font-bold mb-1">
+                                  Nominated
+                                </div>
+                                <ul className="flex flex-col gap-1">
+                                  {shownNoms.map((n, i) => (
+                                    <li
+                                      key={i}
+                                      className="flex items-baseline gap-1">
+                                      <span className=" text-sm @5xl:text-base">
+                                        {n.award}
+                                      </span>
+                                      {n.year && (
+                                        <span className=" text-xs @5xl:text-sm font-thin">
+                                          {n.year}
+                                        </span>
+                                      )}
+                                    </li>
+                                  ))}
+                                </ul>
+                                {nomsTruncated && (
+                                  <p className="font-thin hover:font-normal transition-all east-out duration-200 mt-1">
+                                    {"… "}
+                                    <button
+                                      onClick={expandAwards}
+                                      className="hover: transition-colors cursor-pointer">
+                                      more
+                                    </button>
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            {canCollapse && (
+                              <p className="font-thin hover:font-normal transition-all east-out duration-200 mt-1">
+                                <button
+                                  onClick={() => setAwardsExpanded(false)}
+                                  className="hover: transition-colors cursor-pointer">
+                                  less
+                                </button>
+                              </p>
+                            )}
                           </div>
-                        )}
-                        {filmAwards.nominations.length > 0 && (
-                          <div>
-                            <div className="text-base lg:text-lg uppercase font-bold mb-1">
-                              Nominated
-                            </div>
-                            <ul className="flex flex-col gap-1">
-                              {filmAwards.nominations.map((n, i) => (
-                                <li
-                                  key={i}
-                                  className="flex items-baseline gap-1">
-                                  <span className="text-dark text-sm lg:text-base">
-                                    {n.award}
-                                  </span>
-                                  {n.year && (
-                                    <span className="text-dark text-xs lg:text-sm font-thin">
-                                      {n.year}
-                                    </span>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                        )
+                      })()}
                   </div>
                 </div>
               )}
 
-              {secretPanel && (
+              {/* {secretPanel && (
                 <>
                   <Torrents ytsTorrents={ytsTorrents} />
                   <Subtitles subtitles={subtitles} />
                 </>
-              )}
+              )} */}
 
               <div className="flex flex-col items-start justify-start gap-2 w-full">
                 {mainCast.length > 0 && (

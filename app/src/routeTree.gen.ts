@@ -27,6 +27,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId_'
 import { Route as FilmsV2TmdbIdRouteImport } from './routes/films-v2/$tmdbId_'
 import { Route as PersonJobTmdbIdRouteImport } from './routes/person/$job/$tmdbId'
+import { Route as PersonV2JobTmdbIdRouteImport } from './routes/person-v2/$job/$tmdbId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -118,6 +119,11 @@ const PersonJobTmdbIdRoute = PersonJobTmdbIdRouteImport.update({
   path: '/person/$job/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PersonV2JobTmdbIdRoute = PersonV2JobTmdbIdRouteImport.update({
+  id: '/person-v2/$job/$tmdbId',
+  path: '/person-v2/$job/$tmdbId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/films-v2/$tmdbId': typeof FilmsV2TmdbIdRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/person-v2/$job/$tmdbId': typeof PersonV2JobTmdbIdRoute
   '/person/$job/$tmdbId': typeof PersonJobTmdbIdRoute
 }
 export interface FileRoutesByTo {
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/films-v2/$tmdbId': typeof FilmsV2TmdbIdRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/person-v2/$job/$tmdbId': typeof PersonV2JobTmdbIdRoute
   '/person/$job/$tmdbId': typeof PersonJobTmdbIdRoute
 }
 export interface FileRoutesById {
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/films-v2/$tmdbId_': typeof FilmsV2TmdbIdRoute
   '/films/$tmdbId_': typeof FilmsTmdbIdRoute
+  '/person-v2/$job/$tmdbId': typeof PersonV2JobTmdbIdRoute
   '/person/$job/$tmdbId': typeof PersonJobTmdbIdRoute
 }
 export interface FileRouteTypes {
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/films-v2/$tmdbId'
     | '/films/$tmdbId'
+    | '/person-v2/$job/$tmdbId'
     | '/person/$job/$tmdbId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/films-v2/$tmdbId'
     | '/films/$tmdbId'
+    | '/person-v2/$job/$tmdbId'
     | '/person/$job/$tmdbId'
   id:
     | '__root__'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/films-v2/$tmdbId_'
     | '/films/$tmdbId_'
+    | '/person-v2/$job/$tmdbId'
     | '/person/$job/$tmdbId'
   fileRoutesById: FileRoutesById
 }
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   FilmsV2TmdbIdRoute: typeof FilmsV2TmdbIdRoute
   FilmsTmdbIdRoute: typeof FilmsTmdbIdRoute
+  PersonV2JobTmdbIdRoute: typeof PersonV2JobTmdbIdRoute
   PersonJobTmdbIdRoute: typeof PersonJobTmdbIdRoute
 }
 
@@ -392,6 +405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PersonJobTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/person-v2/$job/$tmdbId': {
+      id: '/person-v2/$job/$tmdbId'
+      path: '/person-v2/$job/$tmdbId'
+      fullPath: '/person-v2/$job/$tmdbId'
+      preLoaderRoute: typeof PersonV2JobTmdbIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -413,6 +433,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   FilmsV2TmdbIdRoute: FilmsV2TmdbIdRoute,
   FilmsTmdbIdRoute: FilmsTmdbIdRoute,
+  PersonV2JobTmdbIdRoute: PersonV2JobTmdbIdRoute,
   PersonJobTmdbIdRoute: PersonJobTmdbIdRoute,
 }
 export const routeTree = rootRouteImport
