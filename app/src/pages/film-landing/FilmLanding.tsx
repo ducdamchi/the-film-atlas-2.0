@@ -192,7 +192,7 @@ export default function FilmLanding() {
           {/* ── Hero / backdrop ── */}
           {/* min-h ensures the poster never collapses below this height on narrow screens;
               the image is positioned absolutely so it fills the container and center-crops. */}
-          <div className="landing-main-img-container min-h-[45rem] @4xl:min-h-[100vh]">
+          <div className="overflow-hidden relative min-h-[45rem] @4xl:min-h-[100vh]">
             {/* Backdrop image — fills container, center-crops horizontally on narrow screens */}
             <img
               loading="lazy"
@@ -237,7 +237,7 @@ export default function FilmLanding() {
                 <section className="mb-4 flex flex-col gap-0.5">
                   {/* Title */}
                   {film.title && (
-                    <h1 className="uppercase landing-page-title-v2 font-heading text-background">
+                    <h1 className="uppercase landing-page-title font-heading text-background">
                       {film.title}
                     </h1>
                   )}

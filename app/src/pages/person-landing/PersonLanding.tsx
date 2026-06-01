@@ -105,7 +105,7 @@ export default function PersonLanding({ job }: { job: "director" | "actor" }) {
   return (
     <div className="@container font-primary">
       {/* ── Hero ── */}
-      <div className="landing-main-img-container min-h-screen">
+      <div className="overflow-hidden relative min-h-screen">
         {/* Tiled portrait images: 1 on mobile, 2 on sm, 3 on xl */}
         <div className="absolute inset-0 flex grayscale">
           <img
@@ -141,7 +141,7 @@ export default function PersonLanding({ job }: { job: "director" | "actor" }) {
             <section className="mb-4 flex flex-col gap-0.5">
               {/* Name */}
               {person.name && (
-                <h1 className="uppercase landing-page-title-v2 font-heading text-background">
+                <h1 className="uppercase landing-page-title font-heading text-background">
                   {person.name}
                 </h1>
               )}

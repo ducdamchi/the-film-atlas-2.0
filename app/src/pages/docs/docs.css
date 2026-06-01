@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@layer components {
+  .docs-sectionTitle {
+    @apply inline-block text-3xl font-bold;
+  }
+
+  .docs-sectionCategory {
+    @apply font-thin text-sm border-t-1 pt-5;
+  }
+
+  .docs-subtitle {
+    @apply font-bold text-xl;
+  }
+
+  .docs-img {
+    @apply border-2 w-full object-cover mt-4 mb-4;
+  }
+
+  .docs-list {
+    @apply m-2 font-light flex flex-col gap-4;
+  }
+
+  .docs-menu-heading {
+    @apply hover:text-hover-dark uppercase font-extralight text-sm md:text-base;
+  }
+
+  .docs-menu-content {
+    @apply flex flex-col pl-4 justify-center items-start gap-1 border-l-1;
+  }
+}

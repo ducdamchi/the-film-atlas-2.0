@@ -46,12 +46,12 @@ function ResetPassword() {
   }
 
   return (
-    <div className="font-primary mt-10 auth-whole min-h-screen">
+    <div className="font-primary mt-10 flex flex-col items-center w-screen h-screen overflow-hidden min-h-screen">
       <AuthBg />
       <NavBar />
-      <div className="auth-formContainer">
+      <div className="mt-35 z-100 bg-background text-foreground border-atlas-blue border-5 w-auto min-w-[20rem] relative md:p-5 rounded-none">
         <div className="p-4 w-full">
-          <form className="auth-form" onSubmit={handleSubmit}>
+          <form className="flex flex-col gap-3 w-full items-center text-[16px]" onSubmit={handleSubmit}>
             <input
               className="auth-formField"
               type="password"
@@ -73,7 +73,7 @@ function ResetPassword() {
             <button
               type="submit"
               disabled={loading || !password || !confirm}
-              className="auth-formSubmitButton disabled:opacity-40">
+              className="w-[18rem] p-2 text-stone-900 font-light border-1 transition-all ease-out duration-300 rounded-none disabled:opacity-40">
               {loading ? "Saving..." : "set new password"}
             </button>
           </form>
