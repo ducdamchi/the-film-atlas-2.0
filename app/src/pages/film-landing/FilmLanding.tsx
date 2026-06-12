@@ -9,8 +9,8 @@ import {
   filmQueryOptions,
   omdbQueryOptions,
   wikidataQueryOptions,
-  ytsQueryOptions,
-  subtitlesQueryOptions,
+  // ytsQueryOptions,
+  // subtitlesQueryOptions,
 } from "../../queries/film.queries"
 import useCommandKey from "../../hooks/useCommandKey"
 import { useApp } from "../../utils/appContext"
@@ -22,8 +22,8 @@ import type { TMDBFilm, TMDBCrewMember, TMDBSpokenLanguage } from "@/types/tmdb"
 import InteractionConsole from "../../components/film/InteractionConsole"
 import PersonList from "./components/PersonList"
 import TrailerModal from "./components/TrailerModal"
-import Torrents from "./components/Torrents"
-import Subtitles from "./components/Subtitles"
+// import Torrents from "./components/Torrents"
+// import Subtitles from "./components/Subtitles"
 
 import { BiPlay } from "react-icons/bi"
 import { Calendar, Clock10, Languages, MapPinned } from "lucide-react"
@@ -200,7 +200,7 @@ export default function FilmLanding() {
               src={
                 film.backdrop_path !== null
                   ? `${imgBaseUrl}${film.backdrop_path}`
-                  : `posternotfound.png`
+                  : `/backdropnotfound.jpg`
               }
               alt=""
             />

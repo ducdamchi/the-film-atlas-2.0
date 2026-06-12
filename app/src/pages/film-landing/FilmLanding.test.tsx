@@ -11,7 +11,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@tanstack/react-router", () => ({
   useParams: () => ({ tmdbId: mocks.tmdbId }),
   useNavigate: () => mocks.navigate,
-  ClientOnly: ({ children }: { children: () => React.ReactNode }) => <>{children()}</>,
+  ClientOnly: ({ children }: { children: () => React.ReactNode }) => (
+    <>{children()}</>
+  ),
 }))
 
 vi.mock("@tanstack/react-query", () => ({
@@ -30,9 +32,12 @@ vi.mock("../../hooks/useCommandKey", () => ({
 vi.mock("../../queries/film.queries", () => ({
   filmQueryOptions: vi.fn(() => ({ queryKey: ["film"], queryFn: vi.fn() })),
   omdbQueryOptions: vi.fn(() => ({ queryKey: ["omdb"], queryFn: vi.fn() })),
-  wikidataQueryOptions: vi.fn(() => ({ queryKey: ["wikidata"], queryFn: vi.fn() })),
-  ytsQueryOptions: vi.fn(() => ({ queryKey: ["yts"], queryFn: vi.fn() })),
-  subtitlesQueryOptions: vi.fn(() => ({ queryKey: ["subs"], queryFn: vi.fn() })),
+  wikidataQueryOptions: vi.fn(() => ({
+    queryKey: ["wikidata"],
+    queryFn: vi.fn(),
+  })),
+  // ytsQueryOptions: vi.fn(() => ({ queryKey: ["yts"], queryFn: vi.fn() })),
+  // subtitlesQueryOptions: vi.fn(() => ({ queryKey: ["subs"], queryFn: vi.fn() })),
 }))
 
 vi.mock("../../components/film/InteractionConsole", () => ({
@@ -40,8 +45,17 @@ vi.mock("../../components/film/InteractionConsole", () => ({
 }))
 
 vi.mock("./components/PersonList", () => ({
-  default: ({ title, listOfPeople }: { title: string; listOfPeople: unknown[] }) => (
-    <div data-testid={`person-list-${title.replace(/\s+/g, "-")}`} data-count={listOfPeople.length} />
+  default: ({
+    title,
+    listOfPeople,
+  }: {
+    title: string
+    listOfPeople: unknown[]
+  }) => (
+    <div
+      data-testid={`person-list-${title.replace(/\s+/g, "-")}`}
+      data-count={listOfPeople.length}
+    />
   ),
 }))
 
@@ -141,7 +155,14 @@ describe("FilmLanding — film metadata", () => {
   })
 
   it("renders genres as a comma-separated string", () => {
-    setFilm(makeMovieDetails({ genres: [{ id: 18, name: "Drama" }, { id: 27, name: "Mystery" }] }))
+    setFilm(
+      makeMovieDetails({
+        genres: [
+          { id: 18, name: "Drama" },
+          { id: 27, name: "Mystery" },
+        ],
+      }),
+    )
     renderFilmLanding()
     expect(screen.getByText("Drama, Mystery")).toBeTruthy()
   })

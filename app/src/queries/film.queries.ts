@@ -3,8 +3,8 @@ import {
   fetchFilmFromTMDB,
   fetchFilmRatingsFromOMDB,
   fetchFilmAwardsFromWikidata,
-  fetchFilmFromYTS,
-  fetchSubtitles,
+  // fetchFilmFromYTS,
+  // fetchSubtitles,
 } from "@/utils/apiCalls"
 
 export const filmQueryOptions = (tmdbId: string | number) =>
@@ -32,17 +32,16 @@ export const wikidataQueryOptions = (imdbId: string) =>
   })
 
 // Non-critical — prefetched by loader, not blocking
-export const ytsQueryOptions = (imdbId: string) =>
-  queryOptions({
-    queryKey: ["yts", imdbId],
-    queryFn: () => fetchFilmFromYTS(imdbId),
-    staleTime: 1000 * 60 * 5,
-  })
+// export const ytsQueryOptions = (imdbId: string) =>
+//   queryOptions({
+//     queryKey: ["yts", imdbId],
+//     queryFn: () => fetchFilmFromYTS(imdbId),
+//     staleTime: 1000 * 60 * 5,
+//   })
 
-export const subtitlesQueryOptions = (imdbId: string) =>
-  queryOptions({
-    queryKey: ["subtitles", imdbId],
-    queryFn: () => fetchSubtitles(imdbId),
-    staleTime: 1000 * 60 * 5,
-  })
-
+// export const subtitlesQueryOptions = (imdbId: string) =>
+//   queryOptions({
+//     queryKey: ["subtitles", imdbId],
+//     queryFn: () => fetchSubtitles(imdbId),
+//     staleTime: 1000 * 60 * 5,
+//   })

@@ -396,7 +396,7 @@ export default function CollectionSearchModal({
                               src={
                                 film.backdrop_path
                                   ? `${imgBaseUrl}${film.backdrop_path}`
-                                  : "backdropnotfound.jpg"
+                                  : "/backdropnotfound.jpg"
                               }
                               alt=""
                             />

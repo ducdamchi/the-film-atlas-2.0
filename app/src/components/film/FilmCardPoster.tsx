@@ -80,7 +80,7 @@ export default function FilmCardPoster({
 
   const posterSrc = backdropPath
     ? `${imgBaseUrl}${backdropPath}`
-    : "backdropnotfound.jpg"
+    : "/backdropnotfound.jpg"
 
   // Poster fades out when trailer is playing, fades back in otherwise
   const posterVisible =

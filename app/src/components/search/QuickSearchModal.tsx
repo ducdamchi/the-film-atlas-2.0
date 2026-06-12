@@ -250,7 +250,7 @@ export default function QuickSearchModal({
                         imageSrc={
                           film.backdrop_path
                             ? `${imgBaseUrl}${film.backdrop_path}`
-                            : "backdropnotfound.jpg"
+                            : "/backdropnotfound.jpg"
                         }
                         label={film.title}
                         sublabel={

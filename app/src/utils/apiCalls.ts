@@ -6,10 +6,7 @@ import type {
   TMDBSearchResult,
   TMDBDiscoverResponse,
 } from "@/types/tmdb"
-import type {
-  OmdbResponse,
-  WikidataAwardsResponse,
-} from "@/types/api"
+import type { OmdbResponse, WikidataAwardsResponse } from "@/types/api"
 import type { DiscoverFilmParams } from "@/types/map"
 
 const PROXY_URL = `${import.meta.env.VITE_API_URL}/proxy`
@@ -165,7 +162,6 @@ export function queryTopRatedFilmByCountryTMDB({
     })
 }
 
-
 export function fetchFilmAwardsFromWikidata(
   imdbId: string,
 ): Promise<WikidataAwardsResponse> {
@@ -189,10 +185,7 @@ export function fetchFilmAwardsFromWikidata(
   `
 
   return axios
-    .post(
-      `${PROXY_URL}/wikidata/sparql`,
-      { query },
-    )
+    .post(`${PROXY_URL}/wikidata/sparql`, { query })
     .then((response) => {
       const bindings: Array<{
         awardLabel: { value: string }
@@ -238,39 +231,39 @@ export function fetchFilmRatingsFromOMDB(
     })
 }
 
-export function fetchSubtitles(imdb_id: string): Promise<unknown> {
-  return axios
-    .get(`${PROXY_URL}/subtitles/${imdb_id}`)
-    .then((response) => response.data)
-    .catch((err) => {
-      console.log("Client: Error fetching subtitles", err)
-      throw err
-    })
-}
+// export function fetchSubtitles(imdb_id: string): Promise<unknown> {
+//   return axios
+//     .get(`${PROXY_URL}/subtitles/${imdb_id}`)
+//     .then((response) => response.data)
+//     .catch((err) => {
+//       console.log("Client: Error fetching subtitles", err)
+//       throw err
+//     })
+// }
 
-export async function fetchSubtitleFile(
-  file_id: string | number,
-  filename: string,
-): Promise<string> {
-  const response = await fetch(
-    `${import.meta.env.VITE_API_URL}/proxy/subtitles/download`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ file_id, filename }),
-    },
-  )
-  if (!response.ok) throw new Error("Failed to download subtitle")
-  const blob = await response.blob()
-  return URL.createObjectURL(blob)
-}
+// export async function fetchSubtitleFile(
+//   file_id: string | number,
+//   filename: string,
+// ): Promise<string> {
+//   const response = await fetch(
+//     `${import.meta.env.VITE_API_URL}/proxy/subtitles/download`,
+//     {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ file_id, filename }),
+//     },
+//   )
+//   if (!response.ok) throw new Error("Failed to download subtitle")
+//   const blob = await response.blob()
+//   return URL.createObjectURL(blob)
+// }
 
-export function fetchFilmFromYTS(imdb_id: string): Promise<unknown> {
-  return axios
-    .get(`${PROXY_URL}/yts/${imdb_id}`)
-    .then((response) => response.data)
-    .catch((err) => {
-      console.log("Client: Error fetching film from YTS", err)
-      throw err
-    })
-}
+// export function fetchFilmFromYTS(imdb_id: string): Promise<unknown> {
+//   return axios
+//     .get(`${PROXY_URL}/yts/${imdb_id}`)
+//     .then((response) => response.data)
+//     .catch((err) => {
+//       console.log("Client: Error fetching film from YTS", err)
+//       throw err
+//     })
+// }
