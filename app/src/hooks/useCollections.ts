@@ -20,6 +20,8 @@ export interface CollectionData {
   filmCount: number;
   totalRuntime: number;
   isPinned: boolean;
+  pinnedOrder: string | null;
+  mainOrder: string | null;
   films: UserFilm[];
 }
 
@@ -53,6 +55,8 @@ export function useCollections(): CollectionData[] {
         filmCount: col.film_count,
         totalRuntime: col.total_runtime,
         isPinned: col.is_pinned,
+        pinnedOrder: col.pinned_order,
+        mainOrder: col.main_order,
       };
 
       if (col.collection_type === "watched") {

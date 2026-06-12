@@ -1,9 +1,11 @@
 import express from "express"
+import { generateKeyBetween } from "fractional-indexing"
 import pool from "../db/pool.js"
 import { auth } from "../lib/auth.js"
 import { fromNodeHeaders } from "better-auth/node"
 import { validateToken } from "../middlewares/AuthMiddleware.js"
 import { updateAggregates } from "../utils/collectionAggregates.js"
+import { ensureSystemCollections } from "../utils/systemCollections.js"
 
 const router = express.Router()
 
@@ -28,6 +30,17 @@ async function getOwner(collectionId, userId) {
 
 // ─── Collection CRUD ─────────────────────────────────────────────────────────
 
+/* POST /profile/me/collections/init-system — idempotent system collection creation */
+router.post("/init-system", validateToken, async (req, res) => {
+  try {
+    const results = await ensureSystemCollections(req.user.id)
+    return res.status(200).json(results)
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: "Error initializing system collections" })
+  }
+})
+
 /* POST /profile/me/collections — create a collection */
 router.post("/", validateToken, async (req, res) => {
   try {
@@ -38,6 +51,13 @@ router.post("/", validateToken, async (req, res) => {
     if (!description)
       return res.status(400).json({ error: "description is required" })
 
+    // Compute main_order: place at the bottom of the unpinned list
+    const { rows: [maxRow] } = await pool.query(
+      `SELECT MAX(main_order) AS max_key FROM "CollectionOwners" WHERE "userId" = $1 AND main_order IS NOT NULL`,
+      [req.user.id],
+    )
+    const mainOrder = generateKeyBetween(maxRow?.max_key || null, null)
+
     const { rows } = await pool.query(
       `INSERT INTO "Collections" (id, title, description, cover_photo, is_public)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
@@ -46,11 +66,11 @@ router.post("/", validateToken, async (req, res) => {
     const collection = rows[0]
 
     await pool.query(
-      `INSERT INTO "CollectionOwners" ("collectionId", "userId") VALUES ($1,$2)`,
-      [collection.id, req.user.id],
+      `INSERT INTO "CollectionOwners" ("collectionId", "userId", main_order) VALUES ($1,$2,$3)`,
+      [collection.id, req.user.id, mainOrder],
     )
 
-    return res.status(201).json(collection)
+    return res.status(201).json({ ...collection, is_pinned: false, pinned_order: null, main_order: mainOrder })
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: "Error creating collection" })
@@ -75,11 +95,12 @@ router.get("/", validateToken, async (req, res) => {
          c.decades_aggregate,
          c.total_runtime,
          c."createdAt", c."updatedAt",
-         co.is_pinned, co.display_position
+         co.is_pinned, co.pinned_order, co.main_order
        FROM "Collections" c
        JOIN "CollectionOwners" co ON co."collectionId" = c.id
        WHERE co."userId" = $1
-       ORDER BY co.is_pinned DESC, co.display_position ASC NULLS LAST, c."createdAt" DESC`,
+       ORDER BY co.is_pinned DESC,
+                CASE WHEN co.is_pinned THEN co.pinned_order ELSE co.main_order END ASC`,
       [req.user.id],
     )
     return res.status(200).json(rows)
@@ -473,16 +494,55 @@ router.patch("/:id/pin", validateToken, async (req, res) => {
       return res.status(400).json({ error: "pinned must be a boolean" })
     }
 
-    // Verify caller has a row in CollectionOwners for this collection
-    const { rows, rowCount } = await pool.query(
-      `UPDATE "CollectionOwners" SET is_pinned = $1
-       WHERE "collectionId" = $2 AND "userId" = $3
-       RETURNING is_pinned`,
-      [pinned, id, req.user.id],
-    )
-    if (!rowCount) return res.status(403).json({ error: "Forbidden" })
+    // Guard: cannot unpin system collections
+    const owner = await getOwner(id, req.user.id)
+    if (!owner) return res.status(403).json({ error: "Forbidden" })
+    if ((owner.collection_type === "watched" || owner.collection_type === "watchlist") && !pinned) {
+      return res.status(403).json({ error: "Cannot unpin a system collection" })
+    }
 
-    return res.status(200).json({ is_pinned: rows[0].is_pinned })
+    if (pinned) {
+      // Pinning: assign pinned_order at the bottom of the pinned list
+      const { rows: [maxRow] } = await pool.query(
+        `SELECT MAX(pinned_order) AS max_key FROM "CollectionOwners" WHERE "userId" = $1 AND is_pinned = true`,
+        [req.user.id],
+      )
+      const pinnedOrder = generateKeyBetween(maxRow?.max_key || null, null)
+
+      const { rows, rowCount } = await pool.query(
+        `UPDATE "CollectionOwners" SET is_pinned = true, pinned_order = $1
+         WHERE "collectionId" = $2 AND "userId" = $3
+         RETURNING is_pinned, pinned_order, main_order`,
+        [pinnedOrder, id, req.user.id],
+      )
+      if (!rowCount) return res.status(403).json({ error: "Forbidden" })
+      return res.status(200).json(rows[0])
+    } else {
+      // Unpinning: clear pinned_order, ensure main_order exists
+      const { rows: [current] } = await pool.query(
+        `SELECT main_order FROM "CollectionOwners" WHERE "collectionId" = $1 AND "userId" = $2`,
+        [id, req.user.id],
+      )
+
+      let mainOrder = current?.main_order
+      if (!mainOrder) {
+        // Fallback: assign at the bottom of the unpinned list
+        const { rows: [maxRow] } = await pool.query(
+          `SELECT MAX(main_order) AS max_key FROM "CollectionOwners" WHERE "userId" = $1 AND main_order IS NOT NULL`,
+          [req.user.id],
+        )
+        mainOrder = generateKeyBetween(maxRow?.max_key || null, null)
+      }
+
+      const { rows, rowCount } = await pool.query(
+        `UPDATE "CollectionOwners" SET is_pinned = false, pinned_order = NULL, main_order = $1
+         WHERE "collectionId" = $2 AND "userId" = $3
+         RETURNING is_pinned, pinned_order, main_order`,
+        [mainOrder, id, req.user.id],
+      )
+      if (!rowCount) return res.status(403).json({ error: "Forbidden" })
+      return res.status(200).json(rows[0])
+    }
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: "Error updating pin" })

@@ -4,6 +4,7 @@ import { username } from "better-auth/plugins"
 import { bearer } from "better-auth/plugins"
 import bcrypt from "bcrypt"
 import { getClient } from "../email/client.js"
+import { ensureSystemCollections } from "../utils/systemCollections.js"
 
 const { Pool } = pg
 
@@ -52,6 +53,16 @@ export const auth = betterAuth({
       locationCountry: { type: "string", required: false, defaultValue: null },
       locationCity:    { type: "string", required: false, defaultValue: null },
       locationSource:  { type: "string", required: false, defaultValue: null },
+    },
+  },
+
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          await ensureSystemCollections(user.id)
+        },
+      },
     },
   },
 

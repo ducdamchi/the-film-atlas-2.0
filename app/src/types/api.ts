@@ -171,7 +171,8 @@ export interface AppCollection {
   film_count: number
   total_runtime: number
   is_pinned: boolean
-  display_position: string | null
+  pinned_order: string | null
+  main_order: string | null
   createdAt: string
   updatedAt: string
 }

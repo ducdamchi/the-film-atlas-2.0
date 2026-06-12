@@ -94,7 +94,7 @@ export const removeFilmFromCollectionFn = createServerFn({ method: "POST" })
 
 export const patchCollectionPinFn = createServerFn({ method: "POST" })
   .inputValidator((params: { id: string; pinned: boolean }) => params)
-  .handler(async ({ data: { id, pinned } }): Promise<{ is_pinned: boolean }> => {
+  .handler(async ({ data: { id, pinned } }): Promise<{ is_pinned: boolean; pinned_order: string | null; main_order: string | null }> => {
     const res = await fetch(`${API_URL}/profile/me/collections/${id}/pin`, {
       method: "PATCH",
       headers: { ...apiHeaders(), "Content-Type": "application/json" },

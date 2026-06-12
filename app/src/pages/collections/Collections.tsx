@@ -65,18 +65,16 @@ export default function Collections() {
         film_count: 0,
         total_runtime: 0,
         is_pinned: false,
-        display_position: null,
+        pinned_order: null,
+        main_order: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
 
+      // Append to end of the unpinned section
       queryClient.setQueryData<AppCollection[]>(
         collectionsQueryOptions.queryKey,
-        (old = []) => {
-          const insertAt = old.findIndex((c) => !c.is_pinned)
-          if (insertAt === -1) return [...old, tempItem]
-          return [...old.slice(0, insertAt), tempItem, ...old.slice(insertAt)]
-        },
+        (old = []) => [...old, tempItem],
       )
 
       return { previous }
@@ -122,10 +120,12 @@ export default function Collections() {
           const updated = old.map((c) =>
             c.id === id ? { ...c, is_pinned: pinned } : c,
           )
-          return [
-            ...updated.filter((c) => c.is_pinned),
-            ...updated.filter((c) => !c.is_pinned),
-          ]
+          // Sort: pinned first (by pinned_order), then unpinned (by main_order)
+          const pinned_ = updated.filter((c) => c.is_pinned)
+          const unpinned = updated.filter((c) => !c.is_pinned)
+          pinned_.sort((a, b) => (a.pinned_order ?? "").localeCompare(b.pinned_order ?? ""))
+          unpinned.sort((a, b) => (a.main_order ?? "").localeCompare(b.main_order ?? ""))
+          return [...pinned_, ...unpinned]
         },
       )
       return { previous }
@@ -134,6 +134,24 @@ export default function Collections() {
       queryClient.setQueryData(
         collectionsQueryOptions.queryKey,
         context?.previous,
+      )
+    },
+    onSuccess: (confirmed, vars) => {
+      // Patch cache with server-confirmed order values and re-sort
+      queryClient.setQueryData<AppCollection[]>(
+        collectionsQueryOptions.queryKey,
+        (old = []) => {
+          const updated = old.map((c) =>
+            c.id === vars.id
+              ? { ...c, is_pinned: confirmed.is_pinned, pinned_order: confirmed.pinned_order, main_order: confirmed.main_order }
+              : c,
+          )
+          const pinned_ = updated.filter((c) => c.is_pinned)
+          const unpinned = updated.filter((c) => !c.is_pinned)
+          pinned_.sort((a, b) => (a.pinned_order ?? "").localeCompare(b.pinned_order ?? ""))
+          unpinned.sort((a, b) => (a.main_order ?? "").localeCompare(b.main_order ?? ""))
+          return [...pinned_, ...unpinned]
+        },
       )
     },
   })

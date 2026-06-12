@@ -139,8 +139,8 @@ export interface DB {
     collection_type: string // 'standard' | 'watched' | 'watchlist'
   }
   // Maps users to collections they own or co-own. collectionId → Collections.id,
-  // userId → Users.id. The is_pinned flag and display_position (fractional index
-  // key) control how this collection appears in the owner's sidebar/list.
+  // userId → Users.id. The is_pinned flag and pinned_order/main_order (fractional
+  // index keys) control how this collection appears in the owner's sidebar/list.
   CollectionOwners: {
     id: number
     collectionId: string // UUID
@@ -150,7 +150,9 @@ export interface DB {
     updatedAt: Date
     // Added in migration 004
     is_pinned: boolean
-    display_position: string | null // fractional index key
+    // Added in migration 010 (replaced display_position)
+    pinned_order: string | null   // fractional index key within pinned list
+    main_order: string | null     // fractional index key within main (unpinned) list
   }
   // Ordered list of films within a collection. collectionId → Collections.id,
   // filmId → Films.id, addedBy → Users.id. position is a fractional index string
