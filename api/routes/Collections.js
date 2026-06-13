@@ -663,10 +663,17 @@ router.post("/:id/owners", validateToken, async (req, res) => {
     ])
     if (!targetUser) return res.status(404).json({ error: "User not found" })
 
+    // Compute main_order: place at the bottom of the new owner's unpinned list
+    const { rows: [maxRow] } = await pool.query(
+      `SELECT MAX(main_order) AS max_key FROM "CollectionOwners" WHERE "userId" = $1 AND main_order IS NOT NULL`,
+      [targetUser.id],
+    )
+    const mainOrder = generateKeyBetween(maxRow?.max_key || null, null)
+
     await pool.query(
-      `INSERT INTO "CollectionOwners" ("collectionId", "userId")
-       VALUES ($1,$2) ON CONFLICT DO NOTHING`,
-      [collectionId, targetUser.id],
+      `INSERT INTO "CollectionOwners" ("collectionId", "userId", main_order)
+       VALUES ($1,$2,$3) ON CONFLICT DO NOTHING`,
+      [collectionId, targetUser.id, mainOrder],
     )
 
     return res.status(200).json({ added: true, userId: targetUser.id })

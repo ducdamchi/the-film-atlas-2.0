@@ -1,5 +1,6 @@
 import { type RefObject } from "react"
 import { useNavigate, ClientOnly } from "@tanstack/react-router"
+import { useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@/utils/authContext"
 import { clearAllPersistedState } from "@/utils/localStorage"
 import { authClient, clearAuthToken } from "@/lib/authClient"
@@ -30,10 +31,12 @@ export function NavBarSettingsPanel({
 }: NavBarSettingsPanelProps) {
   const { authState } = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const logOut = async () => {
     clearAllPersistedState()
     clearAuthToken()
+    queryClient.clear()
     await authClient.signOut()
     navigate({ to: "/login" })
   }

@@ -426,7 +426,7 @@ export default function FilmLanding() {
                     }>
                     {filmAwards.wins.length > 0 &&
                       (() => {
-                        const LIMIT = 3
+                        const LIMIT = 2
                         const isTruncated =
                           !awardsExpanded && filmAwards.wins.length > LIMIT
                         const shown = isTruncated
@@ -466,7 +466,7 @@ export default function FilmLanding() {
 
                     {filmAwards.nominations.length > 0 &&
                       (() => {
-                        const LIMIT = 2
+                        const LIMIT = 1
                         const isTruncated =
                           !awardsExpanded &&
                           filmAwards.nominations.length > LIMIT

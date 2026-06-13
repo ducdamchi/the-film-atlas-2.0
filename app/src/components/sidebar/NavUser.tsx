@@ -31,6 +31,7 @@ import {
 import { sidebarAnchoredAtom } from "#/atoms/sidebarAtoms"
 import { useSetAtom } from "jotai"
 import { Link, useNavigate } from "@tanstack/react-router"
+import { useQueryClient } from "@tanstack/react-query"
 import { clearAllPersistedState } from "#/utils/localStorage"
 import { authClient, clearAuthToken } from "#/lib/authClient"
 
@@ -44,11 +45,13 @@ export function NavUser({
   }
 }) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { isMobile } = useSidebar()
   const setSidebarAnchored = useSetAtom(sidebarAnchoredAtom)
   const logOut = async () => {
     clearAllPersistedState()
     clearAuthToken()
+    queryClient.clear()
     await authClient.signOut()
     navigate({ to: "/login" })
   }

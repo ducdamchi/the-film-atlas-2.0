@@ -30,20 +30,21 @@ import { VscNewCollection } from "react-icons/vsc"
 
 export default function Collections() {
   const [searchInput, setSearchInput] = useState<string>("")
-  const [newCollectionId, setNewCollectionId] = useState<string | null>(null)
+  const [scrollTargetId, setScrollTargetId] = useState<string | null>(null)
   const { authState } = useAuth()
   const queryClient = useQueryClient()
   const collections = useCollections()
 
-  // Scroll new collection into view after optimistic insert
+  // Scroll a collection into view (after create or pin/unpin)
   useEffect(() => {
-    if (!newCollectionId) return
+    if (!scrollTargetId) return
     requestAnimationFrame(() => {
       document
-        .getElementById(newCollectionId)
+        .getElementById(scrollTargetId)
         ?.scrollIntoView({ behavior: "smooth", block: "center" })
+      setScrollTargetId(null)
     })
-  }, [newCollectionId])
+  }, [scrollTargetId])
 
   /* ── Create ─────────────────────────────────────────────────────────── */
   const createMutation = useMutation({
@@ -77,6 +78,7 @@ export default function Collections() {
         (old = []) => [...old, tempItem],
       )
 
+      setScrollTargetId(newColParams.id)
       return { previous }
     },
     onError: (_err, _vars, context) => {
@@ -84,7 +86,7 @@ export default function Collections() {
         collectionsQueryOptions.queryKey,
         context?.previous,
       )
-      setNewCollectionId(null)
+      setScrollTargetId(null)
       toast.error("Failed to create collection")
     },
     onSuccess: (confirmed, vars) => {
@@ -93,7 +95,7 @@ export default function Collections() {
         collectionsQueryOptions.queryKey,
         (old = []) => old.map((c) => (c.id === vars.id ? confirmed : c)),
       )
-      setNewCollectionId(null)
+      toast.success("Collection created")
     },
   })
   function handleCreateCollection() {
@@ -101,7 +103,6 @@ export default function Collections() {
     const n = collections.length + 1
     const title = `My Collection #${n}`
     const description = `This is a place holder description for My Collection #${n}`
-    setNewCollectionId(tempId)
     createMutation.mutate({ id: tempId, title, description })
   }
 
@@ -153,6 +154,7 @@ export default function Collections() {
           return [...pinned_, ...unpinned]
         },
       )
+      setScrollTargetId(vars.id)
     },
   })
   function handleTogglePin(id: string): Promise<void> {
