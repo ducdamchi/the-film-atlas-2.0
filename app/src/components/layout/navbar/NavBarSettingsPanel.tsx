@@ -43,7 +43,7 @@ export function NavBarSettingsPanel({
 
   const loginButton = (
     <div className="h-full flex items-center justify-center">
-      <button className="text-dark bg-background hover:bg-background/90 transition-all duration-200 ease-out text-body p-2 px-3 rounded-full w-[5rem]">
+      <button className="text-foreground bg-background hover:bg-background/90 transition-all duration-200 ease-out text-body p-2 px-3 rounded-full w-[5rem]">
         <CustomLink to="/login" highlight={false}>
           Login
         </CustomLink>

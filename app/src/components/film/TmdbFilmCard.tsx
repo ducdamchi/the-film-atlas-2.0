@@ -81,7 +81,7 @@ export default function TmdbFilmCard({
         />
 
         {/* Text below poster */}
-        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-foreground/80 to-transparent text-light w-full flex justify-between gap-2 text-base">
+        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-foreground/80 to-transparent text-background w-full flex justify-between gap-2 text-base">
           {/* Left side - Title, year */}
           <div className="flex flex-row items-center gap-1 ml-1 min-w-0">
             <div className="overflow-hidden min-w-0 flex-1">

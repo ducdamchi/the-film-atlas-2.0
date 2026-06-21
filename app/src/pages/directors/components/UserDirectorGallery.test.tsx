@@ -22,7 +22,12 @@ const directorA: Director = makeDirector({
   id: 1,
   name: "Akira Kurosawa",
   profile_path: "/kurosawa.jpg",
-  WatchedDirectors: makeDirectorStats({ num_watched_films: 5, num_starred_films: 2, num_stars_total: 4, highest_star: 2 }),
+  WatchedDirectors: makeDirectorStats({
+    num_watched_films: 5,
+    num_starred_films: 2,
+    num_stars_total: 4,
+    highest_star: 2,
+  }),
 })
 
 // computeDirectorScore({ num_watched_films:1, num_starred_films:0, num_stars_total:0 })
@@ -32,14 +37,24 @@ const directorB: Director = makeDirector({
   id: 2,
   name: "Bong Joon-ho",
   profile_path: "/bong.jpg",
-  WatchedDirectors: makeDirectorStats({ num_watched_films: 1, num_starred_films: 0, num_stars_total: 0, highest_star: 0 }),
+  WatchedDirectors: makeDirectorStats({
+    num_watched_films: 1,
+    num_starred_films: 0,
+    num_stars_total: 0,
+    highest_star: 0,
+  }),
 })
 
 const directorZ: Director = makeDirector({
   id: 3,
   name: "Zhang Yimou",
   profile_path: null,
-  WatchedDirectors: makeDirectorStats({ num_watched_films: 3, num_starred_films: 1, num_stars_total: 3, highest_star: 3 }),
+  WatchedDirectors: makeDirectorStats({
+    num_watched_films: 3,
+    num_starred_films: 1,
+    num_stars_total: 3,
+    highest_star: 3,
+  }),
 })
 
 const defaultProps = {
@@ -63,7 +78,12 @@ describe("UserDirectorGallery — empty state", () => {
   })
 
   it("does not render 'No directors found.' when list is non-empty", async () => {
-    render(<UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorA]} />)
+    render(
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorA]}
+      />,
+    )
     await waitFor(() => {
       expect(screen.queryByText("No directors found.")).toBeNull()
     })
@@ -88,7 +108,10 @@ describe("UserDirectorGallery — director card rendering", () => {
 
   it("renders a profile image for each director", async () => {
     const { container } = render(
-      <UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorA, directorB]} />,
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorA, directorB]}
+      />,
     )
     await waitFor(() => {
       expect(container.querySelectorAll("img")).toHaveLength(2)
@@ -97,7 +120,10 @@ describe("UserDirectorGallery — director card rendering", () => {
 
   it("uses TMDB base URL + profile_path when profile_path is set", async () => {
     const { container } = render(
-      <UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorA]} />,
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorA]}
+      />,
     )
     await waitFor(() => {
       const img = container.querySelector("img")!
@@ -107,7 +133,10 @@ describe("UserDirectorGallery — director card rendering", () => {
 
   it("uses /picnotfound.jpg when profile_path is null", async () => {
     const { container } = render(
-      <UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorZ]} />,
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorZ]}
+      />,
     )
     await waitFor(() => {
       const img = container.querySelector("img")!
@@ -188,12 +217,20 @@ describe("UserDirectorGallery — grouping by score", () => {
     const low1 = makeDirector({
       id: 10,
       name: "Director One",
-      WatchedDirectors: makeDirectorStats({ num_watched_films: 1, num_starred_films: 0, num_stars_total: 0 }),
+      WatchedDirectors: makeDirectorStats({
+        num_watched_films: 1,
+        num_starred_films: 0,
+        num_stars_total: 0,
+      }),
     })
     const low2 = makeDirector({
       id: 11,
       name: "Director Two",
-      WatchedDirectors: makeDirectorStats({ num_watched_films: 2, num_starred_films: 0, num_stars_total: 0 }),
+      WatchedDirectors: makeDirectorStats({
+        num_watched_films: 2,
+        num_starred_films: 0,
+        num_stars_total: 0,
+      }),
     })
     render(
       <UserDirectorGallery
@@ -228,7 +265,7 @@ describe("UserDirectorGallery — grouping by highest_star", () => {
     })
   })
 
-  it("renders a dark star label (text-dark class) for directors with highest_star=0", async () => {
+  it("renders a dark star label (text-foreground class) for directors with highest_star=0", async () => {
     const { container } = render(
       <UserDirectorGallery
         sortBy="highest_star"
@@ -237,13 +274,21 @@ describe("UserDirectorGallery — grouping by highest_star", () => {
       />,
     )
     await waitFor(() => {
-      expect(container.querySelector(".text-dark")).toBeTruthy()
+      expect(container.querySelector(".text-foreground")).toBeTruthy()
     })
   })
 
   it("groups directors with the same highest_star under one label", async () => {
-    const twoStar1 = makeDirector({ id: 20, name: "Director Alpha", WatchedDirectors: makeDirectorStats({ highest_star: 2 }) })
-    const twoStar2 = makeDirector({ id: 21, name: "Director Beta", WatchedDirectors: makeDirectorStats({ highest_star: 2 }) })
+    const twoStar1 = makeDirector({
+      id: 20,
+      name: "Director Alpha",
+      WatchedDirectors: makeDirectorStats({ highest_star: 2 }),
+    })
+    const twoStar2 = makeDirector({
+      id: 21,
+      name: "Director Beta",
+      WatchedDirectors: makeDirectorStats({ highest_star: 2 }),
+    })
     const { container } = render(
       <UserDirectorGallery
         sortBy="highest_star"
@@ -360,10 +405,12 @@ describe("UserDirectorGallery — sort direction (highest_star)", () => {
       />,
     )
     await waitFor(() => {
-      // directorZ has highest_star=3 (text-star), directorB has highest_star=0 (text-dark)
-      const allLabels = container.querySelectorAll("[class*='text-star'],[class*='text-dark']")
+      // directorZ has highest_star=3 (text-star), directorB has highest_star=0 (text-foreground)
+      const allLabels = container.querySelectorAll(
+        "[class*='text-star'],[class*='text-foreground']",
+      )
       expect(allLabels[0].className).toContain("text-star")
-      expect(allLabels[1].className).toContain("text-dark")
+      expect(allLabels[1].className).toContain("text-foreground")
     })
   })
 
@@ -376,8 +423,10 @@ describe("UserDirectorGallery — sort direction (highest_star)", () => {
       />,
     )
     await waitFor(() => {
-      const allLabels = container.querySelectorAll("[class*='text-star'],[class*='text-dark']")
-      expect(allLabels[0].className).toContain("text-dark")
+      const allLabels = container.querySelectorAll(
+        "[class*='text-star'],[class*='text-foreground']",
+      )
+      expect(allLabels[0].className).toContain("text-foreground")
       expect(allLabels[1].className).toContain("text-star")
     })
   })
@@ -387,7 +436,12 @@ describe("UserDirectorGallery — sort direction (highest_star)", () => {
 
 describe("UserDirectorGallery — hover overlay", () => {
   it("does not show the stats overlay before hovering", async () => {
-    render(<UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorA]} />)
+    render(
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorA]}
+      />,
+    )
     await waitFor(() => {
       expect(screen.queryByText(/Watched:/)).toBeNull()
     })
@@ -395,17 +449,30 @@ describe("UserDirectorGallery — hover overlay", () => {
 
   it("shows num_watched_films, num_starred_films and score on hover", async () => {
     const { container } = render(
-      <UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorA]} />,
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorA]}
+      />,
     )
     await waitFor(() => expect(screen.getByText("Akira Kurosawa")).toBeTruthy())
 
     // The hover target is the image container div
-    const imageContainer = container.querySelector(".relative.w-full.aspect-4\\/6")!
+    const imageContainer = container.querySelector(
+      ".relative.w-full.aspect-4\\/6",
+    )!
     fireEvent.mouseEnter(imageContainer)
 
     await waitFor(() => {
-      expect(screen.getByText(`Watched: ${directorA.WatchedDirectors.num_watched_films}`)).toBeTruthy()
-      expect(screen.getByText(`Starred: ${directorA.WatchedDirectors.num_starred_films}`)).toBeTruthy()
+      expect(
+        screen.getByText(
+          `Watched: ${directorA.WatchedDirectors.num_watched_films}`,
+        ),
+      ).toBeTruthy()
+      expect(
+        screen.getByText(
+          `Starred: ${directorA.WatchedDirectors.num_starred_films}`,
+        ),
+      ).toBeTruthy()
       // Score line starts with "Score:"
       expect(screen.getByText(/^Score:/)).toBeTruthy()
     })
@@ -413,11 +480,16 @@ describe("UserDirectorGallery — hover overlay", () => {
 
   it("hides the stats overlay after mouse leave", async () => {
     const { container } = render(
-      <UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorA]} />,
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorA]}
+      />,
     )
     await waitFor(() => expect(screen.getByText("Akira Kurosawa")).toBeTruthy())
 
-    const imageContainer = container.querySelector(".relative.w-full.aspect-4\\/6")!
+    const imageContainer = container.querySelector(
+      ".relative.w-full.aspect-4\\/6",
+    )!
     fireEvent.mouseEnter(imageContainer)
     await waitFor(() => expect(screen.getByText(/^Watched:/)).toBeTruthy())
 
@@ -429,11 +501,16 @@ describe("UserDirectorGallery — hover overlay", () => {
 
   it("shows the correct score formatted to 2 decimal places", async () => {
     const { container } = render(
-      <UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorA]} />,
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorA]}
+      />,
     )
     await waitFor(() => expect(screen.getByText("Akira Kurosawa")).toBeTruthy())
 
-    const imageContainer = container.querySelector(".relative.w-full.aspect-4\\/6")!
+    const imageContainer = container.querySelector(
+      ".relative.w-full.aspect-4\\/6",
+    )!
     fireEvent.mouseEnter(imageContainer)
 
     await waitFor(() => {
@@ -448,11 +525,18 @@ describe("UserDirectorGallery — hover overlay", () => {
 
 describe("UserDirectorGallery — navigation", () => {
   it("clicking a director card navigates to /director/{id}", async () => {
-    render(<UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorA]} />)
+    render(
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorA]}
+      />,
+    )
     await waitFor(() => expect(screen.getByText("Akira Kurosawa")).toBeTruthy())
 
     fireEvent.click(screen.getByText("Akira Kurosawa"))
-    expect(mockNavigate).toHaveBeenCalledWith({ to: `/director/${directorA.id}` })
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: `/director/${directorA.id}`,
+    })
   })
 
   it("clicking the correct director navigates to the right id when multiple directors are shown", async () => {
@@ -468,7 +552,9 @@ describe("UserDirectorGallery — navigation", () => {
     })
 
     fireEvent.click(screen.getByText("Bong Joon-ho"))
-    expect(mockNavigate).toHaveBeenCalledWith({ to: `/director/${directorB.id}` })
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: `/director/${directorB.id}`,
+    })
   })
 })
 
@@ -526,11 +612,19 @@ describe("UserDirectorGallery — re-renders when props change", () => {
 
   it("updates content when listOfDirectorObjects changes", async () => {
     const { rerender } = render(
-      <UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorA]} />,
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorA]}
+      />,
     )
     await waitFor(() => expect(screen.getByText("Akira Kurosawa")).toBeTruthy())
 
-    rerender(<UserDirectorGallery {...defaultProps} listOfDirectorObjects={[directorB]} />)
+    rerender(
+      <UserDirectorGallery
+        {...defaultProps}
+        listOfDirectorObjects={[directorB]}
+      />,
+    )
     await waitFor(() => {
       expect(screen.queryByText("Akira Kurosawa")).toBeNull()
       expect(screen.getByText("Bong Joon-ho")).toBeTruthy()

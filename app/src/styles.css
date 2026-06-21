@@ -18,8 +18,8 @@
   --color-liked: var(--color-liked);
   --color-saved: var(--color-saved);
   --color-star: var(--color-star);
-  --color-hover-light: var(--color-hover-light);
-  --color-hover-dark: var(--color-hover-dark);
+  --color-link-light: var(--color-link-light);
+  --color-link-dark: var(--color-link-dark);
 
   /* shadcn */
   --font-logo: "Rammetto One", sans-serif, system-ui;
@@ -78,8 +78,8 @@
   --color-liked: oklch(44% 0.177 27); /* *-liked */
   --color-saved: oklch(45% 0.119 151); /* *-saved */
   --color-star: oklch(65% 0.241 354); /* *-star */
-  --color-hover-light: oklch(71% 0.165 255); /* *-hover-light */
-  --color-hover-dark: oklch(39% 0.195 269); /* *-hover-dark */
+  --color-link-light: oklch(71% 0.165 255); /* *-link-light */
+  --color-link-dark: oklch(39% 0.195 269); /* *-link-dark */
 
   /* --- Status colors --- */
   --color-status-error: oklch(55% 0.22 29); /* *-error */

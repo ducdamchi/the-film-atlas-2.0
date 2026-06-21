@@ -301,7 +301,7 @@ export default function PersonLanding({ job }: { job: "director" | "actor" }) {
       </div>
 
       {/* ── Below-fold ── */}
-      <div className="flex flex-col items-start text-dark gap-2 relative bg-page landing-belowBackdropPadding pb-30 w-full">
+      <div className="flex flex-col items-start text-foreground gap-2 relative bg-page landing-belowBackdropPadding pb-30 w-full">
         {/* Biography fallback — only at < md */}
         <div className="@3xl:hidden">
           {person.biography && (

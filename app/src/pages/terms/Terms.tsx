@@ -171,7 +171,7 @@ export default function Terms() {
                 Your privacy is important to us. Please review our separate{" "}
                 <span
                   onClick={() => navigate({ to: "/privacy" })}
-                  className="text-hover-dark cursor-pointer">
+                  className="text-link-dark cursor-pointer">
                   Privacy Policy
                 </span>{" "}
                 for details on how we handle information. In short:
@@ -246,7 +246,7 @@ export default function Terms() {
                 via{" "}
                 <span
                   onClick={() => navigate({ to: "/contact" })}
-                  className="text-hover-dark cursor-pointer">
+                  className="text-link-dark cursor-pointer">
                   this form
                 </span>
                 .

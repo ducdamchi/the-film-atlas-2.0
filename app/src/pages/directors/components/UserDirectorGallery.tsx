@@ -84,7 +84,9 @@ export default function UserDirectorGallery({
             } else if (hs === 1) {
               groupName = <div className=" text-3xl text-star">&#10048;</div>
             } else {
-              groupName = <div className=" text-3xl text-dark">&#10048;</div>
+              groupName = (
+                <div className=" text-3xl text-foreground">&#10048;</div>
+              )
             }
             break
           }

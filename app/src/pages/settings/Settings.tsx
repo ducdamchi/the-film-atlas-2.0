@@ -3,6 +3,7 @@ import { useAuth } from "@/utils/authContext"
 import { useNavigate } from "@tanstack/react-router"
 import { LocationPicker } from "./components/LocationPicker"
 import { authClient } from "@/lib/authClient"
+import { Avatar, AvatarFallback } from "#/components/ui-shadcn/avatar"
 
 function Section({
   title,
@@ -122,6 +123,67 @@ function ChangeUsername() {
         {loading ? "Saving..." : "Update username"}
       </button>
     </form>
+  )
+}
+
+function ChangeAvatar() {
+  const [success, setSuccess] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const handleUpload = async () => {
+    setSuccess("")
+    setError("")
+    setLoading(true)
+    try {
+      // TODO: implement actual upload
+      setSuccess("Avatar updated.")
+    } catch {
+      setError("Error uploading avatar.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRemove = async () => {
+    setSuccess("")
+    setError("")
+    setLoading(true)
+    try {
+      // TODO: implement actual removal
+      setSuccess("Avatar removed.")
+    } catch {
+      setError("Error removing avatar.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="w-[6rem] h-[6rem] rounded-full bg-foreground/10 border border-foreground flex items-center justify-center overflow-hidden">
+        <Avatar className="w-full h-full">
+          <AvatarFallback className="rounded-lg text-3xl">CN</AvatarFallback>
+        </Avatar>
+      </div>
+      <StatusMessage success={success} error={error} />
+      <div className="flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={handleUpload}
+          disabled={loading}
+          className="accountSettings-formSubmitButton disabled:cursor-not-allowed">
+          {loading ? "Uploading..." : "Upload new photo"}
+        </button>
+        <button
+          type="button"
+          onClick={handleRemove}
+          disabled={loading}
+          className="accountSettings-formSubmitButton disabled:cursor-not-allowed">
+          {loading ? "Removing..." : "Remove current photo"}
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -269,6 +331,10 @@ export function AccountSettings() {
       <div className="pt-10 pb-12 max-w-xl mx-auto px-4 flex flex-col gap-6">
         <Section title="Change Username">
           <ChangeUsername />
+        </Section>
+
+        <Section title="Change Avatar">
+          <ChangeAvatar />
         </Section>
 
         <Section title="Change Password">

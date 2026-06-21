@@ -1,8 +1,8 @@
-import { GoSquareFill } from "react-icons/go";
-import { useNavigate } from "@tanstack/react-router";
+import { GoSquareFill } from "react-icons/go"
+import { useNavigate } from "@tanstack/react-router"
 
 export default function Privacy() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   return (
     <div className="font-primary mt-20 mb-20 min-h-screen">
       <div className="flex flex-col items-center">
@@ -280,10 +280,9 @@ export default function Privacy() {
                   contact us via{" "}
                   <span
                     onClick={() => {
-                      navigate({ to: "/contact" });
+                      navigate({ to: "/contact" })
                     }}
-                    className="text-hover-dark cursor-pointer"
-                  >
+                    className="text-link-dark cursor-pointer">
                     this
                   </span>{" "}
                   form.
@@ -294,5 +293,5 @@ export default function Privacy() {
         </div>
       </div>
     </div>
-  );
+  )
 }

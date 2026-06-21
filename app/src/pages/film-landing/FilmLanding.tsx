@@ -188,7 +188,7 @@ export default function FilmLanding() {
   return (
     <div className="@container font-primary">
       <div className="w-full h-auto flex flex-col justify-center">
-        <div className="w-[100%] h-[90%] top-[5%] text-light">
+        <div className="w-[100%] h-[90%] top-[5%] text-background">
           {/* ── Hero / backdrop ── */}
           {/* min-h ensures the poster never collapses below this height on narrow screens;
               the image is positioned absolutely so it fills the container and center-crops. */}
@@ -636,7 +636,7 @@ export default function FilmLanding() {
                                 </span>
                                 <div className="flex items-center gap-2 mt-1">
                                   <span
-                                    className={`${color} text-light font-bold text-sm @5xl:text-base px-2 py-0.5 rounded`}>
+                                    className={`${color} text-background font-bold text-sm @5xl:text-base px-2 py-0.5 rounded`}>
                                     {score}
                                   </span>
                                   <span className=" text-xs @5xl:text-sm font-thin">

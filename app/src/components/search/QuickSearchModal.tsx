@@ -228,12 +228,12 @@ export default function QuickSearchModal({
       }>
       {isSearching ? (
         <div className="flex justify-center items-center py-6">
-          <Loader className="size-5 animate-spin text-light/50" />
+          <Loader className="size-5 animate-spin text-background/50" />
         </div>
       ) : (
         result !== null && (
           <div
-            className="w-full text-light p-2 max-h-[60vh] overflow-y-auto"
+            className="w-full text-background p-2 max-h-[60vh] overflow-y-auto"
             ref={resultsRef}>
             {orderedSections.map((section) => {
               if (section === "Films")

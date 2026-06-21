@@ -32,11 +32,8 @@ export default function UserFilmCard({
 
   const [imageLoaded, setImageLoaded] = useState(false)
 
-  const {
-    movieDetails,
-    handleCardHoverEnter,
-    handleCardHoverLeave,
-  } = useFilmCardFetch(filmObject.id)
+  const { movieDetails, handleCardHoverEnter, handleCardHoverLeave } =
+    useFilmCardFetch(filmObject.id)
 
   const trailerKey =
     (movieDetails as TMDBFilm).videos?.results.find(
@@ -75,7 +72,7 @@ export default function UserFilmCard({
           onImageLoad={handleImageLoad}
         />
         {/* Title overlay — anchored to bottom of poster */}
-        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-foreground/80 to-transparent text-light w-full flex justify-between gap-2 text-[12px]">
+        <div className="absolute bottom-0 left-0 z-0 p-3 bg-gradient-to-t from-foreground/80 to-transparent text-background w-full flex justify-between gap-2 text-[12px]">
           {/* Left side - Title, year, country */}
           <div className="flex flex-col items-start justify-center gap-0 ml-2 min-w-0 overflow-hidden">
             <div className="overflow-hidden w-full text-base">

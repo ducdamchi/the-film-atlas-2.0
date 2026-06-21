@@ -32,7 +32,7 @@ export const Route = createFileRoute("/films/$tmdbId_")({
   },
   pendingComponent: () => <LoadingPage variant="loading" />,
   errorComponent: ({ error }) => (
-    <div className="mt-20 p-8 text-dark">
+    <div className="mt-20 p-8 text-foreground">
       Error loading film: {(error as Error).message}
     </div>
   ),

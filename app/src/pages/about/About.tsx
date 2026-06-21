@@ -52,7 +52,7 @@ export default function About() {
                   to="/docs#curation-stars"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-hover-dark cursor-pointer">
+                  className="text-link-dark cursor-pointer">
                   3-star rating system
                 </Link>{" "}
                 on each of their creation. These two functionalities work
@@ -74,7 +74,7 @@ export default function About() {
                         target="_blank"
                         rel="noopener noreferrer"
                         href="https://www.themoviedb.org/?language=en-US"
-                        className="text-hover-dark">
+                        className="text-link-dark">
                         The Movie Database
                       </a>
                       .
@@ -97,7 +97,7 @@ export default function About() {
                       to="/docs#curation-score"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-hover-dark cursor-pointer">
+                      className="text-link-dark cursor-pointer">
                       score
                     </Link>{" "}
                     based on the user's interaction with their films.
@@ -158,7 +158,7 @@ export default function About() {
                 onClick={() => {
                   navigate({ to: "/contact" })
                 }}
-                className="text-hover-dark cursor-pointer">
+                className="text-link-dark cursor-pointer">
                 Join our team!
               </span>
             </div>

@@ -59,7 +59,7 @@ export default function TmdbDirectorGallery({
                   <div className="absolute bottom-0 left-0 h-[10rem] md:h-[15rem] w-full bg-gradient-to-t from-black/90 to-transparent"></div>
                   <div className="absolute bottom-0 left-0 h-[10rem] md:h-[15rem] w-full flex flex-col items-center justify-end md:p-6 p-3 pb-4 md:pb-6 md:gap-1 gap-0 transition-all duration-200 ease-out group text-background">
                     <div
-                      className="w-full hover:text-hover-light"
+                      className="w-full hover:text-link-light"
                       onClick={() => {
                         navigate({
                           to: `/director/${directorObject.id}`,
@@ -79,7 +79,7 @@ export default function TmdbDirectorGallery({
                           {filmObject?.id &&
                           filmObject?.media_type === "movie" ? (
                             <span
-                              className="hover:text-hover-light cursor-pointer"
+                              className="hover:text-link-light cursor-pointer"
                               onClick={(e) => {
                                 navigate({ to: `/films/${filmObject.id}` })
                               }}>
@@ -88,7 +88,7 @@ export default function TmdbDirectorGallery({
                                 filmObject?.original_title}
                             </span>
                           ) : (
-                            <span className="hover:text-hover-light">
+                            <span className="hover:text-link-light">
                               {filmObject?.title ||
                                 filmObject?.name ||
                                 filmObject?.original_title}

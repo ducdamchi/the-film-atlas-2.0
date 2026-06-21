@@ -22,7 +22,7 @@
   }
 
   .docs-menu-heading {
-    @apply hover:text-hover-dark uppercase font-extralight text-sm md:text-base;
+    @apply hover:text-link-dark uppercase font-extralight text-sm md:text-base;
   }
 
   .docs-menu-content {

@@ -75,14 +75,14 @@ export default function CollectionActions({
   return (
     <div className="flex items-center gap-0">
       <button
-        className="text-xl text-dark hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+        className="text-xl text-foreground hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
         aria-label="Add films"
         title="Add films"
         onClick={onAdd}>
         <MdLibraryAdd className="size-[22px]" />
       </button>
       <button
-        className="text-xl text-dark hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+        className="text-xl text-foreground hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
         aria-label={isPublic ? "Make Private" : "Make Public"}
         title={isPublic ? "Make Private" : "Make Public"}
         onClick={handleToggleVisibility}>
@@ -93,7 +93,7 @@ export default function CollectionActions({
         )}
       </button>
       <button
-        className="text-xl text-dark hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+        className="text-xl text-foreground hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
         aria-label={isPinned ? "Unpin" : "Pin"}
         title={isPinned ? "Unpin" : "Pin"}
         onClick={handleTogglePin}>
@@ -108,7 +108,7 @@ export default function CollectionActions({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="text-xl text-dark hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+              className="text-xl text-foreground hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
               aria-label="More options"
               title="More options">
               <EllipsisVertical className="size-[22px]" />

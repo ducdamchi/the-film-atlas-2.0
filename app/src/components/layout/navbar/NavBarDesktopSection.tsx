@@ -75,7 +75,7 @@ export function NavBarDesktopSection() {
           </div>
         </ul>
         <button
-          className="flex items-center justify-center gap-1 border-0 p-1 px-2 rounded-full bg-background hover:bg-background/90 text-dark transition-all duration-200 ease-out"
+          className="flex items-center justify-center gap-1 border-0 p-1 px-2 rounded-full bg-background hover:bg-background/90 text-foreground transition-all duration-200 ease-out"
           onClick={() => setSearchModalOpen(true)}>
           <BiSearchAlt2 />
           {`\u2318K`}

@@ -195,7 +195,7 @@ export function TripleStarRating({
           <div className="w-0 pl-0 overflow-hidden flex transition-[width] duration-200 ease-out group-hover/rating:w-[0.75rem] group-hover/rating:pl-1 items-center justify-center">
             <button
               onClick={() => setRequestedRating(0)}
-              className="text-black hover:text-hover-dark transition-colors duration-200 flex items-center text-[0.5rem] leading-none">
+              className="text-black hover:text-link-dark transition-colors duration-200 flex items-center text-[0.5rem] leading-none">
               ✕
             </button>
           </div>
@@ -281,7 +281,7 @@ export default function InteractionConsole({
       enabled: !!authState.status && !!tmdbId,
     })
 
-const watchedFilm = watchedList.find((f) => f.id === filmId)
+  const watchedFilm = watchedList.find((f) => f.id === filmId)
   const isLiked = !!watchedFilm
   const isSaved = watchlistedList.some((f) => f.id === filmId)
   const officialRating = (watchedFilm?.stars ?? null) as StarRating | null
@@ -578,84 +578,82 @@ const watchedFilm = watchedList.find((f) => f.id === filmId)
   return (
     <>
       <div
-          className={cn(
-            consoleVariants({ variant }),
-            classNames?.root,
-            className,
-          )}>
-          <div className={cn(rowVariants({ variant }), classNames?.buttonRow)}>
-            {/* Watchlist button */}
-            <button
-              aria-label="Add to watchlist"
-              title="Add to watchlist"
+        className={cn(
+          consoleVariants({ variant }),
+          classNames?.root,
+          className,
+        )}>
+        <div className={cn(rowVariants({ variant }), classNames?.buttonRow)}>
+          {/* Watchlist button */}
+          <button
+            aria-label="Add to watchlist"
+            title="Add to watchlist"
+            className={cn(
+              buttonWrapperVariants({ variant }),
+              classNames?.watchlistButton,
+            )}
+            onClick={handleSave}>
+            <div
               className={cn(
-                buttonWrapperVariants({ variant }),
-                classNames?.watchlistButton,
+                pillVariants({
+                  state: isSaved ? "saved" : "default",
+                  size: variant,
+                }),
+                "hover:bg-saved/10 hover:text-saved transition-color ease-out duration-200",
+              )}>
+              {isSaved ? (
+                <BiListCheck
+                  className={iconVariants({ variant, type: "save" })}
+                />
+              ) : (
+                <BiListPlus
+                  className={iconVariants({ variant, type: "save" })}
+                />
               )}
-              onClick={handleSave}>
-              <div
-                className={cn(
-                  pillVariants({
-                    state: isSaved ? "saved" : "default",
-                    size: variant,
-                  }),
-                  "hover:bg-saved/10 hover:text-saved transition-color ease-out duration-200",
-                )}>
-                {isSaved ? (
-                  <BiListCheck
-                    className={iconVariants({ variant, type: "save" })}
-                  />
-                ) : (
-                  <BiListPlus
-                    className={iconVariants({ variant, type: "save" })}
-                  />
-                )}
-                {showText && (
-                  <span className={labelVariants({ variant })}>Watchlist</span>
-                )}
-              </div>
-            </button>
+              {showText && (
+                <span className={labelVariants({ variant })}>Watchlist</span>
+              )}
+            </div>
+          </button>
 
-            {/* Watched button */}
-            <button
-              aria-label="Add to watched"
-              title="Add to watched"
+          {/* Watched button */}
+          <button
+            aria-label="Add to watched"
+            title="Add to watched"
+            className={cn(
+              buttonWrapperVariants({ variant }),
+              classNames?.watchedButton,
+            )}
+            onClick={handleLike}>
+            <div
               className={cn(
-                buttonWrapperVariants({ variant }),
-                classNames?.watchedButton,
+                pillVariants({
+                  state: isLiked ? "watched" : "default",
+                  size: variant,
+                }),
+                "hover:bg-liked/10 hover:text-liked  transition-color ease-out duration-200",
+              )}>
+              {isLiked ? (
+                <BiSolidHeart
+                  className={iconVariants({ variant, type: "like" })}
+                />
+              ) : (
+                <BiHeart className={iconVariants({ variant, type: "like" })} />
               )}
-              onClick={handleLike}>
-              <div
-                className={cn(
-                  pillVariants({
-                    state: isLiked ? "watched" : "default",
-                    size: variant,
-                  }),
-                  "hover:bg-liked/10 hover:text-liked  transition-color ease-out duration-200",
-                )}>
-                {isLiked ? (
-                  <BiSolidHeart
-                    className={iconVariants({ variant, type: "like" })}
-                  />
-                ) : (
-                  <BiHeart
-                    className={iconVariants({ variant, type: "like" })}
-                  />
-                )}
-                {showText && (
-                  <span className={labelVariants({ variant })}>Watched</span>
-                )}
-              </div>
-            </button>
+              {showText && (
+                <span className={labelVariants({ variant })}>Watched</span>
+              )}
+            </div>
+          </button>
 
-            <TripleStarRating
-              officialRating={officialRating}
-              setRequestedRating={setRequestedRating}
-              variant={variant}
-              className={classNames?.ratingButton}
-            />
-          </div>
+          <TripleStarRating
+            officialRating={officialRating}
+            setRequestedRating={setRequestedRating}
+            variant={variant}
+            className={classNames?.ratingButton}
+          />
         </div>
+      </div>
     </>
   )
 }

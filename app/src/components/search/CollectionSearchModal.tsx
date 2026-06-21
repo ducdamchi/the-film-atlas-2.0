@@ -353,18 +353,18 @@ export default function CollectionSearchModal({
         onClose={onClose}
         placeholder="Add or remove films from collection..."
         header={
-          <div className="p-3 lg:pt-4 lg:px-5 pb-0 lg:text-2xl text-light font-semibold">
+          <div className="p-3 lg:pt-4 lg:px-5 pb-0 lg:text-2xl text-background font-semibold">
             {collection.title}
           </div>
         }>
         {searchInput.trim().length > 0 && (
           <div
-            className="w-full text-light p-2 max-h-[60vh] overflow-y-auto"
+            className="w-full text-background p-2 max-h-[60vh] overflow-y-auto"
             ref={resultsRef}
             onScroll={handleScroll}>
             {isSearching ? (
               <div className="flex justify-center items-center py-6">
-                <Loader className="size-5 animate-spin text-light/50" />
+                <Loader className="size-5 animate-spin text-background/50" />
               </div>
             ) : totalResultCount === 0 ? (
               <div className="m-2 ml-4">No results found.</div>
@@ -373,7 +373,7 @@ export default function CollectionSearchModal({
                 {sections.map((section) => (
                   <div key={section.kind}>
                     {section.kind === "suggested" && (
-                      <div className="px-3 py-1 text-xs text-light/50 uppercase tracking-wider">
+                      <div className="px-3 py-1 text-xs text-background/50 uppercase tracking-wider">
                         {section.label}
                       </div>
                     )}
@@ -418,7 +418,7 @@ export default function CollectionSearchModal({
                             )}
                           </div>
                           <button
-                            className="flex-shrink-0 flex items-center justify-center w-[3rem] h-full hover:text-light/60 transition-colors duration-150"
+                            className="flex-shrink-0 flex items-center justify-center w-[3rem] h-full hover:text-background/60 transition-colors duration-150"
                             aria-label={
                               inCollection
                                 ? "Remove from collection"
@@ -441,7 +441,7 @@ export default function CollectionSearchModal({
 
                 {isLoadingMore && (
                   <div className="flex justify-center items-center py-3">
-                    <Loader className="size-4 animate-spin text-light/40" />
+                    <Loader className="size-4 animate-spin text-background/40" />
                   </div>
                 )}
               </div>

@@ -103,7 +103,7 @@ export function NavBarMobileSection({
           The Film Atlas
         </span>
         <button
-          className="flex items-center justify-center ml-2 p-[5px] pl-[10px] pr-[10px] rounded-full bg-muted text-dark cursor-pointer"
+          className="flex items-center justify-center ml-2 p-[5px] pl-[10px] pr-[10px] rounded-full bg-muted text-foreground cursor-pointer"
           onClick={() => setSearchModalOpen(true)}>
           <BiSearchAlt2 className="text-[10px]" />
         </button>

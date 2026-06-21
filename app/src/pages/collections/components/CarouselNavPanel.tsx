@@ -32,12 +32,12 @@ export default function CarouselNavPanel({
         {isLeft ? (
           <ChevronLeft
             size={24}
-            className="text-dark group-hover/carousel:text-white"
+            className="text-foreground group-hover/carousel:text-white"
           />
         ) : (
           <ChevronRight
             size={24}
-            className="text-dark group-hover/carousel:text-white"
+            className="text-foreground group-hover/carousel:text-white"
           />
         )}
       </button>

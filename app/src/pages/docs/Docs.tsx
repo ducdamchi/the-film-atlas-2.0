@@ -206,7 +206,7 @@ export default function Docs() {
                         Automatically, collections of films (watched, watchlist,
                         rated) will also appear on the{" "}
                         <Link
-                          className="text-hover-dark"
+                          className="text-link-dark"
                           to="/films"
                           target="_blank"
                           rel="noopener noreferrer">
@@ -328,7 +328,7 @@ export default function Docs() {
                           href="https://www.themoviedb.org/?language=en-US"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-hover-dark cursor-pointer">
+                          className="text-link-dark cursor-pointer">
                           The Movies Database
                         </a>{" "}
                         (TMDB), and currently we include three sort options:
@@ -376,7 +376,7 @@ export default function Docs() {
                         for different countries, as{" "}
                         <Link
                           to="/docs#crit-review-bias"
-                          className="text-hover-dark cursor-pointer inline">
+                          className="text-link-dark cursor-pointer inline">
                           voting biases
                         </Link>{" "}
                         may be present within the database that we use.
@@ -431,7 +431,7 @@ export default function Docs() {
                         the Rated collection. Refer to{" "}
                         <Link
                           to="/docs#curation-stars"
-                          className="text-hover-dark cursor-pointer inline">
+                          className="text-link-dark cursor-pointer inline">
                           this section
                         </Link>{" "}
                         for more details on the rating system.
@@ -455,7 +455,7 @@ export default function Docs() {
                         the{" "}
                         <Link
                           to="/docs#feature-director"
-                          className="text-hover-dark cursor-pointer inline">
+                          className="text-link-dark cursor-pointer inline">
                           director's page search bar
                         </Link>{" "}
                         if you want to search for directors instead.
@@ -539,7 +539,7 @@ export default function Docs() {
                           user's interactions. Refer to{" "}
                           <Link
                             to="/docs#curation-score"
-                            className="text-hover-dark cursor-pointer inline">
+                            className="text-link-dark cursor-pointer inline">
                             this section
                           </Link>{" "}
                           for more details on our directors scoring system.
@@ -553,7 +553,7 @@ export default function Docs() {
                           film (0-3). Refer to{" "}
                           <Link
                             to="/docs#curation-stars"
-                            className="text-hover-dark cursor-pointer inline">
+                            className="text-link-dark cursor-pointer inline">
                             this section
                           </Link>{" "}
                           for more details on our films starring system.
@@ -589,7 +589,7 @@ export default function Docs() {
                         directors with this search bar. Use the{" "}
                         <Link
                           to="/docs#feature-film"
-                          className="text-hover-dark cursor-pointer inline">
+                          className="text-link-dark cursor-pointer inline">
                           film page's search bar
                         </Link>{" "}
                         if you want to search for films instead.
@@ -1021,7 +1021,7 @@ export default function Docs() {
                           to="/contact"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-hover-dark cursor-pointer">
+                          className="text-link-dark cursor-pointer">
                           hear more from you!
                         </Link>
                       </div>
@@ -1048,7 +1048,7 @@ export default function Docs() {
                           href="https://www.themoviedb.org/?language=en-US"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-hover-dark cursor-pointer">
+                          className="text-link-dark cursor-pointer">
                           The Movies Database
                         </a>{" "}
                         does not publicly release the demographics of its
@@ -1066,7 +1066,7 @@ export default function Docs() {
                             href="https://www.wipo.int/en/web/global-innovation-index/w/blogs/2025/global-film-production"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-hover-dark cursor-pointer">
+                            className="text-link-dark cursor-pointer">
                             <sup> 1</sup>
                           </a>
                           . In 2023, 2562 feature films were produced in India,
@@ -1076,7 +1076,7 @@ export default function Docs() {
                             href="https://www.wipo.int/en/web/global-innovation-index/w/blogs/2025/global-film-production"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-hover-dark cursor-pointer">
+                            className="text-link-dark cursor-pointer">
                             <sup> 2</sup>
                           </a>
                           . This, together with the fact that India currently
@@ -1086,7 +1086,7 @@ export default function Docs() {
                             href="https://www.worldometers.info/world-population/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-hover-dark cursor-pointer">
+                            className="text-link-dark cursor-pointer">
                             <sup> 3</sup>
                           </a>
                           ), would make one think that there must be a lot of
@@ -1113,7 +1113,7 @@ export default function Docs() {
                             href="https://thefilmatlas.org/#/films/157336"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="italic text-hover-dark cursor-pointer">
+                            className="italic text-link-dark cursor-pointer">
                             Interstellar
                           </a>
                           , 2014, dir. Christopher Nolan, 8.5 average rating),
@@ -1122,7 +1122,7 @@ export default function Docs() {
                             href="https://thefilmatlas.org/#/films/19404"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="italic text-hover-dark cursor-pointer">
+                            className="italic text-link-dark cursor-pointer">
                             Dilwale Dulhania Le Jayenge
                           </a>
                           , 1995, dir. Aditya Chopra, 8.5 average rating).
@@ -1133,7 +1133,7 @@ export default function Docs() {
                             href="https://www.boxofficemojo.com/chart/top_lifetime_gross/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-hover-dark cursor-pointer">
+                            className="text-link-dark cursor-pointer">
                             <sup> 4</sup>
                           </a>
                           ), must have gathered a lot of attention from TMDB
@@ -1149,7 +1149,7 @@ export default function Docs() {
                             href="https://www.cnn.com/2025/10/20/style/ddlj-bollywood-30-years-anniversary-intl-hnk-dst"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-hover-dark cursor-pointer">
+                            className="text-link-dark cursor-pointer">
                             <sup> 5</sup>
                           </a>
                           .
@@ -1204,7 +1204,7 @@ export default function Docs() {
                               href="https://thefilmatlas.org/#/films/1585"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="italic text-hover-dark cursor-pointer">
+                              className="italic text-link-dark cursor-pointer">
                               It's A Wonderful Life
                             </a>{" "}
                             (4600+ votes, 8.3 average rating). While both films
@@ -1254,7 +1254,7 @@ export default function Docs() {
                               href="https://thefilmatlas.org/#/films/980477"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="italic text-hover-dark cursor-pointer">
+                              className="italic text-link-dark cursor-pointer">
                               Ne Zha II
                             </a>
                             , the highest grossing Chinese film of all time,
@@ -1267,7 +1267,7 @@ export default function Docs() {
                               href="https://www.nytimes.com/2025/02/10/business/china-box-office-ne-zha-2.html"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-hover-dark cursor-pointer">
+                              className="text-link-dark cursor-pointer">
                               <sup> 6</sup>
                             </a>
                             . It currently has less than 500 votes on TMDB.
@@ -1277,7 +1277,7 @@ export default function Docs() {
                               href="https://thefilmatlas.org/#/person/director/2367353"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-hover-dark cursor-pointer">
+                              className="text-link-dark cursor-pointer">
                               Jiao Zi
                             </a>
                             , there's no biography available (as this is being
