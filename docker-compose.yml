@@ -1,0 +1,15 @@
+services:
+  db:
+    build: ./db
+    container_name: tfa-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: quqHQxol09rBcj7Sldaa
+      POSTGRES_DB: tfa-dev-db
+    ports:
+      - "5433:5432"
+    volumes:
+      - tfa_pgdata:/var/lib/postgresql
+
+volumes:
+  tfa_pgdata:

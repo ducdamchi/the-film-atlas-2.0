@@ -1,4 +1,3 @@
-import "./docs.css"
 import { useState, useEffect } from "react"
 import { Link } from "@tanstack/react-router"
 import { GoSquareFill } from "react-icons/go"

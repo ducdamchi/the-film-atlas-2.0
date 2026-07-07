@@ -1,0 +1,4 @@
+# Ignore dump files — obtain locally via pg_dump from staging/dev
+*.sql
+*.dump
+*.tar

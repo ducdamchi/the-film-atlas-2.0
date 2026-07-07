@@ -1,0 +1,6 @@
+PGPASSWORD=quqHQxol09rBcj7Sldaa pg_dump \
+  -h tfa-dev.ct6q086wc4sb.us-east-2.rds.amazonaws.com \
+  -U postgres \
+  -d tfa_dev \
+  -F c \
+  -f ~/Backups/the-film-atlas/rds_tfa_dev.pgdump
