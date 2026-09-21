@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { LocationPicker } from "./components/LocationPicker"
 import { authClient } from "@/lib/authClient"
 import { Avatar, AvatarFallback } from "#/components/ui-shadcn/avatar"
+import { getInitials } from "@/lib/utils"
 
 function Section({
   title,
@@ -127,6 +128,7 @@ function ChangeUsername() {
 }
 
 function ChangeAvatar() {
+  const { authState } = useAuth()
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -163,7 +165,7 @@ function ChangeAvatar() {
     <div className="flex flex-col gap-3">
       <div className="w-[6rem] h-[6rem] rounded-full bg-foreground/10 border border-foreground flex items-center justify-center overflow-hidden">
         <Avatar className="w-full h-full">
-          <AvatarFallback className="rounded-lg text-3xl">CN</AvatarFallback>
+          <AvatarFallback className="rounded-lg text-3xl">{getInitials(authState.username)}</AvatarFallback>
         </Avatar>
       </div>
       <StatusMessage success={success} error={error} />
