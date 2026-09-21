@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { getCountryName } from "@/utils/helperFunctions";
-import { watchedFilmsQueryOptions } from "@/queries/collections.queries";
+import {
+  watchedFilmsQueryOptions,
+  guestWatchedQueryOptions,
+} from "@/queries/collections.queries";
 import type { AuthState } from "@/types/auth";
 import type { FilmsPerCountryData } from "@/types/map";
 
@@ -15,10 +18,11 @@ interface UseMapFilmDataResult {
  * the Collections page — a single cache entry serves both surfaces.
  */
 export function useMapFilmData(authState: AuthState): UseMapFilmDataResult {
-  const { data: mapFilmData = [] } = useQuery({
-    ...watchedFilmsQueryOptions,
-    enabled: !!authState.status,
-  });
+  const activeOptions = authState.status
+    ? watchedFilmsQueryOptions
+    : guestWatchedQueryOptions;
+
+  const { data: mapFilmData = [] } = useQuery(activeOptions);
 
   const filmsPerCountryData = useMemo<FilmsPerCountryData>(() => {
     const data: Record<

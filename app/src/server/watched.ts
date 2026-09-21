@@ -13,6 +13,7 @@ import type {
   LikeStatusResponse,
   LikeFilmResponse,
   RateFilmResponse,
+  SyncGuestDataResponse,
 } from "@/types/api";
 
 // Still needs to be wrapped in createServerFn() to be protected from client
@@ -74,5 +75,19 @@ export const rateFilmFn = createServerFn({ method: "POST" })
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Unauthorized");
+    return res.json();
+  });
+
+export const syncGuestDataFn = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: { watched: UserFilm[]; watchlisted: UserFilm[] }) => data,
+  )
+  .handler(async ({ data }): Promise<SyncGuestDataResponse> => {
+    const res = await fetch(`${API_URL}/profile/me/watched/sync`, {
+      method: "POST",
+      headers: { ...apiHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Sync failed");
     return res.json();
   });

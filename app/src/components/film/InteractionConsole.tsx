@@ -11,10 +11,21 @@ import { saveFilmFn, unsaveFilmFn } from "@/server/watchlisted"
 import {
   watchedFilmsQueryOptions,
   watchlistedFilmsQueryOptions,
+  guestWatchedQueryOptions,
+  guestWatchlistedQueryOptions,
 } from "@/queries/collections.queries"
 import { directorsQueryOptions } from "@/queries/directors.queries"
 import { useAuth } from "@/utils/authContext"
 import { cn } from "@/lib/utils"
+import {
+  guestLikeFilm,
+  guestUnlikeFilm,
+  guestSaveFilm,
+  guestUnsaveFilm,
+  guestRateFilm,
+} from "@/utils/guestStore"
+import { useSetAtom } from "jotai"
+import { guestLimitModalOpenAtom } from "@/atoms/guestAtoms"
 
 /* Icons */
 import { BiListPlus, BiListCheck, BiHeart, BiSolidHeart } from "react-icons/bi"
@@ -266,19 +277,28 @@ export default function InteractionConsole({
 
   const { authState } = useAuth()
   const queryClient = useQueryClient()
+  const setGuestLimitModalOpen = useSetAtom(guestLimitModalOpenAtom)
+  const isGuest = !authState.status
 
   const filmId = Number(tmdbId)
   const showText = variant !== "card"
 
   /* Derive like/save/rating status from the shared cached lists */
+  const activeWatchedOptions = isGuest
+    ? guestWatchedQueryOptions
+    : watchedFilmsQueryOptions
+  const activeWatchlistedOptions = isGuest
+    ? guestWatchlistedQueryOptions
+    : watchlistedFilmsQueryOptions
+
   const { data: watchedList = [], isLoading: isWatchedLoading } = useQuery({
-    ...watchedFilmsQueryOptions,
-    enabled: !!authState.status && !!tmdbId,
+    ...activeWatchedOptions,
+    enabled: !!tmdbId,
   })
   const { data: watchlistedList = [], isLoading: isWatchlistedLoading } =
     useQuery({
-      ...watchlistedFilmsQueryOptions,
-      enabled: !!authState.status && !!tmdbId,
+      ...activeWatchlistedOptions,
+      enabled: !!tmdbId,
     })
 
   const watchedFilm = watchedList.find((f) => f.id === filmId)
@@ -543,25 +563,77 @@ export default function InteractionConsole({
   })
 
   /**************** HANDLERS (for like, save, rate) ****************/
+  function invalidateGuestQueries() {
+    queryClient.invalidateQueries({ queryKey: guestWatchedQueryOptions.queryKey })
+    queryClient.invalidateQueries({ queryKey: guestWatchlistedQueryOptions.queryKey })
+  }
+
   function handleLike() {
-    if (!authState.status) {
-      alert("Log in to interact with films!")
+    if (isGuest) {
+      const title = (movieDetails as TMDBFilm).title
+      if (isLiked) {
+        guestUnlikeFilm(filmId)
+        toast.success(`Removed "${title}" from Watched`)
+      } else {
+        const film = buildOptimisticFilm(0)
+        const result = guestLikeFilm(film)
+        if (result.limitReached) {
+          setGuestLimitModalOpen(true)
+          return
+        }
+        toast.success(`Added "${title}" to Watched`)
+      }
+      invalidateGuestQueries()
       return
     }
     watchMutation.mutate(!isLiked)
   }
+
   function handleSave() {
-    if (!authState.status) {
-      alert("Log in to interact with films!")
+    if (isGuest) {
+      const title = (movieDetails as TMDBFilm).title
+      if (isSaved) {
+        guestUnsaveFilm(filmId)
+        toast.success(`Removed "${title}" from Watchlist`)
+      } else {
+        const film = buildOptimisticFilm(0)
+        const result = guestSaveFilm(film)
+        if (result.limitReached) {
+          setGuestLimitModalOpen(true)
+          return
+        }
+        toast.success(`Added "${title}" to Watchlist`)
+      }
+      invalidateGuestQueries()
       return
     }
     watchlistMutation.mutate(!isSaved)
   }
+
   // Handler for rating adjustment
   useEffect(() => {
     if (requestedRating === -1 || requestedRating === officialRating) return
-    if (!authState.status) {
-      alert("Log in to interact with films!")
+
+    if (isGuest) {
+      if (!isLiked) {
+        const film = buildOptimisticFilm(requestedRating as StarRating)
+        const result = guestLikeFilm(film)
+        if (result.limitReached) {
+          setGuestLimitModalOpen(true)
+          setRequestedRating(-1)
+          return
+        }
+      } else {
+        guestRateFilm(filmId, requestedRating as StarRating)
+      }
+      const title = (movieDetails as TMDBFilm).title
+      toast.success(
+        requestedRating === 0
+          ? `Cleared rating for "${title}"`
+          : `Set "${title}" rating to ${requestedRating} stars`,
+      )
+      setRequestedRating(-1)
+      invalidateGuestQueries()
       return
     }
 

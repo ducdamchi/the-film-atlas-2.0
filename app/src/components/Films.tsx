@@ -10,6 +10,8 @@ import { usePersistedState } from "../hooks/usePersistedState"
 import {
   watchedFilmsQueryOptions,
   watchlistedFilmsQueryOptions,
+  guestWatchedQueryOptions,
+  guestWatchlistedQueryOptions,
 } from "@/queries/collections.queries"
 
 /* Types */
@@ -48,15 +50,19 @@ export default function Films() {
   const { authState } = useAuth()
   const location = useLocation()
 
-  const { data: watchedList = [], isLoading: watchedLoading } = useQuery({
-    ...watchedFilmsQueryOptions,
-    enabled: !!authState.status,
-  })
+  const isGuest = !authState.status
+  const activeWatchedOptions = isGuest
+    ? guestWatchedQueryOptions
+    : watchedFilmsQueryOptions
+  const activeWatchlistedOptions = isGuest
+    ? guestWatchlistedQueryOptions
+    : watchlistedFilmsQueryOptions
+
+  const { data: watchedList = [], isLoading: watchedLoading } = useQuery(
+    activeWatchedOptions,
+  )
   const { data: watchlistedList = [], isLoading: watchlistedLoading } =
-    useQuery({
-      ...watchlistedFilmsQueryOptions,
-      enabled: !!authState.status,
-    })
+    useQuery(activeWatchlistedOptions)
 
   const isLoading =
     queryString === "watchlisted" ? watchlistedLoading : watchedLoading

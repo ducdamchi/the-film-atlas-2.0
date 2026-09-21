@@ -3,6 +3,8 @@ import { useMemo } from "react";
 import {
   watchedFilmsQueryOptions,
   watchlistedFilmsQueryOptions,
+  guestWatchedQueryOptions,
+  guestWatchlistedQueryOptions,
 } from "@/queries/collections.queries";
 import type { UserFilm } from "@/types/film";
 import type { AuthState } from "@/types/auth";
@@ -26,17 +28,25 @@ export function useUserFilms({
   sortDirection,
   numStars,
 }: UseUserFilmsParams) {
-  const enabled = !!authState.status && !isDiscoverMode && !!isoA2;
+  const isGuest = !authState.status;
+  const enabled = !isDiscoverMode && !!isoA2;
 
   const isWatchlisted = mode === "watchlisted";
   const isRated = mode === "rated";
 
+  const activeWatchedOptions = isGuest
+    ? guestWatchedQueryOptions
+    : watchedFilmsQueryOptions;
+  const activeWatchlistedOptions = isGuest
+    ? guestWatchlistedQueryOptions
+    : watchlistedFilmsQueryOptions;
+
   const { data: watchedList = [], isLoading: watchedLoading } = useQuery({
-    ...watchedFilmsQueryOptions,
+    ...activeWatchedOptions,
     enabled: enabled && !isWatchlisted,
   });
   const { data: watchlistedList = [], isLoading: watchlistedLoading } = useQuery({
-    ...watchlistedFilmsQueryOptions,
+    ...activeWatchlistedOptions,
     enabled: enabled && isWatchlisted,
   });
 

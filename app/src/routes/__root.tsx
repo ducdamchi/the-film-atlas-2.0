@@ -22,6 +22,7 @@ import QuickSearchModal from "../components/search/QuickSearchModal"
 import ScrollToAnchor from "../hooks/scrollToAnchor"
 import useCommandKey from "../hooks/useCommandKey"
 import { CompleteProfileModal } from "../pages/settings/components/CompleteProfileModal"
+import { GuestLimitModal } from "../components/auth/GuestLimitModal"
 import { runMigrations } from "../utils/localStorageMigrations"
 import { Toaster } from "../components/ui-shadcn/sonner"
 import { TanStackDevtools } from "@tanstack/react-devtools"
@@ -164,6 +165,7 @@ function RootComponent() {
                   {authState.status && !authState.email && (
                     <CompleteProfileModal />
                   )}
+                  {!authState.status && <GuestLimitModal />}
                 </ClientOnly>
                 <Toaster position="top-right" />
                 {/* {!isMapPage && !isHomePage && !isRouterPending && (

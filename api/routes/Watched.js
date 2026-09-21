@@ -613,4 +613,244 @@ router.put("/", validateToken, async (req, res) => {
   }
 })
 
+/* POST /sync: Bulk-import guest (localStorage) watched + watchlisted films */
+router.post("/sync", validateToken, async (req, res) => {
+  const client = await pool.connect()
+  try {
+    await client.query("BEGIN")
+    const jwtUserId = req.user.id
+    const { watched = [], watchlisted = [] } = req.body
+
+    let syncedWatched = 0
+    let syncedWatchlisted = 0
+
+    // Helper: upsert a film record
+    async function upsertFilm(film) {
+      await client.query(
+        `INSERT INTO "Films"
+           (id, title, runtime, directors, "directorNamesForSorting",
+            poster_path, backdrop_path, origin_country, release_date, genres, overview,
+            original_title, spoken_languages, imdb_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+         ON CONFLICT (id) DO UPDATE SET
+           genres           = COALESCE(EXCLUDED.genres,           "Films".genres),
+           overview         = COALESCE(EXCLUDED.overview,         "Films".overview),
+           original_title   = COALESCE(EXCLUDED.original_title,   "Films".original_title),
+           spoken_languages = COALESCE(EXCLUDED.spoken_languages, "Films".spoken_languages),
+           imdb_id          = COALESCE(EXCLUDED.imdb_id,          "Films".imdb_id)`,
+        [
+          film.id,
+          film.title,
+          film.runtime,
+          JSON.stringify(film.directors),
+          film.directorNamesForSorting,
+          film.poster_path,
+          film.backdrop_path,
+          JSON.stringify(film.origin_country),
+          film.release_date,
+          film.genres ? JSON.stringify(film.genres) : null,
+          film.overview || null,
+          film.original_title || null,
+          film.spoken_languages ? JSON.stringify(film.spoken_languages) : null,
+          film.imdb_id || null,
+        ]
+      )
+    }
+
+    // Sync watched films
+    for (const film of watched) {
+      // Skip if already in user's watched list
+      const exists = await client.query(
+        `SELECT 1 FROM "WatchedFilms" WHERE "filmId" = $1 AND "userId" = $2 LIMIT 1`,
+        [film.id, jwtUserId]
+      )
+      if (exists.rows.length > 0) continue
+
+      await upsertFilm(film)
+
+      const watchedResult = await client.query(
+        `INSERT INTO "WatchedFilms" ("filmId", "userId", stars)
+         VALUES ($1, $2, $3)
+         RETURNING id`,
+        [film.id, jwtUserId, film.stars ?? 0]
+      )
+      const likedFilmId = watchedResult.rows[0].id
+
+      // Remove from watchlist if present
+      await client.query(
+        `DELETE FROM "WatchlistedFilms" WHERE "filmId" = $1 AND "userId" = $2`,
+        [film.id, jwtUserId]
+      )
+
+      // Upsert UserFilmProfile
+      await client.query(
+        `INSERT INTO "UserFilmProfile"
+           ("userId", "filmId", is_watched, stars, is_watchlisted, collection_ids,
+            genres, origin_country, release_date, runtime, "updatedAt")
+         VALUES ($1,$2,true,$3,false,'[]'::jsonb,$4,$5,$6,$7,now())
+         ON CONFLICT ("userId", "filmId") DO UPDATE SET
+           is_watched = true,
+           stars = EXCLUDED.stars,
+           is_watchlisted = false,
+           "updatedAt" = now()`,
+        [
+          jwtUserId,
+          film.id,
+          film.stars ?? 0,
+          film.genres ? JSON.stringify(film.genres) : null,
+          JSON.stringify(film.origin_country),
+          film.release_date,
+          film.runtime,
+        ]
+      )
+
+      // Handle directors
+      for (const director of (film.directors || [])) {
+        await client.query(
+          `INSERT INTO "Directors" (id, name, profile_path)
+           VALUES ($1,$2,$3)
+           ON CONFLICT (id) DO NOTHING`,
+          [director.tmdbId, director.name, director.profile_path]
+        )
+
+        const udsResult = await client.query(
+          `INSERT INTO "UserDirectorStats"
+             ("directorId", "userId", num_watched_films, num_starred_films,
+              num_stars_total, avg_rating, highest_star)
+           VALUES ($1, $2, 1, $3, $4, $5, $6)
+           ON CONFLICT ("directorId", "userId") DO NOTHING
+           RETURNING id`,
+          [
+            director.tmdbId,
+            jwtUserId,
+            (film.stars ?? 0) === 0 ? 0 : 1,
+            film.stars ?? 0,
+            (film.stars ?? 0) === 0 ? 0 : film.stars,
+            film.stars ?? 0,
+          ]
+        )
+
+        let directorStatsId
+        if (udsResult.rows.length > 0) {
+          directorStatsId = udsResult.rows[0].id
+        } else {
+          const existing = await client.query(
+            `SELECT id FROM "UserDirectorStats" WHERE "directorId" = $1 AND "userId" = $2 LIMIT 1`,
+            [director.tmdbId, jwtUserId]
+          )
+          directorStatsId = existing.rows[0].id
+
+          await client.query(
+            `INSERT INTO "UserDirectorFilms" ("watchedFilmId", "directorStatsId")
+             VALUES ($1, $2)`,
+            [likedFilmId, directorStatsId]
+          )
+
+          // Recalculate aggregates
+          const aggResult = await client.query(
+            `SELECT
+               COUNT(wf.id)::int AS num_watched_films,
+               COUNT(CASE WHEN wf.stars > 0 THEN 1 END)::int AS num_starred_films,
+               COALESCE(SUM(wf.stars), 0)::int AS num_stars_total,
+               COALESCE(MAX(wf.stars), 0)::int AS highest_star
+             FROM "UserDirectorFilms" udf
+             JOIN "WatchedFilms" wf ON wf.id = udf."watchedFilmId"
+             WHERE udf."directorStatsId" = $1`,
+            [directorStatsId]
+          )
+          const agg = aggResult.rows[0]
+          await client.query(
+            `UPDATE "UserDirectorStats" SET
+               num_watched_films = $1, num_starred_films = $2,
+               num_stars_total = $3, avg_rating = $4, highest_star = $5,
+               "updatedAt" = now()
+             WHERE id = $6`,
+            [
+              agg.num_watched_films, agg.num_starred_films,
+              agg.num_stars_total,
+              agg.num_starred_films === 0 ? 0 : agg.num_stars_total / agg.num_starred_films,
+              agg.highest_star, directorStatsId,
+            ]
+          )
+          continue
+        }
+
+        await client.query(
+          `INSERT INTO "UserDirectorFilms" ("watchedFilmId", "directorStatsId")
+           VALUES ($1, $2)`,
+          [likedFilmId, directorStatsId]
+        )
+      }
+
+      // Update watched collection aggregates
+      const watchedCollectionId = await getSystemCollectionId(client, jwtUserId, "watched")
+      if (watchedCollectionId) {
+        await updateAggregates(client, watchedCollectionId, film, +1)
+      }
+
+      syncedWatched++
+    }
+
+    // Sync watchlisted films
+    for (const film of watchlisted) {
+      // Skip if already watched or watchlisted
+      const alreadyWatched = await client.query(
+        `SELECT 1 FROM "WatchedFilms" WHERE "filmId" = $1 AND "userId" = $2 LIMIT 1`,
+        [film.id, jwtUserId]
+      )
+      if (alreadyWatched.rows.length > 0) continue
+
+      const alreadyWatchlisted = await client.query(
+        `SELECT 1 FROM "WatchlistedFilms" WHERE "filmId" = $1 AND "userId" = $2 LIMIT 1`,
+        [film.id, jwtUserId]
+      )
+      if (alreadyWatchlisted.rows.length > 0) continue
+
+      await upsertFilm(film)
+
+      await client.query(
+        `INSERT INTO "WatchlistedFilms" ("filmId", "userId")
+         VALUES ($1, $2)`,
+        [film.id, jwtUserId]
+      )
+
+      // Upsert UserFilmProfile
+      await client.query(
+        `INSERT INTO "UserFilmProfile"
+           ("userId", "filmId", is_watched, stars, is_watchlisted, collection_ids,
+            genres, origin_country, release_date, runtime, "updatedAt")
+         VALUES ($1,$2,false,0,true,'[]'::jsonb,$3,$4,$5,$6,now())
+         ON CONFLICT ("userId", "filmId") DO UPDATE SET
+           is_watchlisted = true,
+           "updatedAt" = now()`,
+        [
+          jwtUserId,
+          film.id,
+          film.genres ? JSON.stringify(film.genres) : null,
+          JSON.stringify(film.origin_country),
+          film.release_date,
+          film.runtime,
+        ]
+      )
+
+      // Update watchlist collection aggregates
+      const watchlistCollectionId = await getSystemCollectionId(client, jwtUserId, "watchlist")
+      if (watchlistCollectionId) {
+        await updateAggregates(client, watchlistCollectionId, film, +1)
+      }
+
+      syncedWatchlisted++
+    }
+
+    await client.query("COMMIT")
+    return res.status(200).json({ syncedWatched, syncedWatchlisted })
+  } catch (err) {
+    await client.query("ROLLBACK")
+    console.error("Sync error:", err)
+    return res.status(500).json({ error: "Error syncing guest data" })
+  } finally {
+    client.release()
+  }
+})
+
 export default router

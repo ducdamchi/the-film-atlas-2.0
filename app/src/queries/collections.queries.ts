@@ -2,6 +2,7 @@ import { queryOptions } from "@tanstack/react-query"
 import { fetchUserCollectionsFn, fetchCollectionByIdFn } from "@/server/collections"
 import { fetchWatchedFn } from "@/server/watched"
 import { fetchWatchlistedFn } from "@/server/watchlisted"
+import { getGuestWatched, getGuestWatchlisted } from "@/utils/guestStore"
 
 export const collectionsQueryOptions = queryOptions({
   queryKey: ["collections"],
@@ -27,4 +28,17 @@ export const watchlistedFilmsQueryOptions = queryOptions({
   queryKey: ["watchlisted-list"],
   queryFn: () => fetchWatchlistedFn(),
   staleTime: 1000 * 60,
+})
+
+// Guest (unauthenticated) equivalents — backed by localStorage
+export const guestWatchedQueryOptions = queryOptions({
+  queryKey: ["guest-watched"],
+  queryFn: () => getGuestWatched(),
+  staleTime: Infinity,
+})
+
+export const guestWatchlistedQueryOptions = queryOptions({
+  queryKey: ["guest-watchlisted"],
+  queryFn: () => getGuestWatchlisted(),
+  staleTime: Infinity,
 })

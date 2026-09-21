@@ -14,9 +14,10 @@ import { Link, useNavigate, useRouter } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { authClient } from "@/lib/authClient"
+import { syncGuestDataIfPresent } from "@/utils/syncGuestData"
 
 const loginSchema = z.object({
   login: z.string().min(1, "Email or username is required."),
@@ -31,6 +32,7 @@ export function LoginForm({
 }: React.ComponentProps<"form">) {
   const navigate = useNavigate()
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -52,7 +54,8 @@ export function LoginForm({
       if (result.error) throw new Error(result.error.message ?? "Login failed.")
       return result
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await syncGuestDataIfPresent(queryClient)
       router.invalidate()
       navigate({ to: "/" })
     },
