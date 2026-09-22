@@ -332,7 +332,7 @@ export default function InteractionConsole({
         runtime: details.runtime,
         poster_path: details.poster_path,
         backdrop_path: details.backdrop_path,
-        origin_country: details.origin_country,
+        origin_country: details.origin_country ?? [],
         release_date: details.release_date,
         directors: directorsList,
         directorNamesForSorting,
@@ -366,7 +366,7 @@ export default function InteractionConsole({
       directorNamesForSorting: directors.map((d) => d.name).join(", "),
       poster_path: details.poster_path,
       backdrop_path: details.backdrop_path,
-      origin_country: details.origin_country,
+      origin_country: details.origin_country ?? [],
       release_date: details.release_date,
       added_date: new Date().toISOString(),
       stars,
@@ -566,6 +566,7 @@ export default function InteractionConsole({
   function invalidateGuestQueries() {
     queryClient.invalidateQueries({ queryKey: guestWatchedQueryOptions.queryKey })
     queryClient.invalidateQueries({ queryKey: guestWatchlistedQueryOptions.queryKey })
+    queryClient.invalidateQueries({ queryKey: ["guest-directors"] })
   }
 
   function handleLike() {

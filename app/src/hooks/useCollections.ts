@@ -6,6 +6,8 @@ import {
   collectionDetailQueryOptions,
   watchedFilmsQueryOptions,
   watchlistedFilmsQueryOptions,
+  guestWatchedQueryOptions,
+  guestWatchlistedQueryOptions,
 } from "@/queries/collections.queries";
 import type { AppCollection } from "@/types/api";
 import type { UserFilm } from "@/types/film";
@@ -25,24 +27,51 @@ export interface CollectionData {
   films: UserFilm[];
 }
 
+function buildGuestCollection(
+  type: "watched" | "watchlist",
+  films: UserFilm[],
+): CollectionData {
+  const totalRuntime = films.reduce((sum, f) => sum + (f.runtime ?? 0), 0);
+  return {
+    id: `guest-${type}`,
+    title: type === "watched" ? "Watched" : "Watchlist",
+    description: null,
+    collectionType: type,
+    queryString: type === "watched" ? "watched" : "watchlisted",
+    isPublic: false,
+    filmCount: films.length,
+    totalRuntime,
+    isPinned: true,
+    pinnedOrder: type === "watched" ? "a0" : "a1",
+    mainOrder: null,
+    films,
+  };
+}
+
 export function useCollections(): CollectionData[] {
   const { authState } = useAuth();
+  const isGuest = !authState.status;
   const queryClient = useQueryClient();
 
   const { data: rawCollections = [] } = useQuery({
     ...collectionsQueryOptions,
-    enabled: !!authState.status,
+    enabled: !isGuest,
   });
 
   // Subscribe (not snapshot) so the hook re-renders when either list changes
   const { data: watchedFilms = [] } = useQuery({
-    ...watchedFilmsQueryOptions,
-    enabled: !!authState.status,
+    ...(isGuest ? guestWatchedQueryOptions : watchedFilmsQueryOptions),
   });
   const { data: watchlistedFilms = [] } = useQuery({
-    ...watchlistedFilmsQueryOptions,
-    enabled: !!authState.status,
+    ...(isGuest ? guestWatchlistedQueryOptions : watchlistedFilmsQueryOptions),
   });
+
+  if (isGuest) {
+    return [
+      buildGuestCollection("watched", watchedFilms),
+      buildGuestCollection("watchlist", watchlistedFilms),
+    ];
+  }
 
   return (rawCollections as AppCollection[]).map(
     (col: AppCollection): CollectionData => {

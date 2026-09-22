@@ -511,7 +511,7 @@ export default function FilmLanding() {
           </div>
 
           {/* ── Below-fold ── */}
-          <div className="flex flex-col items-start  gap-2 relative bg-page landing-belowBackdropPadding pb-30 w-ful">
+          <div className="flex flex-col items-start  gap-2 relative landing-belowBackdropPadding pb-30 w-ful">
             <div className="flex flex-col w-full">
               {/* Synopsis — only shown here when MID overlay column is hidden (< md) */}
               <div className="@3xl:hidden">

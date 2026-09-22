@@ -13,23 +13,16 @@ import {
   SidebarMenuAction,
 } from "@/components/ui-shadcn/sidebar"
 import { Link } from "@tanstack/react-router"
-import { useQuery } from "@tanstack/react-query"
-import { useAuth } from "@/utils/authContext"
-import { collectionsQueryOptions } from "@/queries/collections.queries"
-import type { AppCollection } from "@/types/api"
+import { useCollections, type CollectionData } from "@/hooks/useCollections"
 
-function collectionUrl(col: AppCollection): string {
-  if (col.collection_type === "watched") return "/collections?q=watched"
-  if (col.collection_type === "watchlist") return "/collections?q=watchlisted"
+function collectionUrl(col: CollectionData): string {
+  if (col.collectionType === "watched") return "/collections?q=watched"
+  if (col.collectionType === "watchlist") return "/collections?q=watchlisted"
   return `/collections/${col.id}`
 }
 
 export function NavCollections() {
-  const { authState } = useAuth()
-  const { data: collections = [] } = useQuery({
-    ...collectionsQueryOptions,
-    enabled: !!authState.status,
-  })
+  const collections = useCollections()
 
   return (
     <Collapsible asChild defaultOpen>

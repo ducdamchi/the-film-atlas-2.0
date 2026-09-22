@@ -270,7 +270,7 @@ export default function Map() {
                     </div>
                   ))}
               </>
-            ) : authState.status ? (
+            ) : (
               <UserFilmGallery
                 listOfFilmObjects={userFilmList}
                 queryString={galleryQueryString}
@@ -278,10 +278,6 @@ export default function Map() {
                 sortBy={sort}
                 isLoading={userFilmsLoading}
               />
-            ) : (
-              <div className="mt-10 mb-20 text-sm md:text-base">
-                Log in and like a film to start!
-              </div>
             )}
           </div>
         </div>

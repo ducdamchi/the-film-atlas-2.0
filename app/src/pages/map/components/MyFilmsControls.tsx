@@ -27,7 +27,7 @@ export default function MyFilmsControls() {
   }
 
   return (
-    <>
+    <div className="flex flex-col items-center gap-0 mb-7">
       <Toggle<MapQueryString>
         label="Filter"
         value={ufilter}
@@ -92,6 +92,6 @@ export default function MyFilmsControls() {
           ]}
         />
       )}
-    </>
+    </div>
   )
 }

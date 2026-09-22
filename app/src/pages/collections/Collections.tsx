@@ -17,6 +17,8 @@ import {
   collectionDetailQueryOptions,
   watchedFilmsQueryOptions,
   watchlistedFilmsQueryOptions,
+  guestWatchedQueryOptions,
+  guestWatchlistedQueryOptions,
 } from "@/queries/collections.queries"
 import { useCollections } from "@/hooks/useCollections"
 import type { AppCollection } from "@/types/api"
@@ -289,16 +291,24 @@ export default function Collections() {
   }
 
   /* ── Add / Remove films (API call happens in child, we just sync cache) ── */
+  const isGuest = !authState.status
   function handleAddFilmToCollection(collectionId: string, film: UserFilm) {
     const col = collections.find((c) => c.id === collectionId)
+    const watchedKey = isGuest
+      ? guestWatchedQueryOptions.queryKey
+      : watchedFilmsQueryOptions.queryKey
+    const watchlistedKey = isGuest
+      ? guestWatchlistedQueryOptions.queryKey
+      : watchlistedFilmsQueryOptions.queryKey
+
     if (col?.collectionType === "watched") {
       queryClient.setQueryData<UserFilm[]>(
-        watchedFilmsQueryOptions.queryKey,
+        watchedKey,
         (old = []) => [film, ...old],
       )
     } else if (col?.collectionType === "watchlist") {
       queryClient.setQueryData<UserFilm[]>(
-        watchlistedFilmsQueryOptions.queryKey,
+        watchlistedKey,
         (old = []) => [film, ...old],
       )
     } else {
@@ -309,20 +319,21 @@ export default function Collections() {
         old ? { ...old, films: [film, ...old.films] } : old,
       )
     }
-    // Update main list film_count + total_runtime (triggers useCollections re-render)
-    queryClient.setQueryData<AppCollection[]>(
-      collectionsQueryOptions.queryKey,
-      (old = []) =>
-        old.map((c) =>
-          c.id === collectionId
-            ? {
-                ...c,
-                film_count: c.film_count + 1,
-                total_runtime: c.total_runtime + (film.runtime ?? 0),
-              }
-            : c,
-        ),
-    )
+    if (!isGuest) {
+      queryClient.setQueryData<AppCollection[]>(
+        collectionsQueryOptions.queryKey,
+        (old = []) =>
+          old.map((c) =>
+            c.id === collectionId
+              ? {
+                  ...c,
+                  film_count: c.film_count + 1,
+                  total_runtime: c.total_runtime + (film.runtime ?? 0),
+                }
+              : c,
+          ),
+      )
+    }
   }
   function handleRemoveFilmFromCollection(
     collectionId: string,
@@ -330,25 +341,27 @@ export default function Collections() {
   ) {
     const col = collections.find((c) => c.id === collectionId)
     let removedRuntime = 0
+    const watchedKey = isGuest
+      ? guestWatchedQueryOptions.queryKey
+      : watchedFilmsQueryOptions.queryKey
+    const watchlistedKey = isGuest
+      ? guestWatchlistedQueryOptions.queryKey
+      : watchlistedFilmsQueryOptions.queryKey
 
     if (col?.collectionType === "watched") {
       const films =
-        queryClient.getQueryData<UserFilm[]>(
-          watchedFilmsQueryOptions.queryKey,
-        ) ?? []
+        queryClient.getQueryData<UserFilm[]>(watchedKey) ?? []
       removedRuntime = films.find((f) => f.id === filmId)?.runtime ?? 0
       queryClient.setQueryData<UserFilm[]>(
-        watchedFilmsQueryOptions.queryKey,
+        watchedKey,
         (old = []) => old.filter((f) => f.id !== filmId),
       )
     } else if (col?.collectionType === "watchlist") {
       const films =
-        queryClient.getQueryData<UserFilm[]>(
-          watchlistedFilmsQueryOptions.queryKey,
-        ) ?? []
+        queryClient.getQueryData<UserFilm[]>(watchlistedKey) ?? []
       removedRuntime = films.find((f) => f.id === filmId)?.runtime ?? 0
       queryClient.setQueryData<UserFilm[]>(
-        watchlistedFilmsQueryOptions.queryKey,
+        watchlistedKey,
         (old = []) => old.filter((f) => f.id !== filmId),
       )
     } else {
@@ -365,19 +378,21 @@ export default function Collections() {
       )
     }
 
-    queryClient.setQueryData<AppCollection[]>(
-      collectionsQueryOptions.queryKey,
-      (old = []) =>
-        old.map((c) =>
-          c.id === collectionId
-            ? {
-                ...c,
-                film_count: Math.max(0, c.film_count - 1),
-                total_runtime: c.total_runtime - removedRuntime,
-              }
-            : c,
-        ),
-    )
+    if (!isGuest) {
+      queryClient.setQueryData<AppCollection[]>(
+        collectionsQueryOptions.queryKey,
+        (old = []) =>
+          old.map((c) =>
+            c.id === collectionId
+              ? {
+                  ...c,
+                  film_count: Math.max(0, c.film_count - 1),
+                  total_runtime: c.total_runtime - removedRuntime,
+                }
+              : c,
+          ),
+      )
+    }
   }
 
   /* ── Delete (API call happens in child, we just remove from cache) ────── */
@@ -398,11 +413,7 @@ export default function Collections() {
           placeholderString="Search your collections ..."
         />
 
-        {!authState.status ? (
-          <div className="mt-10 mb-20 text-sm md:text-base">
-            Log in to use collections!
-          </div>
-        ) : (
+        {authState.status ? (
           <>
             <div className="my-10">
               <button
@@ -458,6 +469,36 @@ export default function Collections() {
               })()}
             </section>
           </>
+        ) : (
+          <section className="w-full mt-8 flex flex-col items-center gap-10">
+            {(() => {
+              const watchedCollection = collections.find(
+                (c) => c.collectionType === "watched",
+              )
+              const watchlistCollection = collections.find(
+                (c) => c.collectionType === "watchlist",
+              )
+              return collections.map((col) => {
+                const counterpart =
+                  col.collectionType === "watched"
+                    ? watchlistCollection
+                    : col.collectionType === "watchlist"
+                      ? watchedCollection
+                      : undefined
+                return (
+                  <div
+                    key={col.id}
+                    id={col.id}
+                    className="w-full flex flex-col items-center">
+                    <CollectionCarousel
+                      collection={col}
+                      counterpartCollection={counterpart}
+                    />
+                  </div>
+                )
+              })
+            })()}
+          </section>
         )}
       </div>
     </div>

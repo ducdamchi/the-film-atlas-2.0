@@ -37,7 +37,7 @@ export default function SearchBar({
           />
           {searchInput && searchInput !== "" && (
             <MdClose
-              className="mr-1 text-2xl hover:bg-page transition-all ease-out duration-200 rounded-md"
+              className="mr-1 text-2xl transition-all ease-out duration-200 rounded-md"
               onClick={() => setSearchInput("")}
             />
           )}

@@ -7,7 +7,10 @@ import { useQuery } from "@tanstack/react-query"
 import { useAuth } from "@/utils/authContext"
 import { queryPersonFromTMDB } from "@/utils/apiCalls"
 import { usePersistedState } from "@/hooks/usePersistedState"
-import { directorsQueryOptions } from "@/queries/directors.queries"
+import {
+  directorsQueryOptions,
+  guestDirectorsQueryOptions,
+} from "@/queries/directors.queries"
 
 /**
  * TMDB /search/person result shape — includes `known_for` which the
@@ -59,10 +62,13 @@ export default function Directors() {
   const { authState } = useAuth()
   const location = useLocation()
 
-  const { data: directorData = [], isLoading } = useQuery({
-    ...directorsQueryOptions,
-    enabled: !!authState.status,
-  })
+  const activeDirectorsOptions = authState.status
+    ? directorsQueryOptions
+    : guestDirectorsQueryOptions
+
+  const { data: directorData = [], isLoading } = useQuery(
+    activeDirectorsOptions,
+  )
 
   /* Query director from TMDB with Quick Search Modal's Search Input */
   useEffect(() => {
@@ -172,20 +178,14 @@ export default function Directors() {
             )}
           </div>
         )}
-        {/* If user logged in and is not searching, show them list of directors */}
-        {!isSearching && !isLoading && authState.status && (
+        {/* Show user's director list (authed or guest) */}
+        {!isSearching && !isLoading && (
           <div className="mt-10">
             <UserDirectorGallery
               listOfDirectorObjects={directorData}
               sortDirection={sortDirection}
               sortBy={sortBy}
             />
-          </div>
-        )}
-
-        {!authState.status && !isSearching && (
-          <div className="mt-10 mb-20 text-sm md:text-base">
-            Log in to interact with directors!
           </div>
         )}
 

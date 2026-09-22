@@ -56,7 +56,7 @@ export function useUserFilms({
     if (!isoA2) return [];
     const base = isWatchlisted ? watchlistedList : watchedList;
 
-    let list = base.filter((f) => f.origin_country.includes(isoA2));
+    let list = base.filter((f) => f.origin_country?.includes(isoA2));
 
     if (isRated) list = list.filter((f) => (f.stars ?? 0) > 0);
     if (numStars && numStars > 0) list = list.filter((f) => f.stars === numStars);

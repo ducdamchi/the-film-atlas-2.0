@@ -4,12 +4,19 @@ import { toast } from "sonner"
 
 import { getReleaseYear } from "@/utils/helperFunctions"
 import { queryFilmFromTMDBPaged, fetchFilmFromTMDB } from "@/utils/apiCalls"
+import { useAuth } from "@/utils/authContext"
 import { likeFilmFn, unlikeFilmFn } from "@/server/watched"
 import { saveFilmFn, unsaveFilmFn } from "@/server/watchlisted"
 import {
   addFilmToCollectionFn,
   removeFilmFromCollectionFn,
 } from "@/server/collections"
+import {
+  guestLikeFilm,
+  guestUnlikeFilm,
+  guestSaveFilm,
+  guestUnsaveFilm,
+} from "@/utils/guestStore"
 import useClickOutside from "@/hooks/useClickOutside"
 import { useModalKeyboardNav } from "@/hooks/useModalKeyboardNav"
 import { usePagedSearch } from "@/hooks/usePagedSearch"
@@ -104,6 +111,8 @@ export default function CollectionSearchModal({
   onCounterpartFilmRemoved,
   allUserFilmIds,
 }: CollectionSearchModalProps) {
+  const { authState } = useAuth()
+  const isGuest = !authState.status
   const [searchInput, setSearchInput] = useState("")
   const [collectionFilmIds, setCollectionFilmIds] = useState<Set<number>>(
     new Set(collection.films.map((f) => f.id)),
@@ -184,34 +193,6 @@ export default function CollectionSearchModal({
         }))
       const directorNamesForSorting = directors.map((d) => d.name).join(", ")
 
-      const filmBody = {
-        tmdbId: fullFilm.id,
-        title: fullFilm.title,
-        runtime: fullFilm.runtime,
-        directors,
-        directorNamesForSorting,
-        poster_path: fullFilm.poster_path,
-        backdrop_path: fullFilm.backdrop_path,
-        origin_country: fullFilm.origin_country,
-        release_date: fullFilm.release_date,
-        genres: fullFilm.genres,
-        overview: fullFilm.overview ?? null,
-        original_title: fullFilm.original_title ?? null,
-        spoken_languages: fullFilm.spoken_languages ?? null,
-        imdb_id: fullFilm.imdb_id ?? null,
-        stars: 0 as StarRating,
-      }
-
-      if (collection.collectionType === "watched") {
-        await likeFilmFn({ data: filmBody })
-      } else if (collection.collectionType === "watchlist") {
-        await saveFilmFn({ data: filmBody })
-      } else {
-        await addFilmToCollectionFn({
-          data: { collectionId: collection.id, film: filmBody },
-        })
-      }
-
       const userFilm: UserFilm = {
         id: fullFilm.id,
         title: fullFilm.title,
@@ -220,7 +201,7 @@ export default function CollectionSearchModal({
         directorNamesForSorting,
         poster_path: fullFilm.poster_path,
         backdrop_path: fullFilm.backdrop_path,
-        origin_country: fullFilm.origin_country,
+        origin_country: fullFilm.origin_country ?? [],
         release_date: fullFilm.release_date,
         added_date: new Date().toISOString(),
         stars: null,
@@ -228,6 +209,50 @@ export default function CollectionSearchModal({
         original_title: fullFilm.original_title ?? null,
         spoken_languages: fullFilm.spoken_languages ?? null,
         imdb_id: fullFilm.imdb_id ?? null,
+      }
+
+      if (isGuest) {
+        if (collection.collectionType === "watched") {
+          const result = guestLikeFilm(userFilm)
+          if (result.limitReached) {
+            toast.error("Guest film limit reached. Sign up to save more!")
+            throw new Error("GUEST_LIMIT")
+          }
+        } else if (collection.collectionType === "watchlist") {
+          const result = guestSaveFilm(userFilm)
+          if (result.limitReached) {
+            toast.error("Guest film limit reached. Sign up to save more!")
+            throw new Error("GUEST_LIMIT")
+          }
+        }
+      } else {
+        const filmBody = {
+          tmdbId: fullFilm.id,
+          title: fullFilm.title,
+          runtime: fullFilm.runtime,
+          directors,
+          directorNamesForSorting,
+          poster_path: fullFilm.poster_path,
+          backdrop_path: fullFilm.backdrop_path,
+          origin_country: fullFilm.origin_country ?? [],
+          release_date: fullFilm.release_date,
+          genres: fullFilm.genres,
+          overview: fullFilm.overview ?? null,
+          original_title: fullFilm.original_title ?? null,
+          spoken_languages: fullFilm.spoken_languages ?? null,
+          imdb_id: fullFilm.imdb_id ?? null,
+          stars: 0 as StarRating,
+        }
+
+        if (collection.collectionType === "watched") {
+          await likeFilmFn({ data: filmBody })
+        } else if (collection.collectionType === "watchlist") {
+          await saveFilmFn({ data: filmBody })
+        } else {
+          await addFilmToCollectionFn({
+            data: { collectionId: collection.id, film: filmBody },
+          })
+        }
       }
 
       toast.success(`Added "${film.title}" to ${collection.title}`)
@@ -239,7 +264,7 @@ export default function CollectionSearchModal({
         next.delete(film.id)
         return next
       })
-      // addFilmToCollectionFn throws Error("CONFLICT") when Express returns 409
+      if (err instanceof Error && err.message === "GUEST_LIMIT") return
       const isConflict = err instanceof Error && err.message === "CONFLICT"
       toast.error(
         isConflict ? "Film is already in this collection" : "Action failed",
@@ -285,20 +310,27 @@ export default function CollectionSearchModal({
     })
 
     try {
-      if (collection.collectionType === "watched") {
-        await unlikeFilmFn({ data: film.id })
-      } else if (collection.collectionType === "watchlist") {
-        await unsaveFilmFn({ data: film.id })
+      if (isGuest) {
+        if (collection.collectionType === "watched") {
+          guestUnlikeFilm(film.id)
+        } else if (collection.collectionType === "watchlist") {
+          guestUnsaveFilm(film.id)
+        }
       } else {
-        await removeFilmFromCollectionFn({
-          data: { collectionId: collection.id, filmId: film.id },
-        })
+        if (collection.collectionType === "watched") {
+          await unlikeFilmFn({ data: film.id })
+        } else if (collection.collectionType === "watchlist") {
+          await unsaveFilmFn({ data: film.id })
+        } else {
+          await removeFilmFromCollectionFn({
+            data: { collectionId: collection.id, filmId: film.id },
+          })
+        }
       }
       toast.success(`Removed "${film.title}" from ${collection.title}`)
       onFilmRemoved(film.id)
     } catch (err: unknown) {
       setCollectionFilmIds((prev) => new Set(prev).add(film.id))
-      // addFilmToCollectionFn throws Error("CONFLICT") when Express returns 409
       const isConflict = err instanceof Error && err.message === "CONFLICT"
       toast.error(
         isConflict ? "Film is already in this collection" : "Action failed",

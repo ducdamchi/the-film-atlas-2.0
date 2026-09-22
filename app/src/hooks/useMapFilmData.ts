@@ -30,7 +30,7 @@ export function useMapFilmData(authState: AuthState): UseMapFilmDataResult {
       { name: string | undefined; num_watched_films: number }
     > = {};
     mapFilmData.forEach((film) => {
-      film.origin_country.forEach((country) => {
+      (film.origin_country ?? []).forEach((country) => {
         if (country in data) {
           data[country].num_watched_films++;
         } else {

@@ -213,7 +213,7 @@ export function fetchFilmAwardsFromWikidata(
     })
     .catch((err) => {
       console.log("Client: Error fetching awards from Wikidata", err)
-      // throw err
+      return { wins: [], nominations: [] }
     })
 }
 

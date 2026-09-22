@@ -18,10 +18,9 @@ export const Route = createFileRoute("/films/$tmdbId_")({
       filmQueryOptions(tmdbId),
     )) as TMDBFilm
     if (film.imdb_id) {
-      await Promise.all([
-        queryClient.ensureQueryData(omdbQueryOptions(film.imdb_id)),
-        queryClient.ensureQueryData(wikidataQueryOptions(film.imdb_id)),
-      ])
+      // Prefetch — don't block page render on these secondary data sources
+      queryClient.prefetchQuery(omdbQueryOptions(film.imdb_id))
+      queryClient.prefetchQuery(wikidataQueryOptions(film.imdb_id))
     }
     if (auth) {
       await Promise.all([

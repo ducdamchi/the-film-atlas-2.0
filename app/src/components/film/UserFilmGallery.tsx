@@ -129,7 +129,7 @@ export default function UserFilmGallery({
   return (
     <div className="w-full flex flex-col items-center">
       {(listOfFilmObjects.length === 0 || "error" in listOfFilmObjects) && (
-        <div className="mt-5 mb-20 text-sm md:text-base">
+        <div className="mt-10 mb-20 text-sm @3xl:text-base">
           No films found based on current settings.
         </div>
       )}
