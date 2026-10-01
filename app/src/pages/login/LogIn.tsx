@@ -17,6 +17,7 @@ export default function LogIn() {
           <a
             href="#"
             className="flex items-center gap-2 font-medium font-logo text-xl">
+            <img src="/official-logo.png" alt="" className="size-16" />
             THE FILM ATLAS
           </a>
         </div>

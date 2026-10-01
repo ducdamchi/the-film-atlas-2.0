@@ -3,7 +3,8 @@ import { AccountSettings } from "#/pages/settings/Settings"
 
 export const Route = createFileRoute("/settings")({
   beforeLoad: ({ context }) => {
-    if (!context.auth) throw redirect({ to: "/login" })
+    if (typeof window !== "undefined" && !context.auth)
+      throw redirect({ to: "/login" })
   },
   component: AccountSettings,
 })

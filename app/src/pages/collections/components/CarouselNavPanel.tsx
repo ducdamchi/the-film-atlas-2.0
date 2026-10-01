@@ -5,6 +5,7 @@ interface CarouselNavPanelProps {
   showArrows: boolean
   onClick?: () => void
   width: number
+  hasCover?: boolean
 }
 
 export default function CarouselNavPanel({
@@ -12,6 +13,7 @@ export default function CarouselNavPanel({
   showArrows,
   onClick,
   width,
+  hasCover,
 }: CarouselNavPanelProps) {
   const isLeft = direction === "left"
 
@@ -22,22 +24,26 @@ export default function CarouselNavPanel({
       style={{ width }}
       aria-label={isLeft ? "Previous" : "Next"}
       role="button">
-      {/* Edge blur */}
-      <div
-        className={`pointer-events-none absolute ${isLeft ? "left-0" : "right-0"} top-0 h-full z-10 ${isLeft ? "bg-linear-to-r from-background to-transparent" : "bg-linear-to-l from-background to-transparent"}`}
-        style={{ width }}
-      />
-      <div className="absolute inset-0 bg-background group-hover/carousel:opacity-0 transition-all duration-200 ease-out" />
+      {/* Edge blur + solid mask — only when no cover */}
+      {!hasCover && (
+        <>
+          <div
+            className={`pointer-events-none absolute ${isLeft ? "left-0" : "right-0"} top-0 h-full z-10 ${isLeft ? "bg-linear-to-r from-background to-transparent" : "bg-linear-to-l from-background to-transparent"}`}
+            style={{ width }}
+          />
+          <div className="absolute inset-0 bg-background group-hover/carousel:opacity-0 transition-all duration-200 ease-out" />
+        </>
+      )}
       <button className="z-10 p-2 border-0 flex items-center justify-center rounded-full backdrop-blur-sm group-hover/carousel:backdrop-brightness-70 transition-all duration-200 ease-out hover:backdrop-brightness-50">
         {isLeft ? (
           <ChevronLeft
             size={24}
-            className="text-foreground group-hover/carousel:text-white"
+            className={hasCover ? "text-white" : "text-foreground group-hover/carousel:text-white"}
           />
         ) : (
           <ChevronRight
             size={24}
-            className="text-foreground group-hover/carousel:text-white"
+            className={hasCover ? "text-white" : "text-foreground group-hover/carousel:text-white"}
           />
         )}
       </button>

@@ -1,10 +1,18 @@
 import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/utils/authContext"
-import { useNavigate } from "@tanstack/react-router"
 import { LocationPicker } from "./components/LocationPicker"
 import { authClient } from "@/lib/authClient"
-import { Avatar, AvatarFallback } from "#/components/ui-shadcn/avatar"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "#/components/ui-shadcn/avatar"
 import { getInitials } from "@/lib/utils"
+import {
+  getPresignedUrlFn,
+  confirmAvatarFn,
+  deleteAvatarFn,
+} from "@/server/uploads"
 
 function Section({
   title,
@@ -104,7 +112,7 @@ function ChangeUsername() {
           <button
             type="button"
             onClick={handleCancel}
-            className="flex items-center justify-center min-w-[4rem] px-3 bg-red-800 text-background text-sm hover:bg-red-800/90 transition-colors cursor-pointer">
+            className="flex items-center justify-center min-w-[4rem] px-3 bg-destructive text-background text-sm hover:bg-destructive/90 transition-colors cursor-pointer">
             Cancel
           </button>
         ) : (
@@ -127,23 +135,72 @@ function ChangeUsername() {
   )
 }
 
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
+
 function ChangeAvatar() {
   const { authState } = useAuth()
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [preview, setPreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleUpload = async () => {
+  const currentImage = authState.image
+
+  // Clear blob preview once the session updates with the real URL
+  useEffect(() => {
+    if (currentImage && preview) setPreview(null)
+  }, [currentImage])
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
     setSuccess("")
     setError("")
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError("File must be JPEG, PNG, WebP, or GIF.")
+      return
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setError("File must be under 5 MB.")
+      return
+    }
+
+    const objectUrl = URL.createObjectURL(file)
+    setPreview(objectUrl)
+    handleUpload(file)
+  }
+
+  const handleUpload = async (file: File) => {
     setLoading(true)
     try {
-      // TODO: implement actual upload
+      // 1. Get presigned PUT URL from API
+      const { uploadUrl, publicUrl } = await getPresignedUrlFn({
+        data: { type: "avatar", contentType: file.type },
+      })
+
+      // 2. PUT file directly to R2
+      const uploadRes = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      })
+      if (!uploadRes.ok) throw new Error("Upload failed")
+
+      // 3. Save public URL in database
+      await confirmAvatarFn({ data: { publicUrl } })
+
+      // 4. Update Better Auth session so useSession() picks up the new image
+      await authClient.updateUser({ image: publicUrl } as any)
       setSuccess("Avatar updated.")
-    } catch {
-      setError("Error uploading avatar.")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error uploading avatar.")
     } finally {
       setLoading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
     }
   }
 
@@ -152,7 +209,8 @@ function ChangeAvatar() {
     setError("")
     setLoading(true)
     try {
-      // TODO: implement actual removal
+      await deleteAvatarFn()
+      await authClient.updateUser({ image: null } as any)
       setSuccess("Avatar removed.")
     } catch {
       setError("Error removing avatar.")
@@ -161,18 +219,30 @@ function ChangeAvatar() {
     }
   }
 
+  const displayImage = preview ?? currentImage
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="w-[6rem] h-[6rem] rounded-full bg-foreground/10 border border-foreground flex items-center justify-center overflow-hidden">
+      <div className="min-w-[6rem] max-w-[6rem] sm:min-w-[12rem] sm:max-w-[12rem] aspect-square rounded-full bg-foreground/10 border border-foreground flex items-center justify-center overflow-hidden">
         <Avatar className="w-full h-full">
-          <AvatarFallback className="rounded-lg text-3xl">{getInitials(authState.username)}</AvatarFallback>
+          {displayImage && <AvatarImage src={displayImage} alt="Avatar" />}
+          <AvatarFallback className="rounded-lg text-3xl">
+            {getInitials(authState.username)}
+          </AvatarFallback>
         </Avatar>
       </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={handleFileSelect}
+      />
       <StatusMessage success={success} error={error} />
       <div className="flex flex-col gap-1.5">
         <button
           type="button"
-          onClick={handleUpload}
+          onClick={() => fileInputRef.current?.click()}
           disabled={loading}
           className="accountSettings-formSubmitButton disabled:cursor-not-allowed">
           {loading ? "Uploading..." : "Upload new photo"}
@@ -180,7 +250,7 @@ function ChangeAvatar() {
         <button
           type="button"
           onClick={handleRemove}
-          disabled={loading}
+          disabled={loading || !currentImage}
           className="accountSettings-formSubmitButton disabled:cursor-not-allowed">
           {loading ? "Removing..." : "Remove current photo"}
         </button>
@@ -319,12 +389,8 @@ function ChangeRegion() {
 
 export function AccountSettings() {
   const { authState } = useAuth()
-  const navigate = useNavigate()
 
-  if (!authState.status) {
-    navigate({ to: "/login" })
-    return null
-  }
+  if (!authState.status) return null
 
   return (
     <div className="font-primary min-h-screen text-body bg-background">

@@ -30,6 +30,7 @@ interface CollectionActionsProps {
   isPublic: boolean
   isPinned: boolean
   isSystemCollection: boolean
+  hasCover?: boolean
   onAdd?: () => void
   onEdit?: () => void
   onDelete?: () => Promise<void>
@@ -42,12 +43,14 @@ export default function CollectionActions({
   isPublic,
   isPinned,
   isSystemCollection,
+  hasCover,
   onAdd,
   onEdit,
   onDelete,
   onTogglePin,
   onToggleVisibility,
 }: CollectionActionsProps) {
+  const defaultColor = hasCover ? "text-white" : "text-foreground"
   function handleDelete() {
     onDelete?.()
       .then(() => toast.success("Collection Deleted"))
@@ -75,32 +78,32 @@ export default function CollectionActions({
   return (
     <div className="flex items-center gap-0">
       <button
-        className="text-xl text-foreground hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+        className={`text-xl ${defaultColor} hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm`}
         aria-label="Add films"
         title="Add films"
         onClick={onAdd}>
         <MdLibraryAdd className="size-[22px]" />
       </button>
       <button
-        className="text-xl text-foreground hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+        className={`text-xl ${defaultColor} hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm`}
         aria-label={isPublic ? "Make Private" : "Make Public"}
         title={isPublic ? "Make Private" : "Make Public"}
         onClick={handleToggleVisibility}>
         {isPublic ? (
-          <MdPublic className="size-[22px] text-saved" />
+          <MdPublic className="size-[22px] text-success" />
         ) : (
-          <MdLock className="size-[22px] text-red-700" />
+          <MdLock className="size-[22px] text-error" />
         )}
       </button>
       <button
-        className="text-xl text-foreground hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+        className={`text-xl ${defaultColor} hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm`}
         aria-label={isPinned ? "Unpin" : "Pin"}
         title={isPinned ? "Unpin" : "Pin"}
         onClick={handleTogglePin}>
         {isPinned ? (
-          <MdBookmark className={`size-[22px] text-saved`} />
+          <MdBookmark className="size-[22px] text-saved" />
         ) : (
-          <MdBookmarkBorder className={`size-[22px] `} />
+          <MdBookmarkBorder className="size-[22px]" />
         )}
       </button>
 
@@ -108,7 +111,7 @@ export default function CollectionActions({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="text-xl text-foreground hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm"
+              className={`text-xl ${defaultColor} hover:bg-muted/50 transition-all ease-out duration-200 p-0.5 rounded-sm`}
               aria-label="More options"
               title="More options">
               <EllipsisVertical className="size-[22px]" />
@@ -121,7 +124,7 @@ export default function CollectionActions({
             </DropdownMenuItem>
             {!isSystemCollection && (
               <AlertDialogTrigger asChild>
-                <DropdownMenuItem className="text-red-700 focus:text-red-700 focus:bg-red-600/10">
+                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
                   <Trash2 className="size-4" />
                   Delete
                 </DropdownMenuItem>
@@ -141,7 +144,7 @@ export default function CollectionActions({
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                className="bg-red-700 hover:bg-red-800"
+                className="bg-destructive hover:bg-destructive/90"
                 onClick={handleDelete}>
                 Delete
               </AlertDialogAction>

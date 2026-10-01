@@ -61,18 +61,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton size="lg" asChild className="">
               <Link
                 to="/about"
-                className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium text-base font-logo">
-                  <span className="group-data-[collapsible=icon]:hidden uppercase">
+                className="group-data-[collapsible=icon]:!p-0 flex items-center gap-2 flex-1 text-left text-sm leading-tight">
+                <img
+                  src="/official-logo.png"
+                  alt="The Film Atlas"
+                  className="size-8 invert shrink-0 group-data-[collapsible=icon]:mx-auto"
+                />
+                <div className="grid group-data-[collapsible=icon]:hidden">
+                  <span className="truncate font-medium text-base font-logo uppercase">
                     The Film Atlas
                   </span>
-                  <span className="hidden group-data-[collapsible=icon]:flex pl-1">
-                    TFA
+                  <span className="truncate text-sm font-thin">
+                    Discover. Share. Curate.
                   </span>
-                </span>
-                <span className="truncate text-sm font-thin group-data-[collapsible=icon]:hidden">
-                  Discover. Share. Curate.
-                </span>
+                </div>
               </Link>
             </SidebarMenuButton>
             {state === "expanded" && <SidebarTrigger className="ml-auto" />}
@@ -106,7 +108,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             user={{
               name: authState.username,
               email: authState.email ?? "",
-              avatar: "",
+              avatar: authState.image ?? "",
             }}
           />
         ) : (

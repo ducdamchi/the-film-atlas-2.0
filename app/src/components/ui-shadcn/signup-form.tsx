@@ -162,7 +162,7 @@ export function SignupForm({
           {registerMutation.isPending ? "Creating account…" : "Create Account"}
         </Button>
 
-        <FieldSeparator>Or continue with</FieldSeparator>
+        {/* <FieldSeparator>Or continue with</FieldSeparator>
 
         <Button variant="outline" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -172,7 +172,7 @@ export function SignupForm({
             />
           </svg>
           Sign up with GitHub
-        </Button>
+        </Button> */}
 
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}

@@ -48,6 +48,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
           id: session.user.id,
           status: true,
           email: session.user.email ?? null,
+          image: session.user.image ?? null,
           locationCountry: (session.user as any).locationCountry ?? null,
           locationCity: (session.user as any).locationCity ?? null,
           locationSource: (session.user as any).locationSource ?? null,
@@ -64,6 +65,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { title: "The Film Atlas" },
     ],
     links: [
+      { rel: "icon", type: "image/png", href: "/official-logo.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
@@ -99,6 +101,7 @@ const loggedOutState: AuthState = {
   id: "",
   status: false,
   email: null,
+  image: null,
   locationCountry: null,
   locationCity: null,
   locationSource: null,
@@ -135,6 +138,7 @@ function RootComponent() {
           id: liveSession.user.id,
           status: true,
           email: liveSession.user.email ?? null,
+          image: liveSession.user.image ?? null,
           locationCountry: (liveSession.user as any).locationCountry ?? null,
           locationCity: (liveSession.user as any).locationCity ?? null,
           locationSource: (liveSession.user as any).locationSource ?? null,

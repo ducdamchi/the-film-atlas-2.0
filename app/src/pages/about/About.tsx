@@ -33,7 +33,7 @@ export default function About() {
               </span>
             </div>
             <div className="w-[10rem] flex items-center justify-start">
-              <RiProgress8Line className="text-green-600" />
+              <RiProgress8Line className="text-success" />
               <span className="italic ">&nbsp; Completed</span>
             </div>
             <div>

@@ -16,14 +16,17 @@ import type { UserFilm } from "@/types/film"
 import type { CollectionData } from "@/hooks/useCollections"
 import { deleteCollectionFn } from "@/server/collections"
 import { CirclePlus } from "lucide-react"
+import { toast } from "sonner"
 
 interface CollectionCarouselProps {
+  className?: string
   collection: CollectionData
   onDelete?: (id: string) => void
   onTogglePin?: (id: string) => Promise<void>
   onToggleVisibility?: (id: string) => Promise<void>
   onRename?: (id: string, newTitle: string) => Promise<void>
   onUpdateDescription?: (id: string, newDescription: string) => Promise<void>
+  onUpdateCover?: (id: string, file: File) => Promise<void>
   onFilmAdded?: (collectionId: string, film: UserFilm) => void
   onFilmRemoved?: (collectionId: string, filmId: number) => void
   counterpartCollection?: CollectionData
@@ -42,12 +45,14 @@ function getSlidesPerPage(containerPx: number): number {
 }
 
 export default function CollectionCarousel({
+  className,
   collection,
   onDelete,
   onTogglePin,
   onToggleVisibility,
   onRename,
   onUpdateDescription,
+  onUpdateCover,
   onFilmAdded,
   onFilmRemoved,
   counterpartCollection,
@@ -55,6 +60,27 @@ export default function CollectionCarousel({
 }: CollectionCarouselProps) {
   const { films, queryString, ...collectionHeaderProps } = collection
   const { id, collectionType = "standard" } = collectionHeaderProps
+  const coverInputRef = useRef<HTMLInputElement>(null)
+
+  function handleCoverSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (coverInputRef.current) coverInputRef.current.value = ""
+
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    if (!allowed.includes(file.type)) {
+      toast.error("File must be JPEG, PNG, WebP, or GIF.")
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File must be under 5 MB.")
+      return
+    }
+
+    onUpdateCover?.(id, file)
+      .then(() => toast.success("Cover updated"))
+      .catch(() => toast.error("Failed to update cover"))
+  }
   const isSystemCollection =
     collectionType === "watched" || collectionType === "watchlist"
   const [outerEl, setOuterEl] = useState<HTMLDivElement | null>(null)
@@ -261,7 +287,7 @@ export default function CollectionCarousel({
       <div
         ref={outerRef}
         style={{ width: layoutReady ? carouselWidth : 0 }}
-        className={`flex flex-col gap-3 ${realCount > 0 ? " group/carousel relative hover:z-[50]" : ""}`}>
+        className={`flex flex-col gap-3 ${realCount > 0 ? " group/carousel relative hover:z-[50]" : ""} ${className ?? ""}`}>
         {layoutReady && (
           <>
             <CollectionHeader
@@ -269,7 +295,13 @@ export default function CollectionCarousel({
               filmCount={realCount}
               isSystemCollection={isSystemCollection}
               navButtonWidth={NAV_BUTTON_WIDTH}
+              hasCover={!!collection.coverPhoto}
               onAdd={() => setIsAddModalOpen(true)}
+              onEdit={
+                onUpdateCover
+                  ? () => coverInputRef.current?.click()
+                  : undefined
+              }
               onDelete={() =>
                 deleteCollectionFn({ data: id }).then(() => {
                   onDelete?.(id)
@@ -308,6 +340,7 @@ export default function CollectionCarousel({
                   showArrows={showArrows}
                   onClick={handlePrev}
                   width={NAV_BUTTON_WIDTH}
+                  hasCover={!!collection.coverPhoto}
                 />
 
                 {/* Overflow container — inset by nav button width so cards start/end at nav edges */}
@@ -344,6 +377,7 @@ export default function CollectionCarousel({
                   showArrows={showArrows}
                   onClick={handleNext}
                   width={NAV_BUTTON_WIDTH}
+                  hasCover={!!collection.coverPhoto}
                 />
               </div>
             )}
@@ -351,6 +385,7 @@ export default function CollectionCarousel({
               description={collectionHeaderProps.description}
               isSystemCollection={isSystemCollection}
               navButtonWidth={NAV_BUTTON_WIDTH}
+              hasCover={!!collection.coverPhoto}
               onUpdateDescription={
                 onUpdateDescription
                   ? (newDesc) => onUpdateDescription(id, newDesc)
@@ -360,6 +395,14 @@ export default function CollectionCarousel({
           </>
         )}
       </div>
+
+      <input
+        ref={coverInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={handleCoverSelect}
+      />
 
       {isAddModalOpen && (
         <CollectionSearchModal

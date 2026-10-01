@@ -45,7 +45,7 @@ export function CompleteProfileModal() {
 
         <div className="flex flex-col gap-1 mb-4">
           <label className="text-sm font-medium text-subtle">
-            Email <span className="text-red-600">*</span>
+            Email <span className="text-error">*</span>
           </label>
           <input
             type="email"
@@ -63,7 +63,7 @@ export function CompleteProfileModal() {
           onCityChange={setCity}
         />
 
-        {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
+        {error && <p className="text-error text-sm mt-3">{error}</p>}
 
         <button
           className="mt-6 w-full bg-dark text-background py-2.5 text-sm font-medium disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed hover:enabled:bg-atlas-green disabled:transition-none transition-colors duration-200 ease-out"

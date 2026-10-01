@@ -4,19 +4,10 @@ import { toast } from "sonner"
 
 import { getReleaseYear } from "@/utils/helperFunctions"
 import { queryFilmFromTMDBPaged, fetchFilmFromTMDB } from "@/utils/apiCalls"
-import { useAuth } from "@/utils/authContext"
-import { likeFilmFn, unlikeFilmFn } from "@/server/watched"
-import { saveFilmFn, unsaveFilmFn } from "@/server/watchlisted"
 import {
-  addFilmToCollectionFn,
-  removeFilmFromCollectionFn,
-} from "@/server/collections"
-import {
-  guestLikeFilm,
-  guestUnlikeFilm,
-  guestSaveFilm,
-  guestUnsaveFilm,
-} from "@/utils/guestStore"
+  useCollectionMutations,
+  isGuestLimitError,
+} from "@/hooks/useCollectionMutations"
 import useClickOutside from "@/hooks/useClickOutside"
 import { useModalKeyboardNav } from "@/hooks/useModalKeyboardNav"
 import { usePagedSearch } from "@/hooks/usePagedSearch"
@@ -35,7 +26,7 @@ import {
 } from "@/components/ui-shadcn/alert-dialog"
 
 import type { TMDBFilmSummary } from "@/types/tmdb"
-import type { UserFilm, DirectorRef, StarRating } from "@/types/film"
+import type { UserFilm, DirectorRef } from "@/types/film"
 import type { CollectionData } from "@/hooks/useCollections"
 
 const imgBaseUrl = import.meta.env.VITE_TMDB_IMG_URL
@@ -88,8 +79,8 @@ interface CollectionSearchModalProps {
   isOpen: boolean
   onClose: () => void
   collection: CollectionData
-  onFilmAdded: (film: UserFilm) => void
-  onFilmRemoved: (filmId: number) => void
+  onFilmAdded?: (film: UserFilm) => void
+  onFilmRemoved?: (filmId: number) => void
   counterpartCollection?: CollectionData
   onCounterpartFilmRemoved?: (filmId: number) => void
   /** Union of film ids across all user collections — used to boost known films
@@ -111,8 +102,8 @@ export default function CollectionSearchModal({
   onCounterpartFilmRemoved,
   allUserFilmIds,
 }: CollectionSearchModalProps) {
-  const { authState } = useAuth()
-  const isGuest = !authState.status
+  const { addFilmToCollection, removeFilmFromCollection } =
+    useCollectionMutations()
   const [searchInput, setSearchInput] = useState("")
   const [collectionFilmIds, setCollectionFilmIds] = useState<Set<number>>(
     new Set(collection.films.map((f) => f.id)),
@@ -211,52 +202,12 @@ export default function CollectionSearchModal({
         imdb_id: fullFilm.imdb_id ?? null,
       }
 
-      if (isGuest) {
-        if (collection.collectionType === "watched") {
-          const result = guestLikeFilm(userFilm)
-          if (result.limitReached) {
-            toast.error("Guest film limit reached. Sign up to save more!")
-            throw new Error("GUEST_LIMIT")
-          }
-        } else if (collection.collectionType === "watchlist") {
-          const result = guestSaveFilm(userFilm)
-          if (result.limitReached) {
-            toast.error("Guest film limit reached. Sign up to save more!")
-            throw new Error("GUEST_LIMIT")
-          }
-        }
-      } else {
-        const filmBody = {
-          tmdbId: fullFilm.id,
-          title: fullFilm.title,
-          runtime: fullFilm.runtime,
-          directors,
-          directorNamesForSorting,
-          poster_path: fullFilm.poster_path,
-          backdrop_path: fullFilm.backdrop_path,
-          origin_country: fullFilm.origin_country ?? [],
-          release_date: fullFilm.release_date,
-          genres: fullFilm.genres,
-          overview: fullFilm.overview ?? null,
-          original_title: fullFilm.original_title ?? null,
-          spoken_languages: fullFilm.spoken_languages ?? null,
-          imdb_id: fullFilm.imdb_id ?? null,
-          stars: 0 as StarRating,
-        }
-
-        if (collection.collectionType === "watched") {
-          await likeFilmFn({ data: filmBody })
-        } else if (collection.collectionType === "watchlist") {
-          await saveFilmFn({ data: filmBody })
-        } else {
-          await addFilmToCollectionFn({
-            data: { collectionId: collection.id, film: filmBody },
-          })
-        }
-      }
+      await addFilmToCollection(collection, userFilm, {
+        genres: fullFilm.genres,
+      })
 
       toast.success(`Added "${film.title}" to ${collection.title}`)
-      onFilmAdded(userFilm)
+      onFilmAdded?.(userFilm)
       if (removeFromCounterpart) onCounterpartFilmRemoved?.(film.id)
     } catch (err: unknown) {
       setCollectionFilmIds((prev) => {
@@ -264,7 +215,10 @@ export default function CollectionSearchModal({
         next.delete(film.id)
         return next
       })
-      if (err instanceof Error && err.message === "GUEST_LIMIT") return
+      if (isGuestLimitError(err)) {
+        toast.error("Guest film limit reached. Sign up to save more!")
+        return
+      }
       const isConflict = err instanceof Error && err.message === "CONFLICT"
       toast.error(
         isConflict ? "Film is already in this collection" : "Action failed",
@@ -310,25 +264,9 @@ export default function CollectionSearchModal({
     })
 
     try {
-      if (isGuest) {
-        if (collection.collectionType === "watched") {
-          guestUnlikeFilm(film.id)
-        } else if (collection.collectionType === "watchlist") {
-          guestUnsaveFilm(film.id)
-        }
-      } else {
-        if (collection.collectionType === "watched") {
-          await unlikeFilmFn({ data: film.id })
-        } else if (collection.collectionType === "watchlist") {
-          await unsaveFilmFn({ data: film.id })
-        } else {
-          await removeFilmFromCollectionFn({
-            data: { collectionId: collection.id, filmId: film.id },
-          })
-        }
-      }
+      await removeFilmFromCollection(collection, film.id)
       toast.success(`Removed "${film.title}" from ${collection.title}`)
-      onFilmRemoved(film.id)
+      onFilmRemoved?.(film.id)
     } catch (err: unknown) {
       setCollectionFilmIds((prev) => new Set(prev).add(film.id))
       const isConflict = err instanceof Error && err.message === "CONFLICT"
@@ -460,7 +398,7 @@ export default function CollectionSearchModal({
                             {isPending ? (
                               <Loader className="size-[20px] animate-spin" />
                             ) : inCollection ? (
-                              <CheckCircle2 className="size-[20px] text-green-400" />
+                              <CheckCircle2 className="size-[20px] text-success" />
                             ) : (
                               <CirclePlus className="size-[20px]" />
                             )}

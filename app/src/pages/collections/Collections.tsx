@@ -12,21 +12,15 @@ import {
   putCollectionTitleFn,
   putCollectionDescriptionFn,
 } from "@/server/collections"
-import {
-  collectionsQueryOptions,
-  collectionDetailQueryOptions,
-  watchedFilmsQueryOptions,
-  watchlistedFilmsQueryOptions,
-  guestWatchedQueryOptions,
-  guestWatchlistedQueryOptions,
-} from "@/queries/collections.queries"
+import { getPresignedUrlFn, confirmCollectionCoverFn } from "@/server/uploads"
+import { collectionsQueryOptions } from "@/queries/collections.queries"
 import { useCollections } from "@/hooks/useCollections"
 import type { AppCollection } from "@/types/api"
-import type { UserFilm } from "@/types/film"
 
 /* Components */
 import SearchBar from "@/components/search/SearchBar"
 import CollectionCarousel from "./components/CollectionCarousel"
+import CollectionCover from "./components/CollectionCover"
 
 import { VscNewCollection } from "react-icons/vsc"
 
@@ -126,8 +120,12 @@ export default function Collections() {
           // Sort: pinned first (by pinned_order), then unpinned (by main_order)
           const pinned_ = updated.filter((c) => c.is_pinned)
           const unpinned = updated.filter((c) => !c.is_pinned)
-          pinned_.sort((a, b) => (a.pinned_order ?? "").localeCompare(b.pinned_order ?? ""))
-          unpinned.sort((a, b) => (a.main_order ?? "").localeCompare(b.main_order ?? ""))
+          pinned_.sort((a, b) =>
+            (a.pinned_order ?? "").localeCompare(b.pinned_order ?? ""),
+          )
+          unpinned.sort((a, b) =>
+            (a.main_order ?? "").localeCompare(b.main_order ?? ""),
+          )
           return [...pinned_, ...unpinned]
         },
       )
@@ -146,13 +144,22 @@ export default function Collections() {
         (old = []) => {
           const updated = old.map((c) =>
             c.id === vars.id
-              ? { ...c, is_pinned: confirmed.is_pinned, pinned_order: confirmed.pinned_order, main_order: confirmed.main_order }
+              ? {
+                  ...c,
+                  is_pinned: confirmed.is_pinned,
+                  pinned_order: confirmed.pinned_order,
+                  main_order: confirmed.main_order,
+                }
               : c,
           )
           const pinned_ = updated.filter((c) => c.is_pinned)
           const unpinned = updated.filter((c) => !c.is_pinned)
-          pinned_.sort((a, b) => (a.pinned_order ?? "").localeCompare(b.pinned_order ?? ""))
-          unpinned.sort((a, b) => (a.main_order ?? "").localeCompare(b.main_order ?? ""))
+          pinned_.sort((a, b) =>
+            (a.pinned_order ?? "").localeCompare(b.pinned_order ?? ""),
+          )
+          unpinned.sort((a, b) =>
+            (a.main_order ?? "").localeCompare(b.main_order ?? ""),
+          )
           return [...pinned_, ...unpinned]
         },
       )
@@ -290,109 +297,35 @@ export default function Collections() {
     })
   }
 
-  /* ── Add / Remove films (API call happens in child, we just sync cache) ── */
-  const isGuest = !authState.status
-  function handleAddFilmToCollection(collectionId: string, film: UserFilm) {
-    const col = collections.find((c) => c.id === collectionId)
-    const watchedKey = isGuest
-      ? guestWatchedQueryOptions.queryKey
-      : watchedFilmsQueryOptions.queryKey
-    const watchlistedKey = isGuest
-      ? guestWatchlistedQueryOptions.queryKey
-      : watchlistedFilmsQueryOptions.queryKey
-
-    if (col?.collectionType === "watched") {
-      queryClient.setQueryData<UserFilm[]>(
-        watchedKey,
-        (old = []) => [film, ...old],
-      )
-    } else if (col?.collectionType === "watchlist") {
-      queryClient.setQueryData<UserFilm[]>(
-        watchlistedKey,
-        (old = []) => [film, ...old],
-      )
-    } else {
-      queryClient.setQueryData<{
-        collection: AppCollection
-        films: UserFilm[]
-      }>(collectionDetailQueryOptions(collectionId).queryKey, (old) =>
-        old ? { ...old, films: [film, ...old.films] } : old,
-      )
-    }
-    if (!isGuest) {
-      queryClient.setQueryData<AppCollection[]>(
-        collectionsQueryOptions.queryKey,
-        (old = []) =>
-          old.map((c) =>
-            c.id === collectionId
-              ? {
-                  ...c,
-                  film_count: c.film_count + 1,
-                  total_runtime: c.total_runtime + (film.runtime ?? 0),
-                }
-              : c,
-          ),
-      )
-    }
-  }
-  function handleRemoveFilmFromCollection(
+  /* ── Cover Upload ──────────────────────────────────────────────────────── */
+  async function handleUpdateCover(
     collectionId: string,
-    filmId: number,
-  ) {
-    const col = collections.find((c) => c.id === collectionId)
-    let removedRuntime = 0
-    const watchedKey = isGuest
-      ? guestWatchedQueryOptions.queryKey
-      : watchedFilmsQueryOptions.queryKey
-    const watchlistedKey = isGuest
-      ? guestWatchlistedQueryOptions.queryKey
-      : watchlistedFilmsQueryOptions.queryKey
+    file: File,
+  ): Promise<void> {
+    const { uploadUrl, publicUrl } = await getPresignedUrlFn({
+      data: {
+        type: "collection-cover",
+        contentType: file.type,
+        collectionId,
+      },
+    })
 
-    if (col?.collectionType === "watched") {
-      const films =
-        queryClient.getQueryData<UserFilm[]>(watchedKey) ?? []
-      removedRuntime = films.find((f) => f.id === filmId)?.runtime ?? 0
-      queryClient.setQueryData<UserFilm[]>(
-        watchedKey,
-        (old = []) => old.filter((f) => f.id !== filmId),
-      )
-    } else if (col?.collectionType === "watchlist") {
-      const films =
-        queryClient.getQueryData<UserFilm[]>(watchlistedKey) ?? []
-      removedRuntime = films.find((f) => f.id === filmId)?.runtime ?? 0
-      queryClient.setQueryData<UserFilm[]>(
-        watchlistedKey,
-        (old = []) => old.filter((f) => f.id !== filmId),
-      )
-    } else {
-      const cached = queryClient.getQueryData<{
-        collection: AppCollection
-        films: UserFilm[]
-      }>(collectionDetailQueryOptions(collectionId).queryKey)
-      removedRuntime = cached?.films.find((f) => f.id === filmId)?.runtime ?? 0
-      queryClient.setQueryData<{
-        collection: AppCollection
-        films: UserFilm[]
-      }>(collectionDetailQueryOptions(collectionId).queryKey, (old) =>
-        old ? { ...old, films: old.films.filter((f) => f.id !== filmId) } : old,
-      )
-    }
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    })
+    if (!uploadRes.ok) throw new Error("Upload failed")
 
-    if (!isGuest) {
-      queryClient.setQueryData<AppCollection[]>(
-        collectionsQueryOptions.queryKey,
-        (old = []) =>
-          old.map((c) =>
-            c.id === collectionId
-              ? {
-                  ...c,
-                  film_count: Math.max(0, c.film_count - 1),
-                  total_runtime: c.total_runtime - removedRuntime,
-                }
-              : c,
-          ),
-      )
-    }
+    await confirmCollectionCoverFn({ data: { collectionId, publicUrl } })
+
+    queryClient.setQueryData<AppCollection[]>(
+      collectionsQueryOptions.queryKey,
+      (old = []) =>
+        old.map((c) =>
+          c.id === collectionId ? { ...c, cover_photo: publicUrl } : c,
+        ),
+    )
   }
 
   /* ── Delete (API call happens in child, we just remove from cache) ────── */
@@ -402,6 +335,15 @@ export default function Collections() {
       (old = []) => old.filter((c) => c.id !== deletedId),
     )
   }
+
+  /* ── Render ───────────────────────────────────────────────────────────── */
+  const isAuthenticated = !!authState.status
+  const watchedCollection = collections.find(
+    (c) => c.collectionType === "watched",
+  )
+  const watchlistCollection = collections.find(
+    (c) => c.collectionType === "watchlist",
+  )
 
   return (
     <div className="font-primary min-h-screen mb-40 inset-0 bg-background">
@@ -413,93 +355,51 @@ export default function Collections() {
           placeholderString="Search your collections ..."
         />
 
-        {authState.status ? (
-          <>
-            <div className="my-10">
-              <button
-                onClick={handleCreateCollection}
-                className="flex items-center gap-2 border-1 rounded-sm p-3 border-muted/40 bg-muted/40 hover:bg-muted transition-all ease-out duration-200">
-                <VscNewCollection className="text-[24px]" />
-                <span>New Collection</span>
-              </button>
-            </div>
-            <section className="w-full mt-8 flex flex-col items-center gap-10">
-              {(() => {
-                const watchedCollection = collections.find(
-                  (c) => c.collectionType === "watched",
-                )
-                const watchlistCollection = collections.find(
-                  (c) => c.collectionType === "watchlist",
-                )
-                return collections.map((col) => {
-                  const counterpart =
-                    col.collectionType === "watched"
-                      ? watchlistCollection
-                      : col.collectionType === "watchlist"
-                        ? watchedCollection
-                        : undefined
-                  return (
-                    <div
-                      key={col.id}
-                      id={col.id}
-                      className="w-full flex flex-col items-center">
-                      <CollectionCarousel
-                        collection={col}
-                        onDelete={handleDelete}
-                        onTogglePin={handleTogglePin}
-                        onToggleVisibility={handleToggleVisibility}
-                        onRename={handleRename}
-                        onUpdateDescription={handleUpdateDescription}
-                        onFilmAdded={handleAddFilmToCollection}
-                        onFilmRemoved={handleRemoveFilmFromCollection}
-                        counterpartCollection={counterpart}
-                        onCounterpartFilmRemoved={
-                          counterpart
-                            ? (filmId) =>
-                                handleRemoveFilmFromCollection(
-                                  counterpart.id,
-                                  filmId,
-                                )
-                            : undefined
-                        }
-                      />
-                    </div>
-                  )
-                })
-              })()}
-            </section>
-          </>
-        ) : (
-          <section className="w-full mt-8 flex flex-col items-center gap-10">
-            {(() => {
-              const watchedCollection = collections.find(
-                (c) => c.collectionType === "watched",
-              )
-              const watchlistCollection = collections.find(
-                (c) => c.collectionType === "watchlist",
-              )
-              return collections.map((col) => {
-                const counterpart =
-                  col.collectionType === "watched"
-                    ? watchlistCollection
-                    : col.collectionType === "watchlist"
-                      ? watchedCollection
-                      : undefined
-                return (
-                  <div
-                    key={col.id}
-                    id={col.id}
-                    className="w-full flex flex-col items-center">
-                    <CollectionCarousel
-                      collection={col}
-                      counterpartCollection={counterpart}
-                    />
-                  </div>
-                )
-              })
-            })()}
-          </section>
+        {isAuthenticated && (
+          <div className="my-10">
+            <button
+              onClick={handleCreateCollection}
+              className="flex items-center gap-2 rounded-sm p-3 bg-foreground text-muted hover:bg-foreground/80 transition-all ease-out duration-200">
+              <VscNewCollection className="text-[24px]" />
+              <span>New Collection</span>
+            </button>
+          </div>
         )}
+
+        <section className="w-full flex flex-col items-center gap-0">
+          {collections.map((col) => {
+            const counterpart =
+              col.collectionType === "watched"
+                ? watchlistCollection
+                : col.collectionType === "watchlist"
+                  ? watchedCollection
+                  : undefined
+            return (
+              <div
+                key={col.id}
+                id={col.id}
+                className={`w-full flex flex-col items-center py-6 relative ${col.coverPhoto ? "text-white" : ""}`}>
+                {col.coverPhoto && <CollectionCover src={col.coverPhoto} />}
+                <CollectionCarousel
+                  collection={col}
+                  counterpartCollection={counterpart}
+                  onDelete={isAuthenticated ? handleDelete : undefined}
+                  onTogglePin={isAuthenticated ? handleTogglePin : undefined}
+                  onToggleVisibility={
+                    isAuthenticated ? handleToggleVisibility : undefined
+                  }
+                  onRename={isAuthenticated ? handleRename : undefined}
+                  onUpdateDescription={
+                    isAuthenticated ? handleUpdateDescription : undefined
+                  }
+                  onUpdateCover={
+                    isAuthenticated ? handleUpdateCover : undefined
+                  }
+                />
+              </div>
+            )
+          })}
+        </section>
       </div>
     </div>
   )

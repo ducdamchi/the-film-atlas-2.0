@@ -4,11 +4,11 @@ import { useAuth } from "@/utils/authContext";
 import {
   collectionsQueryOptions,
   collectionDetailQueryOptions,
-  watchedFilmsQueryOptions,
-  watchlistedFilmsQueryOptions,
-  guestWatchedQueryOptions,
-  guestWatchlistedQueryOptions,
 } from "@/queries/collections.queries";
+import {
+  getWatchedQueryOptions,
+  getWatchlistedQueryOptions,
+} from "@/utils/queryCacheSync";
 import type { AppCollection } from "@/types/api";
 import type { UserFilm } from "@/types/film";
 
@@ -21,6 +21,7 @@ export interface CollectionData {
   isPublic: boolean;
   filmCount: number;
   totalRuntime: number;
+  coverPhoto: string | null;
   isPinned: boolean;
   pinnedOrder: string | null;
   mainOrder: string | null;
@@ -38,6 +39,7 @@ function buildGuestCollection(
     description: null,
     collectionType: type,
     queryString: type === "watched" ? "watched" : "watchlisted",
+    coverPhoto: null,
     isPublic: false,
     filmCount: films.length,
     totalRuntime,
@@ -59,12 +61,8 @@ export function useCollections(): CollectionData[] {
   });
 
   // Subscribe (not snapshot) so the hook re-renders when either list changes
-  const { data: watchedFilms = [] } = useQuery({
-    ...(isGuest ? guestWatchedQueryOptions : watchedFilmsQueryOptions),
-  });
-  const { data: watchlistedFilms = [] } = useQuery({
-    ...(isGuest ? guestWatchlistedQueryOptions : watchlistedFilmsQueryOptions),
-  });
+  const { data: watchedFilms = [] } = useQuery(getWatchedQueryOptions(isGuest));
+  const { data: watchlistedFilms = [] } = useQuery(getWatchlistedQueryOptions(isGuest));
 
   if (isGuest) {
     return [
@@ -80,6 +78,7 @@ export function useCollections(): CollectionData[] {
         title: col.title,
         description: col.description ?? null,
         collectionType: col.collection_type,
+        coverPhoto: col.cover_photo,
         isPublic: col.is_public,
         filmCount: col.film_count,
         totalRuntime: col.total_runtime,

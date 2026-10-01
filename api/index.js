@@ -9,6 +9,7 @@ import watchlistedRouter from "./routes/Watchlisted.js"
 import directorsRouter from "./routes/Directors.js"
 import proxyRouter from "./routes/Proxy.js"
 import collectionsRouter from "./routes/Collections.js"
+import uploadsRouter from "./routes/Uploads.js"
 
 /* IMPORTANT:
 These terms are used interchangeably to adapt to different logic in frontend and backend:
@@ -37,6 +38,7 @@ app.use("/profile/me/watchlisted", watchlistedRouter)
 app.use("/profile/me/directors", directorsRouter)
 app.use("/profile/me/collections", collectionsRouter)
 app.use("/collections", collectionsRouter)
+app.use("/uploads", uploadsRouter)
 app.use("/proxy", proxyRouter)
 
 export default app

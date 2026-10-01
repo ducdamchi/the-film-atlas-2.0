@@ -10,6 +10,7 @@ export interface CollectionHeaderProps extends Omit<
   filmCount: number;
   isSystemCollection: boolean;
   navButtonWidth: number;
+  hasCover?: boolean;
   onAdd?: () => void;
   onEdit?: () => void;
   onDelete?: () => Promise<void>;
@@ -26,6 +27,7 @@ export default function CollectionHeader({
   isPinned,
   isSystemCollection,
   navButtonWidth,
+  hasCover,
   onAdd,
   onEdit,
   onDelete,
@@ -114,6 +116,7 @@ export default function CollectionHeader({
           isPublic={isPublic}
           isPinned={isPinned}
           isSystemCollection={isSystemCollection}
+          hasCover={hasCover}
           onAdd={onAdd}
           onEdit={onEdit}
           onDelete={onDelete}

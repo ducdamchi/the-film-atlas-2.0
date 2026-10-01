@@ -1,6 +1,6 @@
 import { useAtom } from "jotai"
 import { useNavigate } from "@tanstack/react-router"
-import { guestLimitModalOpenAtom } from "@/atoms/guestAtoms"
+import { guestLimitModalOpenAtom, guestStore } from "@/atoms/guestAtoms"
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,14 +14,18 @@ import {
 import { GUEST_FILM_LIMIT } from "@/utils/guestStore"
 
 export function GuestLimitModal() {
-  const [open, setOpen] = useAtom(guestLimitModalOpenAtom)
+  const [open, setOpen] = useAtom(guestLimitModalOpenAtom, {
+    store: guestStore,
+  })
   const navigate = useNavigate()
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>You've hit {GUEST_FILM_LIMIT} films</AlertDialogTitle>
+          <AlertDialogTitle>
+            Yay, you've interacted with {GUEST_FILM_LIMIT} films!
+          </AlertDialogTitle>
           <AlertDialogDescription>
             Create a free account to keep tracking films, rate them, and sync
             your data across devices.

@@ -16,6 +16,7 @@ export function decodeToken(token: string): AuthState | null {
       username: payload.username,
       status: true,
       email: payload.email ?? null,
+      image: payload.image ?? null,
       locationCountry: payload.location_country ?? null,
       locationCity: payload.location_city ?? null,
       locationSource: payload.location_source ?? null,

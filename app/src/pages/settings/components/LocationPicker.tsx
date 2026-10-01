@@ -87,7 +87,7 @@ export function LocationPicker({
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-subtle">
-          Country <span className="text-red-600">*</span>
+          Country <span className="text-error">*</span>
         </label>
         <select
           value={country}
@@ -111,7 +111,7 @@ export function LocationPicker({
 
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-subtle">
-          City <span className="text-red-600">*</span>
+          City <span className="text-error">*</span>
         </label>
         <div className="w-[18rem]   relative">
           <input

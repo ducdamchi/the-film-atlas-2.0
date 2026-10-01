@@ -8,11 +8,9 @@ import { useAuth } from "../utils/authContext"
 import { queryFilmFromTMDB } from "../utils/apiCalls"
 import { usePersistedState } from "../hooks/usePersistedState"
 import {
-  watchedFilmsQueryOptions,
-  watchlistedFilmsQueryOptions,
-  guestWatchedQueryOptions,
-  guestWatchlistedQueryOptions,
-} from "@/queries/collections.queries"
+  getWatchedQueryOptions,
+  getWatchlistedQueryOptions,
+} from "@/utils/queryCacheSync"
 
 /* Types */
 import type { TMDBFilmSummary } from "@/types/tmdb"
@@ -51,12 +49,8 @@ export default function Films() {
   const location = useLocation()
 
   const isGuest = !authState.status
-  const activeWatchedOptions = isGuest
-    ? guestWatchedQueryOptions
-    : watchedFilmsQueryOptions
-  const activeWatchlistedOptions = isGuest
-    ? guestWatchlistedQueryOptions
-    : watchlistedFilmsQueryOptions
+  const activeWatchedOptions = getWatchedQueryOptions(isGuest)
+  const activeWatchlistedOptions = getWatchlistedQueryOptions(isGuest)
 
   const { data: watchedList = [], isLoading: watchedLoading } = useQuery(
     activeWatchedOptions,

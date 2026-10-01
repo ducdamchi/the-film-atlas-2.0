@@ -5,6 +5,7 @@ interface CollectionFooterProps {
   description?: string | null;
   isSystemCollection: boolean;
   navButtonWidth: number;
+  hasCover?: boolean;
   onUpdateDescription?: (newDescription: string) => Promise<void>;
 }
 
@@ -12,6 +13,7 @@ export default function CollectionFooter({
   description,
   isSystemCollection,
   navButtonWidth,
+  hasCover,
   onUpdateDescription,
 }: CollectionFooterProps) {
   const [isEditingDescription, setIsEditingDescription] = useState(false);

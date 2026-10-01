@@ -1,31 +1,13 @@
 /* Libraries */
 import { useEffect, useState } from "react"
-import { useNavigate } from "@tanstack/react-router"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { cva } from "class-variance-authority"
 
 /* Custom functions */
-import { likeFilmFn, unlikeFilmFn, rateFilmFn } from "@/server/watched"
-import { saveFilmFn, unsaveFilmFn } from "@/server/watchlisted"
-import {
-  watchedFilmsQueryOptions,
-  watchlistedFilmsQueryOptions,
-  guestWatchedQueryOptions,
-  guestWatchlistedQueryOptions,
-} from "@/queries/collections.queries"
-import { directorsQueryOptions } from "@/queries/directors.queries"
-import { useAuth } from "@/utils/authContext"
+import { useFilmMutations, isGuestLimitError } from "@/hooks/useFilmMutations"
 import { cn } from "@/lib/utils"
-import {
-  guestLikeFilm,
-  guestUnlikeFilm,
-  guestSaveFilm,
-  guestUnsaveFilm,
-  guestRateFilm,
-} from "@/utils/guestStore"
-import { useSetAtom } from "jotai"
-import { guestLimitModalOpenAtom } from "@/atoms/guestAtoms"
+import { guestLimitModalOpenAtom, guestStore } from "@/atoms/guestAtoms"
 
 /* Icons */
 import { BiListPlus, BiListCheck, BiHeart, BiSolidHeart } from "react-icons/bi"
@@ -33,8 +15,6 @@ import { BiListPlus, BiListCheck, BiHeart, BiSolidHeart } from "react-icons/bi"
 import type { TMDBFilm, TMDBCrewMember } from "@/types/tmdb"
 import type {
   StarRating,
-  FilmInteractionRequest,
-  FilmRateRequest,
   DirectorRef,
   UserFilm,
 } from "@/types/film"
@@ -275,31 +255,37 @@ export default function InteractionConsole({
 }: InteractionConsoleProps) {
   const [requestedRating, setRequestedRating] = useState<StarRating | -1>(-1)
 
-  const { authState } = useAuth()
-  const queryClient = useQueryClient()
-  const setGuestLimitModalOpen = useSetAtom(guestLimitModalOpenAtom)
-  const isGuest = !authState.status
+  const {
+    watchedQueryOptions,
+    watchlistedQueryOptions,
+    likeFilm,
+    unlikeFilm,
+    saveFilm: saveFilmMutation,
+    unsaveFilm,
+    rateFilm,
+  } = useFilmMutations()
+  const setGuestLimitModalOpen = (v: boolean) => guestStore.set(guestLimitModalOpenAtom, v)
 
   const filmId = Number(tmdbId)
   const showText = variant !== "card"
+  const hasDetails = !!tmdbId && "title" in movieDetails && !!movieDetails.title
+
+  // Normalize directors prop to DirectorRef[]
+  const normalizedDirectors: DirectorRef[] = directors.map((d) => ({
+    tmdbId: "tmdbId" in d ? d.tmdbId : (d as TMDBCrewMember).id,
+    name: d.name,
+    profile_path: d.profile_path,
+  }))
 
   /* Derive like/save/rating status from the shared cached lists */
-  const activeWatchedOptions = isGuest
-    ? guestWatchedQueryOptions
-    : watchedFilmsQueryOptions
-  const activeWatchlistedOptions = isGuest
-    ? guestWatchlistedQueryOptions
-    : watchlistedFilmsQueryOptions
-
-  const { data: watchedList = [], isLoading: isWatchedLoading } = useQuery({
-    ...activeWatchedOptions,
+  const { data: watchedList = [] } = useQuery({
+    ...watchedQueryOptions,
     enabled: !!tmdbId,
   })
-  const { data: watchlistedList = [], isLoading: isWatchlistedLoading } =
-    useQuery({
-      ...activeWatchlistedOptions,
-      enabled: !!tmdbId,
-    })
+  const { data: watchlistedList = [] } = useQuery({
+    ...watchlistedQueryOptions,
+    enabled: !!tmdbId,
+  })
 
   const watchedFilm = watchedList.find((f) => f.id === filmId)
   const isLiked = !!watchedFilm
@@ -307,63 +293,16 @@ export default function InteractionConsole({
   const officialRating = (watchedFilm?.stars ?? null) as StarRating | null
 
   /**************** HELPER FUNCTIONS ****************/
-  /* Build the request body for API calls */
-  function createReqBody(
-    requestString: "like" | "save" | "rate",
-  ): FilmInteractionRequest | FilmRateRequest {
-    const directorsList: DirectorRef[] = directors.map((director) => ({
-      tmdbId:
-        "tmdbId" in director
-          ? director.tmdbId
-          : (director as TMDBCrewMember).id,
-      name: director.name,
-      profile_path: director.profile_path,
-    }))
-    const directorNamesForSorting = directors
-      .map((director) => director.name)
-      .join(", ")
-
-    const details = movieDetails as TMDBFilm
-
-    if (requestString === "like" || requestString === "save") {
-      const req: FilmInteractionRequest = {
-        tmdbId: details.id,
-        title: details.title,
-        runtime: details.runtime,
-        poster_path: details.poster_path,
-        backdrop_path: details.backdrop_path,
-        origin_country: details.origin_country ?? [],
-        release_date: details.release_date,
-        directors: directorsList,
-        directorNamesForSorting,
-        genres: details.genres ?? null,
-        overview: details.overview ?? null,
-        original_title: details.original_title ?? null,
-        spoken_languages: details.spoken_languages ?? null,
-        imdb_id: details.imdb_id ?? null,
-      }
-      return req
-    } else {
-      const req: FilmRateRequest = {
-        tmdbId: details.id,
-        directors: directorsList,
-        stars: requestedRating as StarRating,
-      }
-      return req
-    }
-  }
   function buildOptimisticFilm(stars: StarRating | 0): UserFilm {
     const details = movieDetails as TMDBFilm
     return {
       id: filmId,
       title: details.title,
       runtime: details.runtime,
-      directors: directors.map((d) => ({
-        tmdbId: "tmdbId" in d ? d.tmdbId : (d as TMDBCrewMember).id,
-        name: d.name,
-        profile_path: d.profile_path,
-      })),
-      directorNamesForSorting: directors.map((d) => d.name).join(", "),
+      directors: normalizedDirectors,
+      directorNamesForSorting: normalizedDirectors
+        .map((d) => d.name)
+        .join(", "),
       poster_path: details.poster_path,
       backdrop_path: details.backdrop_path,
       origin_country: details.origin_country ?? [],
@@ -377,275 +316,87 @@ export default function InteractionConsole({
     }
   }
 
-  /**************** MUTATIONS (with optimistic updates) ****************/
-  const watchMutation = useMutation({
-    mutationFn: (shouldLike: boolean) => {
-      if (shouldLike) {
-        const req = createReqBody("like") as FilmInteractionRequest
-        req.stars = requestedRating !== -1 ? (requestedRating as StarRating) : 0
-        return likeFilmFn({ data: req })
-      }
-      return unlikeFilmFn({ data: (movieDetails as TMDBFilm).id })
-    },
-    onMutate: async (shouldLike) => {
-      await queryClient.cancelQueries({
-        queryKey: watchedFilmsQueryOptions.queryKey,
-      })
-      await queryClient.cancelQueries({
-        queryKey: watchlistedFilmsQueryOptions.queryKey,
-      })
-      const previousWatched = queryClient.getQueryData<UserFilm[]>(
-        watchedFilmsQueryOptions.queryKey,
-      )
-      const previousWatchlisted = queryClient.getQueryData<UserFilm[]>(
-        watchlistedFilmsQueryOptions.queryKey,
-      )
-
-      if (shouldLike) {
-        const stars =
-          requestedRating !== -1 ? (requestedRating as StarRating) : 0
-        queryClient.setQueryData<UserFilm[]>(
-          watchedFilmsQueryOptions.queryKey,
-          (old = []) =>
-            old.some((f) => f.id === filmId)
-              ? old
-              : [buildOptimisticFilm(stars), ...old],
-        )
-        // Liking is mutually exclusive with saved
-        queryClient.setQueryData<UserFilm[]>(
-          watchlistedFilmsQueryOptions.queryKey,
-          (old = []) => old.filter((f) => f.id !== filmId),
-        )
-      } else {
-        queryClient.setQueryData<UserFilm[]>(
-          watchedFilmsQueryOptions.queryKey,
-          (old = []) => old.filter((f) => f.id !== filmId),
-        )
-      }
-
-      return { previousWatched, previousWatchlisted }
-    },
-    onError: (_err, _vars, context) => {
-      queryClient.setQueryData(
-        watchedFilmsQueryOptions.queryKey,
-        context?.previousWatched,
-      )
-      queryClient.setQueryData(
-        watchlistedFilmsQueryOptions.queryKey,
-        context?.previousWatchlisted,
-      )
-      toast.error("Failed to update watch status")
-    },
-    onSuccess: (_data, shouldLike) => {
-      const title = (movieDetails as TMDBFilm).title
-      toast.success(
-        shouldLike
-          ? `Added "${title}" to Watched`
-          : `Removed "${title}" from Watched`,
-      )
-      setRequestedRating(-1)
-      queryClient.invalidateQueries({
-        queryKey: watchedFilmsQueryOptions.queryKey,
-      })
-      queryClient.invalidateQueries({
-        queryKey: watchlistedFilmsQueryOptions.queryKey,
-      })
-      queryClient.invalidateQueries({
-        queryKey: directorsQueryOptions.queryKey,
-      })
-    },
-  })
-  const watchlistMutation = useMutation({
-    mutationFn: (shouldSave: boolean) =>
-      shouldSave
-        ? saveFilmFn({ data: createReqBody("save") as FilmInteractionRequest })
-        : unsaveFilmFn({ data: (movieDetails as TMDBFilm).id }),
-    onMutate: async (shouldSave) => {
-      await queryClient.cancelQueries({
-        queryKey: watchlistedFilmsQueryOptions.queryKey,
-      })
-      await queryClient.cancelQueries({
-        queryKey: watchedFilmsQueryOptions.queryKey,
-      })
-      const previousWatchlisted = queryClient.getQueryData<UserFilm[]>(
-        watchlistedFilmsQueryOptions.queryKey,
-      )
-      const previousWatched = queryClient.getQueryData<UserFilm[]>(
-        watchedFilmsQueryOptions.queryKey,
-      )
-
-      if (shouldSave) {
-        queryClient.setQueryData<UserFilm[]>(
-          watchlistedFilmsQueryOptions.queryKey,
-          (old = []) =>
-            old.some((f) => f.id === filmId)
-              ? old
-              : [buildOptimisticFilm(0), ...old],
-        )
-        // Saving is mutually exclusive with liked
-        queryClient.setQueryData<UserFilm[]>(
-          watchedFilmsQueryOptions.queryKey,
-          (old = []) => old.filter((f) => f.id !== filmId),
-        )
-      } else {
-        queryClient.setQueryData<UserFilm[]>(
-          watchlistedFilmsQueryOptions.queryKey,
-          (old = []) => old.filter((f) => f.id !== filmId),
-        )
-      }
-
-      return { previousWatchlisted, previousWatched }
-    },
-    onError: (_err, _vars, context) => {
-      queryClient.setQueryData(
-        watchlistedFilmsQueryOptions.queryKey,
-        context?.previousWatchlisted,
-      )
-      queryClient.setQueryData(
-        watchedFilmsQueryOptions.queryKey,
-        context?.previousWatched,
-      )
-      toast.error("Failed to update watchlist")
-    },
-    onSuccess: (_data, shouldSave) => {
-      const title = (movieDetails as TMDBFilm).title
-      toast.success(
-        shouldSave
-          ? `Added "${title}" to Watchlist`
-          : `Removed "${title}" from Watchlist`,
-      )
-      queryClient.invalidateQueries({
-        queryKey: watchlistedFilmsQueryOptions.queryKey,
-      })
-      queryClient.invalidateQueries({
-        queryKey: watchedFilmsQueryOptions.queryKey,
-      })
-    },
-  })
-  const rateMutation = useMutation({
-    mutationFn: (req: FilmRateRequest) => rateFilmFn({ data: req }),
-    onMutate: async (req) => {
-      await queryClient.cancelQueries({
-        queryKey: watchedFilmsQueryOptions.queryKey,
-      })
-      const previousWatched = queryClient.getQueryData<UserFilm[]>(
-        watchedFilmsQueryOptions.queryKey,
-      )
-      queryClient.setQueryData<UserFilm[]>(
-        watchedFilmsQueryOptions.queryKey,
-        (old = []) =>
-          old.map((f) => (f.id === filmId ? { ...f, stars: req.stars } : f)),
-      )
-      return { previousWatched }
-    },
-    onError: (_err, _vars, context) => {
-      queryClient.setQueryData(
-        watchedFilmsQueryOptions.queryKey,
-        context?.previousWatched,
-      )
-      toast.error("Failed to update rating")
-    },
-    onSuccess: (_data, req) => {
-      const title = (movieDetails as TMDBFilm).title
-      toast.success(
-        req.stars === 0
-          ? `Cleared rating for "${title}"`
-          : `Set "${title}" rating to ${req.stars} stars`,
-      )
-      setRequestedRating(-1)
-      queryClient.invalidateQueries({
-        queryKey: watchedFilmsQueryOptions.queryKey,
-      })
-      queryClient.invalidateQueries({
-        queryKey: directorsQueryOptions.queryKey,
-      })
-    },
-  })
-
-  /**************** HANDLERS (for like, save, rate) ****************/
-  function invalidateGuestQueries() {
-    queryClient.invalidateQueries({ queryKey: guestWatchedQueryOptions.queryKey })
-    queryClient.invalidateQueries({ queryKey: guestWatchlistedQueryOptions.queryKey })
-    queryClient.invalidateQueries({ queryKey: ["guest-directors"] })
-  }
-
-  function handleLike() {
-    if (isGuest) {
-      const title = (movieDetails as TMDBFilm).title
+  /**************** HANDLERS ****************/
+  async function handleLike() {
+    if (!hasDetails) return
+    const title = (movieDetails as TMDBFilm).title
+    const details = movieDetails as TMDBFilm
+    try {
       if (isLiked) {
-        guestUnlikeFilm(filmId)
+        await unlikeFilm(filmId)
         toast.success(`Removed "${title}" from Watched`)
       } else {
-        const film = buildOptimisticFilm(0)
-        const result = guestLikeFilm(film)
-        if (result.limitReached) {
-          setGuestLimitModalOpen(true)
-          return
-        }
+        const stars: StarRating =
+          requestedRating !== -1 ? (requestedRating as StarRating) : 0
+        const film = buildOptimisticFilm(stars)
+        await likeFilm(film, { stars, genres: details.genres ?? null })
         toast.success(`Added "${title}" to Watched`)
+        setRequestedRating(-1)
       }
-      invalidateGuestQueries()
-      return
+    } catch (err) {
+      if (isGuestLimitError(err)) {
+        setGuestLimitModalOpen(true)
+        return
+      }
+      toast.error("Failed to update watch status")
     }
-    watchMutation.mutate(!isLiked)
   }
 
-  function handleSave() {
-    if (isGuest) {
-      const title = (movieDetails as TMDBFilm).title
+  async function handleSave() {
+    if (!hasDetails) return
+    const title = (movieDetails as TMDBFilm).title
+    const details = movieDetails as TMDBFilm
+    try {
       if (isSaved) {
-        guestUnsaveFilm(filmId)
+        await unsaveFilm(filmId)
         toast.success(`Removed "${title}" from Watchlist`)
       } else {
         const film = buildOptimisticFilm(0)
-        const result = guestSaveFilm(film)
-        if (result.limitReached) {
-          setGuestLimitModalOpen(true)
-          return
-        }
+        await saveFilmMutation(film, { genres: details.genres ?? null })
         toast.success(`Added "${title}" to Watchlist`)
       }
-      invalidateGuestQueries()
-      return
+    } catch (err) {
+      if (isGuestLimitError(err)) {
+        setGuestLimitModalOpen(true)
+        return
+      }
+      toast.error("Failed to update watchlist")
     }
-    watchlistMutation.mutate(!isSaved)
   }
 
   // Handler for rating adjustment
   useEffect(() => {
-    if (requestedRating === -1 || requestedRating === officialRating) return
+    if (requestedRating === -1 || requestedRating === officialRating || !hasDetails) return
 
-    if (isGuest) {
-      if (!isLiked) {
-        const film = buildOptimisticFilm(requestedRating as StarRating)
-        const result = guestLikeFilm(film)
-        if (result.limitReached) {
+    const stars = requestedRating as StarRating
+    const title = (movieDetails as TMDBFilm).title
+    const details = movieDetails as TMDBFilm
+
+    const execute = async () => {
+      try {
+        if (!isLiked) {
+          const film = buildOptimisticFilm(stars)
+          await likeFilm(film, { stars, genres: details.genres ?? null })
+        } else {
+          await rateFilm(filmId, stars, normalizedDirectors)
+        }
+        toast.success(
+          stars === 0
+            ? `Cleared rating for "${title}"`
+            : `Set "${title}" rating to ${stars} stars`,
+        )
+        setRequestedRating(-1)
+      } catch (err) {
+        if (isGuestLimitError(err)) {
           setGuestLimitModalOpen(true)
           setRequestedRating(-1)
           return
         }
-      } else {
-        guestRateFilm(filmId, requestedRating as StarRating)
+        toast.error("Failed to update rating")
       }
-      const title = (movieDetails as TMDBFilm).title
-      toast.success(
-        requestedRating === 0
-          ? `Cleared rating for "${title}"`
-          : `Set "${title}" rating to ${requestedRating} stars`,
-      )
-      setRequestedRating(-1)
-      invalidateGuestQueries()
-      return
     }
 
-    if (!isLiked) {
-      // Rating a film that isn't liked yet → like it with the rating
-      watchMutation.mutate(true)
-    } else {
-      const req = createReqBody("rate") as FilmRateRequest
-      req.stars = requestedRating as StarRating
-      rateMutation.mutate(req)
-    }
+    void execute()
   }, [requestedRating])
 
   return (

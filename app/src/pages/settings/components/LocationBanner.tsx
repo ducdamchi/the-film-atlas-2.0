@@ -44,7 +44,7 @@ function LocationChangeModal({ onClose }: { onClose: () => void }) {
           onCountryChange={setCountry}
           onCityChange={setCity}
         />
-        {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
+        {error && <p className="text-error text-sm mt-3">{error}</p>}
         <div className="flex gap-2 mt-5">
           <button
             className="flex-1 bg-body text-on-dark rounded-lg py-2 text-sm font-medium disabled:opacity-40 cursor-pointer"

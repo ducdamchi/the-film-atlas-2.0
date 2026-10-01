@@ -38,6 +38,7 @@ function makeAuthContextValue(loggedIn: boolean): AuthContextValue {
       username: loggedIn ? "testuser" : "",
       id: loggedIn ? "user-1" : "",
       email: null,
+      image: null,
       locationCountry: null,
       locationCity: null,
       locationSource: null,

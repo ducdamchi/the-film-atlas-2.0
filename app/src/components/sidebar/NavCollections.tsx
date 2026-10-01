@@ -13,13 +13,7 @@ import {
   SidebarMenuAction,
 } from "@/components/ui-shadcn/sidebar"
 import { Link } from "@tanstack/react-router"
-import { useCollections, type CollectionData } from "@/hooks/useCollections"
-
-function collectionUrl(col: CollectionData): string {
-  if (col.collectionType === "watched") return "/collections?q=watched"
-  if (col.collectionType === "watchlist") return "/collections?q=watchlisted"
-  return `/collections/${col.id}`
-}
+import { useCollections } from "@/hooks/useCollections"
 
 export function NavCollections() {
   const collections = useCollections()
@@ -45,13 +39,11 @@ export function NavCollections() {
               <SidebarMenuSub>
                 {collections.map((col) => (
                   <SidebarMenuSubItem key={col.id}>
-                    <SidebarMenuSubButton asChild>
-                      <Link to={collectionUrl(col)}>
-                        <Folder />
-                        <span className="text-[16px] font-light">
-                          {col.title}
-                        </span>
-                      </Link>
+                    <SidebarMenuSubButton>
+                      <Folder />
+                      <span className="text-[16px] font-light">
+                        {col.title}
+                      </span>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 ))}

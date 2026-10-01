@@ -3,6 +3,7 @@ import pg from "pg"
 import { username } from "better-auth/plugins"
 import { bearer } from "better-auth/plugins"
 import bcrypt from "bcrypt"
+import crypto from "crypto"
 import { getClient } from "../email/client.js"
 import { ensureSystemCollections } from "../utils/systemCollections.js"
 
@@ -16,6 +17,12 @@ export const auth = betterAuth({
     user:     process.env.DB_USER,
     password: process.env.DB_PASSWORD,
   }),
+
+  advanced: {
+    database: {
+      generateId: () => crypto.randomUUID(),
+    },
+  },
 
   emailAndPassword: {
     enabled: true,

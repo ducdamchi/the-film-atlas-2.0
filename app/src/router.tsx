@@ -8,6 +8,7 @@ export interface AuthUser {
   id: string;
   status: boolean;
   email: string | null;
+  image: string | null;
   locationCountry: string | null;
   locationCity: string | null;
   locationSource: string | null;

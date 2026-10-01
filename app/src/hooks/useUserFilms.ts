@@ -1,11 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import {
-  watchedFilmsQueryOptions,
-  watchlistedFilmsQueryOptions,
-  guestWatchedQueryOptions,
-  guestWatchlistedQueryOptions,
-} from "@/queries/collections.queries";
+  getWatchedQueryOptions,
+  getWatchlistedQueryOptions,
+} from "@/utils/queryCacheSync";
 import type { UserFilm } from "@/types/film";
 import type { AuthState } from "@/types/auth";
 
@@ -34,12 +32,8 @@ export function useUserFilms({
   const isWatchlisted = mode === "watchlisted";
   const isRated = mode === "rated";
 
-  const activeWatchedOptions = isGuest
-    ? guestWatchedQueryOptions
-    : watchedFilmsQueryOptions;
-  const activeWatchlistedOptions = isGuest
-    ? guestWatchlistedQueryOptions
-    : watchlistedFilmsQueryOptions;
+  const activeWatchedOptions = getWatchedQueryOptions(isGuest);
+  const activeWatchlistedOptions = getWatchlistedQueryOptions(isGuest);
 
   const { data: watchedList = [], isLoading: watchedLoading } = useQuery({
     ...activeWatchedOptions,

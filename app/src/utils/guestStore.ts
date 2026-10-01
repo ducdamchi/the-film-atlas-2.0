@@ -2,7 +2,25 @@ import type { UserFilm, StarRating } from "@/types/film"
 
 const WATCHED_KEY = "guest-watched"
 const WATCHLISTED_KEY = "guest-watchlisted"
-export const GUEST_FILM_LIMIT = 30
+export const GUEST_FILM_LIMIT = 5
+
+/**
+ * Validates that a UserFilm has all fields required by the Films table's
+ * NOT NULL constraints. Mirrors the DB schema so localStorage never stores
+ * incomplete records that would fail on sync.
+ */
+function assertValidFilm(film: UserFilm): void {
+  if (
+    !film.id ||
+    !film.title ||
+    !film.release_date ||
+    !Array.isArray(film.directors)
+  ) {
+    throw new Error(
+      `Invalid film data: missing required fields (id=${film.id}, title=${film.title})`,
+    )
+  }
+}
 
 function read<T>(key: string): T[] {
   try {
@@ -37,9 +55,11 @@ export function isGuestLimitReached(): boolean {
   return getGuestFilmCount() >= GUEST_FILM_LIMIT
 }
 
-export function guestLikeFilm(
-  film: UserFilm,
-): { success: boolean; limitReached: boolean } {
+export function guestLikeFilm(film: UserFilm): {
+  success: boolean
+  limitReached: boolean
+} {
+  assertValidFilm(film)
   const watched = getGuestWatched()
   if (watched.some((f) => f.id === film.id)) {
     return { success: false, limitReached: false }
@@ -49,7 +69,10 @@ export function guestLikeFilm(
   const watchlisted = getGuestWatchlisted().filter((f) => f.id !== film.id)
   const totalAfter = watched.length + 1 + watchlisted.length
   // Only count against the limit if the film wasn't already in watchlisted
-  if (totalAfter > GUEST_FILM_LIMIT && watched.length + watchlisted.length + 1 > GUEST_FILM_LIMIT) {
+  if (
+    totalAfter > GUEST_FILM_LIMIT &&
+    watched.length + watchlisted.length + 1 > GUEST_FILM_LIMIT
+  ) {
     return { success: false, limitReached: true }
   }
 
@@ -65,9 +88,11 @@ export function guestUnlikeFilm(tmdbId: number): void {
   )
 }
 
-export function guestSaveFilm(
-  film: UserFilm,
-): { success: boolean; limitReached: boolean } {
+export function guestSaveFilm(film: UserFilm): {
+  success: boolean
+  limitReached: boolean
+} {
+  assertValidFilm(film)
   const watchlisted = getGuestWatchlisted()
   if (watchlisted.some((f) => f.id === film.id)) {
     return { success: false, limitReached: false }
@@ -76,7 +101,10 @@ export function guestSaveFilm(
   // Remove from watched if present (saved overrides watched)
   const watched = getGuestWatched().filter((f) => f.id !== film.id)
   const totalAfter = watched.length + watchlisted.length + 1
-  if (totalAfter > GUEST_FILM_LIMIT && getGuestFilmCount() + 1 > GUEST_FILM_LIMIT) {
+  if (
+    totalAfter > GUEST_FILM_LIMIT &&
+    getGuestFilmCount() + 1 > GUEST_FILM_LIMIT
+  ) {
     return { success: false, limitReached: true }
   }
 
