@@ -1,5 +1,7 @@
 import * as React from "react"
 import { ChevronRight, type LucideIcon } from "lucide-react"
+import { useAtom } from "jotai"
+import { sidebarSectionsAtom } from "@/atoms/sidebarAtoms"
 
 import {
   Collapsible,
@@ -21,6 +23,7 @@ export interface NavItem {
   icon: LucideIcon
   shortcut?: React.ReactNode
   isActive?: boolean
+  sectionKey?: string
   items?: { title: string; url: string }[]
 }
 
@@ -31,8 +34,18 @@ export function NavMenuItem({
   item: NavItem
   onClick?: () => void
 }) {
+  const [sections, setSections] = useAtom(sidebarSectionsAtom)
+  const key = item.sectionKey
+  const isOpen = key != null ? (sections[key] ?? item.isActive ?? false) : undefined
+  const onOpenChange = key != null
+    ? (open: boolean) => setSections((prev) => ({ ...prev, [key]: open }))
+    : undefined
+
   return (
-    <Collapsible asChild defaultOpen={item.isActive}>
+    <Collapsible
+      asChild
+      {...(key != null ? { open: isOpen, onOpenChange } : { defaultOpen: item.isActive })}
+    >
       <SidebarMenuItem>
         <SidebarMenuButton tooltip={item.title} onClick={onClick}>
           <item.icon />

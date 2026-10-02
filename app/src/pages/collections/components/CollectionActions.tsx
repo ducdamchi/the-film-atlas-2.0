@@ -142,10 +142,8 @@ export default function CollectionActions({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive hover:bg-destructive/90"
-                onClick={handleDelete}>
+              <AlertDialogCancel variant="dark">Cancel</AlertDialogCancel>
+              <AlertDialogAction variant="destructive" onClick={handleDelete}>
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>

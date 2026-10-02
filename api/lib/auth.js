@@ -6,6 +6,7 @@ import bcrypt from "bcrypt"
 import crypto from "crypto"
 import { getClient } from "../email/client.js"
 import { ensureSystemCollections } from "../utils/systemCollections.js"
+import { deleteUserData } from "../utils/deleteUserData.js"
 
 const { Pool } = pg
 
@@ -21,6 +22,13 @@ export const auth = betterAuth({
   advanced: {
     database: {
       generateId: () => crypto.randomUUID(),
+    },
+  },
+
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     },
   },
 
@@ -56,6 +64,12 @@ export const auth = betterAuth({
   ],
 
   user: {
+    deleteUser: {
+      enabled: true,
+      beforeDelete: async (user) => {
+        await deleteUserData(user.id)
+      },
+    },
     additionalFields: {
       locationCountry: { type: "string", required: false, defaultValue: null },
       locationCity:    { type: "string", required: false, defaultValue: null },

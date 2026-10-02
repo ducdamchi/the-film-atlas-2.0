@@ -73,7 +73,7 @@ function ResetPassword() {
             <button
               type="submit"
               disabled={loading || !password || !confirm}
-              className="w-[18rem] p-2 text-stone-900 font-light border-1 transition-all ease-out duration-300 rounded-none disabled:opacity-40">
+              className="w-[18rem] p-2 bg-atlas-pink text-white font-light border-1 transition-all ease-out duration-300 rounded-none disabled:opacity-40 hover:bg-atlas-pink/80">
               {loading ? "Saving..." : "set new password"}
             </button>
           </form>

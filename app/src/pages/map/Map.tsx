@@ -206,10 +206,10 @@ export default function Map() {
           ].join(" ")}>
           {/* Mobile drag handle */}
           <div
-            className="md:hidden sticky top-0 z-250 w-full flex flex-col items-center cursor-ns-resize touch-none select-none bg-background hover:bg-muted transition-colors ease-out duration-200 py-2 mb-2"
+            className="md:hidden sticky top-0 z-250 w-full flex flex-col items-center cursor-ns-resize touch-none select-none bg-background hover:bg-muted-foreground/10 transition-colors ease-out duration-200 py-2 mb-2"
             onClick={handleDragAreaClick}
             onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}>
-            <FaGripLines className="text-2xl text-muted" />
+            <FaGripLines className="text-2xl text-foreground" />
           </div>
 
           {isoA2 ? (

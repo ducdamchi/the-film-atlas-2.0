@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/utils/authContext"
+import { useNavigate } from "@tanstack/react-router"
 import { LocationPicker } from "./components/LocationPicker"
-import { authClient } from "@/lib/authClient"
+import { authClient, clearAuthToken } from "@/lib/authClient"
 import {
   Avatar,
   AvatarFallback,
@@ -387,8 +388,71 @@ function ChangeRegion() {
   )
 }
 
+function DeleteAccount() {
+  const navigate = useNavigate()
+  const [confirmText, setConfirmText] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const handleDelete = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (confirmText !== "DELETE") return
+    setError("")
+    setLoading(true)
+    try {
+      const { error: deleteError } = await authClient.deleteUser()
+      if (deleteError) {
+        setError(deleteError.message)
+        return
+      }
+      clearAuthToken()
+      navigate({ to: "/" })
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleDelete} className="flex flex-col gap-3">
+      <p className="text-sm text-subtle">
+        This action is permanent and cannot be undone. All your data — watched
+        films, watchlist, collections, ratings, and account information — will
+        be permanently deleted.
+      </p>
+      <p className="text-sm text-subtle">
+        Type <span className="font-bold text-error">DELETE</span> to confirm.
+      </p>
+      <input
+        className="auth-formField border-destructive w-[18rem]"
+        type="text"
+        value={confirmText}
+        onChange={(e) => setConfirmText(e.target.value)}
+        placeholder='Type "DELETE" to confirm'
+      />
+      {error && <p className="text-error text-sm">{error}</p>}
+      <button
+        type="submit"
+        disabled={loading || confirmText !== "DELETE"}
+        className="accountSettings-formSubmitButton bg-destructive text-white hover:bg-destructive/80 disabled:cursor-not-allowed">
+        {loading ? "Deleting..." : "Delete my account"}
+      </button>
+    </form>
+  )
+}
+
 export function AccountSettings() {
   const { authState } = useAuth()
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (!authState.status) return
+    authClient.listAccounts().then(({ data }) => {
+      const hasCredential = data?.some((a: any) => a.provider === "credential")
+      setHasPassword(!!hasCredential)
+    })
+  }, [authState.status])
 
   if (!authState.status) return null
 
@@ -405,12 +469,18 @@ export function AccountSettings() {
           <ChangeAvatar />
         </Section>
 
-        <Section title="Change Password">
-          <ChangePassword />
-        </Section>
+        {hasPassword && (
+          <Section title="Change Password">
+            <ChangePassword />
+          </Section>
+        )}
 
         <Section title="Change Region">
           <ChangeRegion />
+        </Section>
+
+        <Section title="Delete Account">
+          <DeleteAccount />
         </Section>
       </div>
     </div>

@@ -1,4 +1,6 @@
 import { ChevronRight, LibraryBig, BookOpen, Folder } from "lucide-react"
+import { useAtom } from "jotai"
+import { sidebarSectionsAtom } from "@/atoms/sidebarAtoms"
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,9 +19,16 @@ import { useCollections } from "@/hooks/useCollections"
 
 export function NavCollections() {
   const collections = useCollections()
+  const [sections, setSections] = useAtom(sidebarSectionsAtom)
+  const isOpen = sections.collections ?? true
 
   return (
-    <Collapsible asChild defaultOpen>
+    <Collapsible
+      asChild
+      open={isOpen}
+      onOpenChange={(open) =>
+        setSections((prev) => ({ ...prev, collections: open }))
+      }>
       <SidebarMenuItem>
         <SidebarMenuButton asChild tooltip="Collections">
           <Link to="/collections">

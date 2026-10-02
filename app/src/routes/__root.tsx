@@ -156,6 +156,7 @@ function RootComponent() {
               <AppSidebar />
 
               <main className="group peer w-full">
+                <SidebarTrigger className="fixed top-3 left-3 z-50 md:hidden" />
                 {/* <NavBar /> */}
                 {searchModalOpen && (
                   <QuickSearchModal

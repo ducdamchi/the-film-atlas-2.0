@@ -35,11 +35,13 @@ const DIRECTORS_NAV = { title: "Directors", icon: UserStar }
 const MORE_NAV = {
   title: "More",
   icon: CircleEllipsis,
-  isActive: true,
+  sectionKey: "more",
   items: [
     { title: "Docs", url: "/docs" },
     { title: "About", url: "/about" },
     { title: "Contact", url: "/contact" },
+    { title: "Privacy", url: "/privacy" },
+    { title: "Terms", url: "/terms" },
   ],
 }
 // const SETTINGS_NAV = { title: "Settings", url: "/settings", icon: Settings2 }
