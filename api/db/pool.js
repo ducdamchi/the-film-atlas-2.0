@@ -9,11 +9,9 @@ const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: true } // Prod: require valid cert
-      : process.env.SSL_DISABLED === "true"
-        ? false // Explicitly disable SSL entirely
-        : { rejectUnauthorized: false }, // Dev with SSL: allow any cert
+    process.env.SSL_DISABLED === "true"
+      ? false
+      : { rejectUnauthorized: false },
 })
 
 export default pool

@@ -18,11 +18,9 @@ export const auth = betterAuth({
     user:     process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     ssl:
-      process.env.NODE_ENV === "production"
-        ? { rejectUnauthorized: true }
-        : process.env.SSL_DISABLED === "true"
-          ? false
-          : { rejectUnauthorized: false },
+      process.env.SSL_DISABLED === "true"
+        ? false
+        : { rejectUnauthorized: false },
   }),
 
   advanced: {
