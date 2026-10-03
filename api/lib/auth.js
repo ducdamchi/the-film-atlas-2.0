@@ -27,6 +27,12 @@ export const auth = betterAuth({
     database: {
       generateId: () => crypto.randomUUID(),
     },
+    ...(process.env.COOKIE_DOMAIN && {
+      crossSubDomainCookies: {
+        enabled: true,
+        domain: process.env.COOKIE_DOMAIN,
+      },
+    }),
   },
 
   socialProviders: {
