@@ -62,7 +62,7 @@ export default function ToggleWithSlider<T>({
             {label}
           </div>
         )}
-        <div className="relative bg-muted-foreground/10 rounded-none w-[20rem] min-h-[2.5rem] text-sm @5xl:text-base @5xl:w-[25rem] inset-shadow-xs inset-shadow-muted-foreground">
+        <div className="relative bg-surface-hover rounded-none w-[20rem] min-h-[2.5rem] text-sm @5xl:text-base @5xl:w-[25rem] inset-shadow-xs inset-shadow-muted-foreground">
           <div className="relative flex w-full h-[2.5rem]">
             {/* Slider background */}
             <div

@@ -17,7 +17,7 @@ import { z } from "zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { authClient } from "@/lib/authClient"
-import { syncGuestDataIfPresent } from "@/utils/syncGuestData"
+import { syncGuestDataIfPresent, clearGuestDataQuietly } from "@/utils/syncGuestData"
 
 const loginSchema = z.object({
   login: z.string().min(1, "Email or username is required."),
@@ -55,7 +55,15 @@ export function LoginForm({
       return result
     },
     onSuccess: async () => {
-      await syncGuestDataIfPresent(queryClient)
+      const isFreshSignup = sessionStorage.getItem("film-atlas-fresh-signup")
+      sessionStorage.removeItem("film-atlas-fresh-signup")
+
+      if (isFreshSignup) {
+        await syncGuestDataIfPresent(queryClient)
+      } else {
+        clearGuestDataQuietly(queryClient)
+      }
+
       router.invalidate()
       navigate({ to: "/" })
     },

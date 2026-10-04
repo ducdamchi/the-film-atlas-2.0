@@ -186,7 +186,7 @@ export default function FilmLanding() {
   }, [film])
 
   return (
-    <div className="@container font-primary">
+    <div className="@container font-primary -mt-12 md:mt-0">
       <div className="w-full h-auto flex flex-col justify-center">
         <div className="w-[100%] h-[90%] top-[5%] text-background">
           {/* ── Hero / backdrop ── */}
@@ -669,7 +669,7 @@ export default function FilmLanding() {
                           (filmAwards.wins.length > LIMIT ||
                             filmAwards.nominations.length > LIMIT)
                         return (
-                          <div className="border-1 p-5 py-4 rounded-sm w-fit bg-[var(--color-rating-awards)]/85 border-[var(--color-rating-awards)]">
+                          <div className="border-1 p-5 py-4 rounded-sm w-fit bg-[var(--color-rating-awards)]/85 border-[var(--color-rating-awards)] text-foreground">
                             {filmAwards.wins.length > 0 && (
                               <div className="mb-3">
                                 <div className="text-base @5xl:text-lg uppercase font-bold mb-1">

@@ -3,7 +3,7 @@ import { getGuestData, clearGuestData } from "@/utils/guestStore"
 import type { QueryClient } from "@tanstack/react-query"
 
 /**
- * After login or signup, check for guest interaction data in localStorage.
+ * After creating a new account, check for guest interaction data in localStorage.
  * If present, sync it to the database and clear the local store.
  */
 export async function syncGuestDataIfPresent(
@@ -29,4 +29,15 @@ export async function syncGuestDataIfPresent(
     console.error("Guest data sync failed:", err)
     // Don't clear — user can retry on next page load
   }
+}
+
+/**
+ * Discard guest data without syncing to the server.
+ * Used when an existing user logs in — their anon browsing data
+ * should not be merged into their established library.
+ */
+export function clearGuestDataQuietly(queryClient: QueryClient): void {
+  clearGuestData()
+  queryClient.removeQueries({ queryKey: ["guest-watched"] })
+  queryClient.removeQueries({ queryKey: ["guest-watchlisted"] })
 }

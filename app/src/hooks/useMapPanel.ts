@@ -127,7 +127,8 @@ export function useMapPanel(): MapPanelState {
    */
   function getMobileSnaps(): { peek: number; expanded: number } {
     const h = typeof window !== "undefined" ? window.innerHeight : 800
-    return { peek: h * 0.9, expanded: h * 0.15 }
+    const BOTTOM_NAV_HEIGHT = 56 // matches MobileBottomNav h-14
+    return { peek: h - BOTTOM_NAV_HEIGHT - 44, expanded: h * 0.15 }
   }
 
   // ---------------------------------------------------------------------------

@@ -66,6 +66,7 @@ export function SignupForm({
       return result
     },
     onSuccess: () => {
+      sessionStorage.setItem("film-atlas-fresh-signup", "1")
       navigate({ to: "/login" })
     },
     onError: (err: Error) =>

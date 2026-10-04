@@ -7,7 +7,6 @@ import {
 } from "react"
 
 import UserFilmCard from "#/components/film/UserFilmCard"
-import LoadingPage from "#/components/layout/LoadingPage"
 import CollectionHeader from "./CollectionHeader"
 import CarouselNavPanel from "./CarouselNavPanel"
 import CollectionSearchModal from "#/components/search/CollectionSearchModal"
@@ -15,8 +14,11 @@ import CollectionFooter from "./CollectionFooter"
 import type { UserFilm } from "@/types/film"
 import type { CollectionData } from "@/hooks/useCollections"
 import { deleteCollectionFn } from "@/server/collections"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { CirclePlus } from "lucide-react"
 import { toast } from "sonner"
+
+const SWIPE_THRESHOLD = 50
 
 interface CollectionCarouselProps {
   className?: string
@@ -83,6 +85,10 @@ export default function CollectionCarousel({
   }
   const isSystemCollection =
     collectionType === "watched" || collectionType === "watchlist"
+  const isMobile = useIsMobile()
+  const effectiveNavWidth = isMobile ? 0 : NAV_BUTTON_WIDTH
+  const mobilePadding = isMobile ? 16 : 0
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const [outerEl, setOuterEl] = useState<HTMLDivElement | null>(null)
   const outerRef = useCallback(
     (node: HTMLDivElement | null) => setOuterEl(node),
@@ -96,15 +102,17 @@ export default function CollectionCarousel({
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const pendingInitialIndex = useRef<number | null>(null)
+  const skipNextTransformEffect = useRef(false)
 
   const realCount = films.length
 
   const showArrows = realCount > slidesPerPage
 
-  const carouselWidth =
-    slidesPerPage * CARD_WIDTH +
-    (slidesPerPage - 1) * GAP +
-    2 * NAV_BUTTON_WIDTH
+  const carouselWidth = isMobile
+    ? "100%"
+    : slidesPerPage * CARD_WIDTH +
+      (slidesPerPage - 1) * GAP +
+      2 * NAV_BUTTON_WIDTH
 
   // Recompute layout on container resize.
   // We measure outerRef.current.parentElement — the full-width section in Collections.tsx —
@@ -161,6 +169,10 @@ export default function CollectionCarousel({
   )
 
   useEffect(() => {
+    if (skipNextTransformEffect.current) {
+      skipNextTransformEffect.current = false
+      return
+    }
     applyTransform(currentIndex, 300)
   }, [currentIndex, applyTransform])
 
@@ -240,6 +252,7 @@ export default function CollectionCarousel({
       setTimeout(() => {
         const snapTo = next - realCount
         applyTransform(snapTo, 0)
+        skipNextTransformEffect.current = true
         setCurrentIndex(snapTo)
         setIsTransitioning(false)
       }, 300)
@@ -269,6 +282,7 @@ export default function CollectionCarousel({
       setTimeout(() => {
         const snapTo = prev + realCount
         applyTransform(snapTo, 0)
+        skipNextTransformEffect.current = true
         setCurrentIndex(snapTo)
         setIsTransitioning(false)
       }, 300)
@@ -278,12 +292,40 @@ export default function CollectionCarousel({
     }
   }, [isTransitioning, realCount, currentIndex, slidesPerPage, applyTransform])
 
+  // Touch swipe handlers for mobile — delegates to existing handleNext/handlePrev
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+  }, [])
+
+  const onTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchStartRef.current) return
+      const dx = e.changedTouches[0].clientX - touchStartRef.current.x
+      const dy = e.changedTouches[0].clientY - touchStartRef.current.y
+      touchStartRef.current = null
+      // Only trigger if horizontal swipe is dominant
+      if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dy) > Math.abs(dx)) return
+      if (dx < 0) handleNext()
+      else handlePrev()
+    },
+    [handleNext, handlePrev],
+  )
+
   const innerWidth = slidesPerPage * CARD_WIDTH + (slidesPerPage - 1) * GAP
   const innerHeight = (CARD_WIDTH / 16) * 10
 
   return (
     <>
-      {!layoutReady && realCount > 0 && <LoadingPage variant="loading" />}
+      {!layoutReady && realCount > 0 && (
+        <div
+          className="w-full flex justify-center py-6"
+          style={{ paddingLeft: effectiveNavWidth || mobilePadding, paddingRight: effectiveNavWidth || mobilePadding }}>
+          <div
+            className="animate-pulse bg-muted rounded-md"
+            style={{ width: CARD_WIDTH, height: innerHeight }}
+          />
+        </div>
+      )}
       <div
         ref={outerRef}
         style={{ width: layoutReady ? carouselWidth : 0 }}
@@ -294,7 +336,7 @@ export default function CollectionCarousel({
               {...collectionHeaderProps}
               filmCount={realCount}
               isSystemCollection={isSystemCollection}
-              navButtonWidth={NAV_BUTTON_WIDTH}
+              navButtonWidth={effectiveNavWidth || mobilePadding}
               hasCover={!!collection.coverPhoto}
               onAdd={() => setIsAddModalOpen(true)}
               onEdit={
@@ -320,12 +362,12 @@ export default function CollectionCarousel({
               <div
                 className="relative"
                 style={{
-                  paddingLeft: NAV_BUTTON_WIDTH,
-                  paddingRight: NAV_BUTTON_WIDTH,
+                  paddingLeft: effectiveNavWidth || mobilePadding,
+                  paddingRight: effectiveNavWidth || mobilePadding,
                 }}>
                 <button
-                  style={{ width: innerWidth, height: innerHeight }}
-                  className="flex items-center justify-center border-1 border-muted-foreground/30 bg-muted-foreground/20 text-muted-foreground rounded-md hover:bg-muted-foreground/10 transition-all ease-out duration-200"
+                  style={{ width: isMobile ? "100%" : innerWidth, height: innerHeight }}
+                  className="flex items-center justify-center border-1 border-muted-foreground/30 bg-muted-foreground/20 text-muted-foreground rounded-md hover:bg-surface-hover transition-all ease-out duration-200"
                   onClick={() => setIsAddModalOpen(true)}>
                   <span className="text-base flex items-center justify-center gap-1">
                     <CirclePlus className="size-[24px]" />
@@ -335,21 +377,25 @@ export default function CollectionCarousel({
               </div>
             ) : (
               <div className="relative">
-                <CarouselNavPanel
-                  direction="left"
-                  showArrows={showArrows}
-                  onClick={handlePrev}
-                  width={NAV_BUTTON_WIDTH}
-                  hasCover={!!collection.coverPhoto}
-                />
+                {!isMobile && (
+                  <CarouselNavPanel
+                    direction="left"
+                    showArrows={showArrows}
+                    onClick={handlePrev}
+                    width={NAV_BUTTON_WIDTH}
+                    hasCover={!!collection.coverPhoto}
+                  />
+                )}
 
                 {/* Overflow container — inset by nav button width so cards start/end at nav edges */}
                 <div
+                  onTouchStart={isMobile ? onTouchStart : undefined}
+                  onTouchEnd={isMobile ? onTouchEnd : undefined}
                   style={{
                     overflowX: "clip",
                     overflowY: "visible",
-                    paddingLeft: NAV_BUTTON_WIDTH,
-                    paddingRight: NAV_BUTTON_WIDTH,
+                    paddingLeft: effectiveNavWidth || mobilePadding,
+                    paddingRight: effectiveNavWidth || mobilePadding,
                     position: "relative",
                   }}>
                   {/* Flex track */}
@@ -372,19 +418,21 @@ export default function CollectionCarousel({
                   </div>
                 </div>
 
-                <CarouselNavPanel
-                  direction="right"
-                  showArrows={showArrows}
-                  onClick={handleNext}
-                  width={NAV_BUTTON_WIDTH}
-                  hasCover={!!collection.coverPhoto}
-                />
+                {!isMobile && (
+                  <CarouselNavPanel
+                    direction="right"
+                    showArrows={showArrows}
+                    onClick={handleNext}
+                    width={NAV_BUTTON_WIDTH}
+                    hasCover={!!collection.coverPhoto}
+                  />
+                )}
               </div>
             )}
             <CollectionFooter
               description={collectionHeaderProps.description}
               isSystemCollection={isSystemCollection}
-              navButtonWidth={NAV_BUTTON_WIDTH}
+              navButtonWidth={effectiveNavWidth || mobilePadding}
               hasCover={!!collection.coverPhoto}
               onUpdateDescription={
                 onUpdateDescription

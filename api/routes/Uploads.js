@@ -126,6 +126,17 @@ router.post("/confirm-collection-cover", validateToken, async (req, res) => {
       return res.status(403).json({ error: "Not an owner of this collection" })
     }
 
+    // Delete old cover from R2 if one exists
+    const { rows: coverRows } = await pool.query(
+      `SELECT "cover_photo" FROM "Collections" WHERE "id" = $1`,
+      [collectionId],
+    )
+    const oldCover = coverRows[0]?.cover_photo
+    if (oldCover && oldCover !== publicUrl) {
+      const oldKey = oldCover.replace(`${PUBLIC_URL}/`, "")
+      await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: oldKey })).catch(() => {})
+    }
+
     await pool.query(`UPDATE "Collections" SET "cover_photo" = $1 WHERE "id" = $2`, [publicUrl, collectionId])
     res.json({ cover_photo: publicUrl })
   } catch (err) {

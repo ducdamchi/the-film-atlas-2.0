@@ -103,7 +103,7 @@ export default function PersonLanding({ job }: { job: "director" | "actor" }) {
       : `/picnotfound.jpg`
 
   return (
-    <div className="@container font-primary">
+    <div className="@container font-primary -mt-12 md:mt-0">
       {/* ── Hero ── */}
       <div className="overflow-hidden relative min-h-screen">
         {/* Tiled portrait images: 1 on mobile, 2 on sm, 3 on xl */}

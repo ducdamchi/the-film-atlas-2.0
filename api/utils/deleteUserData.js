@@ -1,4 +1,6 @@
+import { DeleteObjectCommand } from "@aws-sdk/client-s3"
 import pool from "../db/pool.js"
+import { s3, BUCKET, PUBLIC_URL } from "../lib/s3.js"
 
 /**
  * Deletes all app-specific data for a user before BetterAuth removes the
@@ -8,6 +10,28 @@ export async function deleteUserData(userId) {
   const client = await pool.connect()
   try {
     await client.query("BEGIN")
+
+    // 0. Delete collection cover photos and avatar from R2
+    const { rows: coverRows } = await client.query(
+      `SELECT c."cover_photo" FROM "Collections" c
+       INNER JOIN "CollectionOwners" co ON co."collectionId" = c."id"
+       WHERE co."userId" = $1 AND c."cover_photo" IS NOT NULL`,
+      [userId],
+    )
+    const { rows: avatarRows } = await client.query(
+      `SELECT "image" FROM "user" WHERE "id" = $1`,
+      [userId],
+    )
+    const urlsToDelete = [
+      ...coverRows.map((r) => r.cover_photo),
+      ...(avatarRows[0]?.image ? [avatarRows[0].image] : []),
+    ]
+    await Promise.all(
+      urlsToDelete.map((url) => {
+        const key = url.replace(`${PUBLIC_URL}/`, "")
+        return s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key })).catch(() => {})
+      }),
+    )
 
     // 1. UserDirectorFilms (references UserDirectorStats + WatchedFilms)
     await client.query(

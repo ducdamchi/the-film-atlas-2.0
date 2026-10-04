@@ -317,51 +317,65 @@ export default function InteractionConsole({
   }
 
   /**************** HANDLERS ****************/
-  async function handleLike() {
+  function handleLike() {
     if (!hasDetails) return
     const title = (movieDetails as TMDBFilm).title
     const details = movieDetails as TMDBFilm
-    try {
+
+    const promise = (async () => {
       if (isLiked) {
         await unlikeFilm(filmId)
-        toast.success(`Removed "${title}" from Watched`)
+        return `Removed "${title}" from Watched`
       } else {
         const stars: StarRating =
           requestedRating !== -1 ? (requestedRating as StarRating) : 0
         const film = buildOptimisticFilm(stars)
         await likeFilm(film, { stars, genres: details.genres ?? null })
-        toast.success(`Added "${title}" to Watched`)
         setRequestedRating(-1)
+        return `Added "${title}" to Watched`
       }
-    } catch (err) {
-      if (isGuestLimitError(err)) {
-        setGuestLimitModalOpen(true)
-        return
-      }
-      toast.error("Failed to update watch status")
-    }
+    })()
+
+    toast.promise(promise, {
+      loading: isLiked ? "Removing from Watched…" : "Adding to Watched…",
+      success: (msg) => msg,
+      error: (err) => {
+        if (isGuestLimitError(err)) {
+          setGuestLimitModalOpen(true)
+          return undefined as unknown as string
+        }
+        return "Failed to update watch status"
+      },
+    })
   }
 
-  async function handleSave() {
+  function handleSave() {
     if (!hasDetails) return
     const title = (movieDetails as TMDBFilm).title
     const details = movieDetails as TMDBFilm
-    try {
+
+    const promise = (async () => {
       if (isSaved) {
         await unsaveFilm(filmId)
-        toast.success(`Removed "${title}" from Watchlist`)
+        return `Removed "${title}" from Watchlist`
       } else {
         const film = buildOptimisticFilm(0)
         await saveFilmMutation(film, { genres: details.genres ?? null })
-        toast.success(`Added "${title}" to Watchlist`)
+        return `Added "${title}" to Watchlist`
       }
-    } catch (err) {
-      if (isGuestLimitError(err)) {
-        setGuestLimitModalOpen(true)
-        return
-      }
-      toast.error("Failed to update watchlist")
-    }
+    })()
+
+    toast.promise(promise, {
+      loading: isSaved ? "Removing from Watchlist…" : "Adding to Watchlist…",
+      success: (msg) => msg,
+      error: (err) => {
+        if (isGuestLimitError(err)) {
+          setGuestLimitModalOpen(true)
+          return undefined as unknown as string
+        }
+        return "Failed to update watchlist"
+      },
+    })
   }
 
   // Handler for rating adjustment
@@ -372,31 +386,31 @@ export default function InteractionConsole({
     const title = (movieDetails as TMDBFilm).title
     const details = movieDetails as TMDBFilm
 
-    const execute = async () => {
-      try {
-        if (!isLiked) {
-          const film = buildOptimisticFilm(stars)
-          await likeFilm(film, { stars, genres: details.genres ?? null })
-        } else {
-          await rateFilm(filmId, stars, normalizedDirectors)
-        }
-        toast.success(
-          stars === 0
-            ? `Cleared rating for "${title}"`
-            : `Set "${title}" rating to ${stars} stars`,
-        )
+    const promise = (async () => {
+      if (!isLiked) {
+        const film = buildOptimisticFilm(stars)
+        await likeFilm(film, { stars, genres: details.genres ?? null })
+      } else {
+        await rateFilm(filmId, stars, normalizedDirectors)
+      }
+      setRequestedRating(-1)
+      return stars === 0
+        ? `Cleared rating for "${title}"`
+        : `Set "${title}" rating to ${stars} stars`
+    })()
+
+    toast.promise(promise, {
+      loading: stars === 0 ? "Clearing rating…" : "Updating rating…",
+      success: (msg) => msg,
+      error: (err) => {
         setRequestedRating(-1)
-      } catch (err) {
         if (isGuestLimitError(err)) {
           setGuestLimitModalOpen(true)
-          setRequestedRating(-1)
-          return
+          return undefined as unknown as string
         }
-        toast.error("Failed to update rating")
-      }
-    }
-
-    void execute()
+        return "Failed to update rating"
+      },
+    })
   }, [requestedRating])
 
   return (

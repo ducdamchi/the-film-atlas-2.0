@@ -10,7 +10,7 @@ import {
 import type { RouterContext, AuthUser } from "../router"
 import type { AuthState } from "../types/auth"
 import type { ReactNode } from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { authClient } from "../lib/authClient"
 import "../styles.css"
 
@@ -24,14 +24,20 @@ import useCommandKey from "../hooks/useCommandKey"
 import { CompleteProfileModal } from "../pages/settings/components/CompleteProfileModal"
 import { GuestLimitModal } from "../components/auth/GuestLimitModal"
 import { runMigrations } from "../utils/localStorageMigrations"
+import { getGuestData } from "../utils/guestStore"
+import {
+  syncGuestDataIfPresent,
+  clearGuestDataQuietly,
+} from "../utils/syncGuestData"
+import { useQueryClient } from "@tanstack/react-query"
 import { Toaster } from "../components/ui-shadcn/sonner"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools"
-import {
-  SidebarProvider,
-  SidebarTrigger,
-} from "../components/ui-shadcn/sidebar"
+import { SidebarProvider } from "../components/ui-shadcn/sidebar"
 import { AppSidebar } from "#/components/sidebar/AppSidebar"
+import { MobileBottomNav } from "#/components/mobile/MobileBottomNav"
+import { MobileTopHeader } from "#/components/mobile/MobileTopHeader"
+import { MobileAccountDrawer } from "#/components/mobile/MobileAccountDrawer"
 import { TooltipProvider } from "#/components/ui-shadcn/tooltip"
 
 export const Route = createRootRouteWithContext<RouterContext>()({
@@ -128,7 +134,10 @@ function RootComponent() {
   const isMapPage = pathname === "/map"
   const isHomePage = pathname === "/"
   const [searchModalOpen, setSearchModalOpen] = useState(false)
+  const [accountDrawerOpen, setAccountDrawerOpen] = useState(false)
   useCommandKey(() => setSearchModalOpen((s) => !s), "k")
+
+  const queryClient = useQueryClient()
 
   const authState: AuthState = sessionPending
     ? (auth ?? loggedOutState)
@@ -145,6 +154,37 @@ function RootComponent() {
         }
       : loggedOutState
 
+  // Handle guest data sync after Google OAuth redirects.
+  // Email login is handled in login-form.tsx; this only catches the
+  // OAuth case where a full-page redirect bypasses the login form entirely.
+  const prevAuthStatus = useRef(authState.status)
+  useEffect(() => {
+    const wasLoggedOut = !prevAuthStatus.current
+    prevAuthStatus.current = authState.status
+
+    if (!wasLoggedOut || !authState.status || !liveSession) return
+
+    const guestData = getGuestData()
+    const hasGuestData =
+      guestData.watched.length > 0 || guestData.watchlisted.length > 0
+    if (!hasGuestData) return
+
+    const createdAt = (liveSession.user as any).createdAt
+    if (!createdAt) {
+      clearGuestDataQuietly(queryClient)
+      return
+    }
+
+    const ageMs = Date.now() - new Date(createdAt).getTime()
+    const isNewAccount = ageMs < 60_000
+
+    if (isNewAccount) {
+      syncGuestDataIfPresent(queryClient)
+    } else {
+      clearGuestDataQuietly(queryClient)
+    }
+  }, [authState.status])
+
   return (
     <RootDocument>
       <AuthContext.Provider
@@ -155,8 +195,7 @@ function RootComponent() {
               <ScrollToAnchor />
               <AppSidebar />
 
-              <main className="group peer w-full">
-                <SidebarTrigger className="fixed top-3 left-3 z-50 md:hidden" />
+              <main className="group peer w-full pb-14 pt-12 md:pb-0 md:pt-0">
                 {/* <NavBar /> */}
                 {searchModalOpen && (
                   <QuickSearchModal
@@ -185,16 +224,22 @@ function RootComponent() {
               </main>
             </SidebarProvider>
           </TooltipProvider>
+          <MobileTopHeader onAvatarClick={() => setAccountDrawerOpen(true)} drawerOpen={accountDrawerOpen} />
+          <MobileAccountDrawer
+            open={accountDrawerOpen}
+            onOpenChange={setAccountDrawerOpen}
+          />
+          <MobileBottomNav />
         </AppContext.Provider>
       </AuthContext.Provider>
-      <TanStackDevtools
+      {/* <TanStackDevtools
         plugins={[
           {
             name: "TanStack Query",
             render: <ReactQueryDevtoolsPanel />,
           },
         ]}
-      />
+      /> */}
     </RootDocument>
   )
 }

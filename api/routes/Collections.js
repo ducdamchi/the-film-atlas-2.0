@@ -1,11 +1,13 @@
 import express from "express"
 import { generateKeyBetween } from "fractional-indexing"
+import { DeleteObjectCommand } from "@aws-sdk/client-s3"
 import pool from "../db/pool.js"
 import { auth } from "../lib/auth.js"
 import { fromNodeHeaders } from "better-auth/node"
 import { validateToken } from "../middlewares/AuthMiddleware.js"
 import { updateAggregates } from "../utils/collectionAggregates.js"
 import { ensureSystemCollections } from "../utils/systemCollections.js"
+import { s3, BUCKET, PUBLIC_URL } from "../lib/s3.js"
 
 const router = express.Router()
 
@@ -231,6 +233,17 @@ router.delete("/:id", validateToken, async (req, res) => {
       return res
         .status(403)
         .json({ error: "Cannot delete a system collection" })
+
+    // Delete cover photo from R2 if one exists
+    const { rows: coverRows } = await pool.query(
+      `SELECT "cover_photo" FROM "Collections" WHERE "id" = $1`,
+      [id],
+    )
+    const coverUrl = coverRows[0]?.cover_photo
+    if (coverUrl) {
+      const objectKey = coverUrl.replace(`${PUBLIC_URL}/`, "")
+      await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: objectKey })).catch(() => {})
+    }
 
     const { rowCount } = await pool.query(
       `DELETE FROM "Collections" WHERE id = $1`,

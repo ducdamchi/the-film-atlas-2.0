@@ -25,6 +25,7 @@
   --font-logo: "Rammetto One", sans-serif, system-ui;
   --font-sans: "Outfit Variable", system-ui, "Noto Sans", sans-serif;
   --font-heading: "Roboto Slab Variable", serif;
+  --color-surface-hover: var(--surface-hover);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -116,6 +117,7 @@
   --chart-3: oklch(0.586 0.253 17.585);
   --chart-4: oklch(0.514 0.222 16.935);
   --chart-5: oklch(0.455 0.188 13.697);
+  --surface-hover: oklch(0.926 0.003 213.5);
   --sidebar: oklch(0.148 0.004 228.8);
   --sidebar-foreground: oklch(0.987 0.002 197.1);
   --sidebar-primary: oklch(0.586 0.253 17.585);
@@ -152,6 +154,7 @@
   --chart-3: oklch(0.586 0.253 17.585);
   --chart-4: oklch(0.514 0.222 16.935);
   --chart-5: oklch(0.455 0.188 13.697);
+  --surface-hover: oklch(0.206 0.005 220);
   --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.987 0.002 197.1);
   --sidebar-primary: oklch(0.645 0.246 16.439);
@@ -180,7 +183,7 @@
     @apply uppercase font-bold text-xl @3xl:text-2xl flex items-center justify-center w-full;
   }
   .page-title {
-    @apply mt-5 md:mt-10;
+    @apply hidden md:flex mt-5 md:mt-10;
   }
 
   .page-subtitle {
@@ -212,7 +215,7 @@
   }
 
   .landing-sectionContent {
-    @apply text-xl/6 lg:text-2xl/9 font-semibold text-balance max-w-[60rem];
+    @apply text-xl/6 lg:text-2xl/9 font-semibold text-foreground text-balance max-w-[60rem];
   }
 
   .landing-ratingsTitle {
