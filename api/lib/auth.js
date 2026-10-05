@@ -12,10 +12,10 @@ const { Pool } = pg
 
 export const auth = betterAuth({
   database: new Pool({
-    host:     process.env.DB_HOST,
-    port:     Number(process.env.DB_PORT ?? 5432),
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT ?? 5432),
     database: process.env.DB_NAME,
-    user:     process.env.DB_USER,
+    user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     ssl:
       process.env.SSL_DISABLED === "true"
@@ -42,8 +42,26 @@ export const auth = betterAuth({
     },
   },
 
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      const resend = getClient()
+      await resend.emails.send({
+        from: "The Film Atlas <noreply@support.thefilmatlas.org>",
+        to: user.email,
+        subject: "Verify your Film Atlas email",
+        html: `<p>Welcome to The Film Atlas!</p>
+               <p><a href="${url}">Click here to verify your email address.</a></p>
+               <p>This link expires in 24 hours.</p>
+               <p>If you didn't create this account, you can safely ignore this email.</p>`,
+      })
+    },
+  },
+
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
     minPasswordLength: 8,
     password: {
       hash: (password) => bcrypt.hash(password, 10),
@@ -52,7 +70,7 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, url }) => {
       const resend = getClient()
       await resend.emails.send({
-        from: "Film Atlas <noreply@support.thefilmatlas.org>",
+        from: "The Film Atlas <noreply@support.thefilmatlas.org>",
         to: user.email,
         subject: "Reset your Film Atlas password",
         html: `
@@ -82,8 +100,8 @@ export const auth = betterAuth({
     },
     additionalFields: {
       locationCountry: { type: "string", required: false, defaultValue: null },
-      locationCity:    { type: "string", required: false, defaultValue: null },
-      locationSource:  { type: "string", required: false, defaultValue: null },
+      locationCity: { type: "string", required: false, defaultValue: null },
+      locationSource: { type: "string", required: false, defaultValue: null },
     },
   },
 

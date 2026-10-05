@@ -10,6 +10,7 @@ import {
 
 import ForgotPasswordForm from "#/components/ui-shadcn/forgot-password-form"
 import AuthBackgroundShape from "@/assets/svg/auth-background-shape"
+import { Link } from "@tanstack/react-router"
 
 const ForgotPassword = () => {
   return (
@@ -35,10 +36,11 @@ const ForgotPassword = () => {
           {/* ForgotPassword Form */}
           <ForgotPasswordForm />
 
-          <a href="#" className="group mx-auto flex w-fit items-center gap-2">
-            <ChevronLeftIcon className="size-5 transition-transform duration-200 group-hover:-translate-x-0.5" />
-            <span>Back to login</span>
-          </a>
+          <p className="text-center text-sm text-muted-foreground">
+            <Link to="/login" className="underline underline-offset-4">
+              Back to login
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </div>

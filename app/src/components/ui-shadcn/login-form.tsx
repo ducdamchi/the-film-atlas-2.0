@@ -55,8 +55,8 @@ export function LoginForm({
       return result
     },
     onSuccess: async () => {
-      const isFreshSignup = sessionStorage.getItem("film-atlas-fresh-signup")
-      sessionStorage.removeItem("film-atlas-fresh-signup")
+      const isFreshSignup = localStorage.getItem("film-atlas-fresh-signup")
+      localStorage.removeItem("film-atlas-fresh-signup")
 
       if (isFreshSignup) {
         await syncGuestDataIfPresent(queryClient)
@@ -67,8 +67,28 @@ export function LoginForm({
       router.invalidate()
       navigate({ to: "/" })
     },
-    onError: (err: Error) =>
-      toast.error(err.message ?? "Login failed. Please try again."),
+    onError: (err: Error) => {
+      const msg = err.message ?? ""
+      if (msg.toLowerCase().includes("email is not verified")) {
+        const loginValue = form.getValues("login")
+        const email = loginValue.includes("@") ? loginValue : undefined
+        toast.error("Your email is not verified.", {
+          action: email
+            ? {
+                label: "Resend verification",
+                onClick: () =>
+                  navigate({
+                    to: "/verify-email",
+                    search: { email },
+                  }),
+              }
+            : undefined,
+          duration: 8000,
+        })
+      } else {
+        toast.error(msg || "Login failed. Please try again.")
+      }
+    },
   })
 
   return (

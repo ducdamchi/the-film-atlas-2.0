@@ -71,7 +71,7 @@ export default function Contact() {
                   required></textarea>
               </div>
               <button
-                className="w-[20%] self-end border-1 rounded-none bg-atlas-pink text-white p-1 hover:bg-atlas-pink/80 transition-all ease-out duration-200"
+                className="w-[20%] self-end border-1 rounded-none bg-foreground text-background p-1 hover:bg-atlas-pink/80 transition-all ease-out duration-200"
                 type="submit">
                 <div className="submit-button-text">Send</div>
               </button>

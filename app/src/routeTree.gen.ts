@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -28,6 +29,11 @@ import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId_'
 import { Route as DirectorTmdbIdRouteImport } from './routes/director/$tmdbId'
 import { Route as ActorTmdbIdRouteImport } from './routes/actor/$tmdbId'
 
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/actor/$tmdbId': typeof ActorTmdbIdRoute
   '/director/$tmdbId': typeof DirectorTmdbIdRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/actor/$tmdbId': typeof ActorTmdbIdRoute
   '/director/$tmdbId': typeof DirectorTmdbIdRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/actor/$tmdbId': typeof ActorTmdbIdRoute
   '/director/$tmdbId': typeof DirectorTmdbIdRoute
   '/films/$tmdbId_': typeof FilmsTmdbIdRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/terms'
+    | '/verify-email'
     | '/actor/$tmdbId'
     | '/director/$tmdbId'
     | '/films/$tmdbId'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/terms'
+    | '/verify-email'
     | '/actor/$tmdbId'
     | '/director/$tmdbId'
     | '/films/$tmdbId'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/terms'
+    | '/verify-email'
     | '/actor/$tmdbId'
     | '/director/$tmdbId'
     | '/films/$tmdbId_'
@@ -259,6 +271,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   TermsRoute: typeof TermsRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
   ActorTmdbIdRoute: typeof ActorTmdbIdRoute
   DirectorTmdbIdRoute: typeof DirectorTmdbIdRoute
   FilmsTmdbIdRoute: typeof FilmsTmdbIdRoute
@@ -266,6 +279,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -411,6 +431,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   TermsRoute: TermsRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
   ActorTmdbIdRoute: ActorTmdbIdRoute,
   DirectorTmdbIdRoute: DirectorTmdbIdRoute,
   FilmsTmdbIdRoute: FilmsTmdbIdRoute,
