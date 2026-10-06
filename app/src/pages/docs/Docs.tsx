@@ -4,6 +4,7 @@ import { GoSquareFill } from "react-icons/go"
 import { useNavigate } from "@tanstack/react-router"
 
 import { MathJax, MathJaxContext } from "better-react-mathjax"
+import PageTitle from "@/components/ui-custom/PageTitle"
 import { MdMenuBook } from "react-icons/md"
 
 export default function Docs() {
@@ -153,8 +154,8 @@ export default function Docs() {
             )}
           </div>
 
-          <div className="w-full">
-            <div className="font-heading page-title mb-10">DOCUMENTATION</div>
+          <div className="@container w-full">
+            <PageTitle title="Documentation" className="mb-10" />
 
             <div className="flex items-center justify-center ">
               <div className=" md:p-10 max-w-[40rem] md:text-lg md:max-w-[45rem]">

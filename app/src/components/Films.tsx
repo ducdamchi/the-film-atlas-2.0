@@ -16,6 +16,7 @@ import {
 import type { TMDBFilmSummary } from "@/types/tmdb"
 
 /* Components */
+import PageTitle from "./ui-custom/PageTitle"
 import SearchBar from "./search/SearchBar"
 import UserFilmGallery from "./film/UserFilmGallery"
 import TmdbFilmGallery from "./film/TmdbFilmGallery"
@@ -52,9 +53,8 @@ export default function Films() {
   const activeWatchedOptions = getWatchedQueryOptions(isGuest)
   const activeWatchlistedOptions = getWatchlistedQueryOptions(isGuest)
 
-  const { data: watchedList = [], isLoading: watchedLoading } = useQuery(
-    activeWatchedOptions,
-  )
+  const { data: watchedList = [], isLoading: watchedLoading } =
+    useQuery(activeWatchedOptions)
   const { data: watchlistedList = [], isLoading: watchlistedLoading } =
     useQuery(activeWatchlistedOptions)
 
@@ -132,10 +132,10 @@ export default function Films() {
   }, [searchInput])
 
   return (
-    <div className="font-primary mt-20 min-h-screen">
+    <div className="font-primary min-h-screen">
       {/* Wrapper for entire page */}
       <div className="@container overflow-visible flex flex-col items-center">
-        <div className="font-heading page-title">Films</div>
+        <PageTitle title="Films" />
 
         <SearchBar
           searchInput={searchInput}

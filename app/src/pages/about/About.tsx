@@ -2,13 +2,14 @@ import { GoSquareFill } from "react-icons/go"
 import { RiProgress8Line, RiProgress4Line } from "react-icons/ri"
 import { useNavigate } from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
+import PageTitle from "@/components/ui-custom/PageTitle"
 
 export default function About() {
   const navigate = useNavigate()
   return (
-    <div className="font-primary mb-20 min-h-screen">
+    <div className="@container font-primary mb-20 min-h-screen">
       <div className="flex flex-col items-center">
-        <div className="font-heading page-title">About</div>
+        <PageTitle title="About" />
 
         <div className="md:p-10 max-w-[40rem] md:text-lg md:max-w-[45rem] flex flex-col gap-10">
           <section className="p-5">

@@ -64,7 +64,7 @@ export function MobileTopHeader({
           </AvatarFallback>
         </Avatar>
       </button>
-      <span className="text-base font-semibold truncate">{pageTitle}</span>
+      <span className="text-xl font-semibold truncate">{pageTitle}</span>
     </header>
   )
 }

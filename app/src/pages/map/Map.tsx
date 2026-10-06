@@ -31,6 +31,7 @@ import {
 import UserFilmGallery from "../../components/film/UserFilmGallery"
 import TmdbFilmGallery from "../../components/film/TmdbFilmGallery"
 import Toggle from "../../components/ui-custom/Toggle"
+import PageTitle from "../../components/ui-custom/PageTitle"
 import MapCountriesLayer from "./MapCountriesLayer"
 import DiscoverControls from "./components/DiscoverControls"
 import MyFilmsControls from "./components/MyFilmsControls"
@@ -196,6 +197,22 @@ export default function Map() {
           "bottom-0 left-0 right-0",
           "md:top-0 md:relative md:h-screen",
         ].join(" ")}>
+        {/* Mobile drag handle — positioned above the panel, outside the white background */}
+        <button
+          type="button"
+          aria-label="Resize or toggle panel"
+          className={[
+            "md:hidden absolute left-1/2 -translate-x-1/2 -top-7",
+            "z-10 w-14 h-7",
+            "flex items-center justify-center",
+            "bg-foreground rounded-sm",
+            "cursor-ns-resize touch-none select-none",
+          ].join(" ")}
+          onClick={handleDragAreaClick}
+          onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}>
+          <FaGripLines className="text-background" />
+        </button>
+
         {/* Inner scroll container */}
         <div
           ref={innerScrollRef}
@@ -204,25 +221,15 @@ export default function Map() {
             "shadow-[25px_-8px_30px_rgba(0,0,0,0.15)] [clip-path:inset(-100%_-100%_-20rem_-100%)]",
             "md:pt-10 md:min-h-screen md:shadow-[8px_0_30px_rgba(0,0,0,0.15)] md:[clip-path:none]",
           ].join(" ")}>
-          {/* Mobile drag handle */}
-          <div
-            className="md:hidden sticky top-0 z-250 w-full flex flex-col items-center cursor-ns-resize touch-none select-none bg-background hover:bg-surface-hover transition-colors ease-out duration-200 py-2 mb-2"
-            onClick={handleDragAreaClick}
-            onPointerDown={(e) => onDragHandlePointerDown(e.nativeEvent)}>
-            <FaGripLines className="text-2xl text-foreground" />
-          </div>
-
-          {isoA2 ? (
-            <div className="page-title-map font-heading">
-              {getCountryName(isoA2)}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center">
-              <div className="page-title-map font-heading">
-                select region on map
-              </div>
-            </div>
-          )}
+          <PageTitle
+            className="mt-10 md:mt-0"
+            title={
+              isoA2
+                ? (getCountryName(isoA2) ?? "Unknown Region")
+                : "select region on map"
+            }
+            variant="map"
+          />
 
           <div className="flex flex-col items-center justify-center mt-5 w-[90%] min-w-[15rem] md:w-[90%]">
             {/* Discover / My Films toggle */}

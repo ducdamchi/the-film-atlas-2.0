@@ -1,12 +1,13 @@
 import { GoSquareFill } from "react-icons/go"
 import { useNavigate } from "@tanstack/react-router"
+import PageTitle from "@/components/ui-custom/PageTitle"
 
 export default function Privacy() {
   const navigate = useNavigate()
   return (
-    <div className="font-primary mt-20 mb-20 min-h-screen">
+    <div className="@container font-primary mb-20 min-h-screen">
       <div className="flex flex-col items-center">
-        <div className="font-heading page-title">PRIVACY POLICY</div>
+        <PageTitle title="Privacy Policy" />
 
         <div className="md:p-10 max-w-[40rem] md:text-lg md:max-w-[45rem] flex flex-col gap-0">
           <section className="p-5">

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import Swal from "sweetalert2"
+import PageTitle from "@/components/ui-custom/PageTitle"
 
 export default function Contact() {
   const [sent, setSent] = useState(false)
@@ -33,9 +34,9 @@ export default function Contact() {
   }
 
   return (
-    <div className="font-primary mb-20 min-h-screen">
+    <div className="@container font-primary mb-20 min-h-screen">
       <div className="flex flex-col items-center text-base md:text-lg ">
-        <div className="font-heading page-title">Contact</div>
+        <PageTitle title="Contact" />
         <div className="relative mt-[4rem] mb-[4rem] flex h-auto w-full flex-col items-center justify-center gap-1">
           <div className="m-2 p-4">
             For all inquiries, please contact us using the form below.

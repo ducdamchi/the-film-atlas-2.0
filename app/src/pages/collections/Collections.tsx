@@ -18,6 +18,7 @@ import { useCollections } from "@/hooks/useCollections"
 import type { AppCollection } from "@/types/api"
 
 /* Components */
+import PageTitle from "@/components/ui-custom/PageTitle"
 import SearchBar from "@/components/search/SearchBar"
 import CollectionCarousel from "./components/CollectionCarousel"
 import CollectionCover from "./components/CollectionCover"
@@ -348,7 +349,7 @@ export default function Collections() {
   return (
     <div className="font-primary min-h-screen mb-40 inset-0 bg-background">
       <div className="@container flex flex-col items-center w-full">
-        <div className="font-heading page-title">COLLECTIONS</div>
+        <PageTitle title="Collections" />
         <SearchBar
           searchInput={searchInput}
           setSearchInput={setSearchInput}

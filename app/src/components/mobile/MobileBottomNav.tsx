@@ -27,7 +27,7 @@ export function MobileBottomNav() {
   const isActive = (path: string) => pathname.startsWith(path)
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-100 bg-sidebar border-t border-sidebar-border md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-100 bg-sidebar border-sidebar-border md:hidden">
       <div className="flex items-center justify-around h-14">
         <NavButton
           icon={Map}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react"
+import PageTitle from "@/components/ui-custom/PageTitle"
 import { useAuth } from "@/utils/authContext"
 import { useNavigate } from "@tanstack/react-router"
 import { LocationPicker } from "./components/LocationPicker"
@@ -457,8 +458,8 @@ export function AccountSettings() {
   if (!authState.status) return null
 
   return (
-    <div className="font-primary min-h-screen text-body bg-background">
-      <div className="font-heading page-title">ACCOUNT SETTINGS</div>
+    <div className="@container font-primary min-h-screen text-body bg-background">
+      <PageTitle title="Account Settings" />
 
       <div className="pt-10 pb-12 max-w-xl mx-auto px-4 flex flex-col gap-6">
         <Section title="Change Username">

@@ -11,6 +11,7 @@ import {
   directorsQueryOptions,
   guestDirectorsQueryOptions,
 } from "@/queries/directors.queries"
+import PageTitle from "@/components/ui-custom/PageTitle"
 
 /**
  * TMDB /search/person result shape — includes `known_for` which the
@@ -117,7 +118,7 @@ export default function Directors() {
     <div className="font-primary min-h-screen inset-0 left-[3rem]">
       {/* Wrapper for entire page */}
       <div className="@container flex flex-col items-center">
-        <div className="font-heading page-title">DIRECTORS</div>
+        <PageTitle title="Directors" />
 
         <SearchBar
           searchInput={searchInput}
